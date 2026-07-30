@@ -1,0 +1,82 @@
+#pragma once
+
+#include "common.h"
+#include "utility.h"
+
+namespace rgssx {
+
+class DrawableSet;
+
+struct DrawParam {
+  int ox = 0, oy = 0;
+  RectRegion scissor;
+  raylib::RenderTexture2D target;
+};
+
+struct ZValue {
+  int value = 0;
+  int sorting = 0;
+  double timestamp = 0;
+
+  ZValue() : timestamp(raylib::GetTime()) {}
+
+  bool operator<(const ZValue& other) const {
+    if (value != other.value)
+      return value < other.value;
+    if (sorting != other.sorting)
+      return sorting < other.sorting;
+    return timestamp < other.timestamp;
+  }
+
+  bool operator>(const ZValue& other) const { return other < *this; }
+  bool operator<=(const ZValue& other) const { return !(*this > other); }
+  bool operator>=(const ZValue& other) const { return !(*this < other); }
+};
+
+class Drawable {
+ public:
+  Drawable();
+  virtual ~Drawable();
+
+  virtual ATTR(bool, Visible);
+  virtual ATTR(int, Z);
+
+  virtual void Prepare() {}
+  virtual void Draw(DrawParam param) {}
+
+ protected:
+  ZValue& order() { return z_; }
+
+  void Resort(ZValue old);
+  void SetParent(DrawableSet* parent);
+  void InsertAfter(Drawable* node);
+  void RemoveFromList();
+
+ private:
+  friend class DrawableSet;
+
+  void BubbleLeft();
+  void BubbleRight();
+
+  Drawable* prev_ = nullptr;
+  Drawable* next_ = nullptr;
+
+  DrawableSet* parent_ = nullptr;
+  bool visible_ = true;
+  ZValue z_ = {};
+};
+
+class DrawableSet {
+ public:
+  DrawableSet();
+  ~DrawableSet();
+
+  void DispatchPrepare();
+  void DispatchDraw(DrawParam param);
+
+ private:
+  friend class Drawable;
+  Drawable root_;  // sentinel node for doubly-linked list
+};
+
+}  // namespace rgssx
