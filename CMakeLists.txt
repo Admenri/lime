@@ -10,5 +10,8 @@ if(MSVC)
 endif()
 
 add_subdirectory(3rdparty/raylib)
+add_subdirectory(3rdparty/mruby-cmake)
 
 add_subdirectory(src)
+add_subdirectory(binding)
+add_subdirectory(app)

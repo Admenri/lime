@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.30)
 
-add_executable(rgssx)
-target_sources(rgssx
+add_library(rgssx_core)
+
+target_sources(rgssx_core
  PUBLIC
-  main.cc
   raygui.c
   config.cc
   bitmap.cc
@@ -21,10 +21,7 @@ target_sources(rgssx
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_sources(rgssx PUBLIC platform/win32.cc)
+  target_sources(rgssx_core PUBLIC platform/win32.cc)
 endif()
 
-target_link_libraries(rgssx
- PUBLIC
-  raylib
-)
+target_link_libraries(rgssx_core PUBLIC raylib)

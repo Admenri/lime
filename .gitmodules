@@ -4,3 +4,6 @@
 [submodule "3rdparty/raygui"]
 	path = 3rdparty/raygui
 	url = https://github.com/raysan5/raygui.git
+[submodule "3rdparty/mruby-cmake/mruby"]
+	path = 3rdparty/mruby-cmake/mruby
+	url = https://github.com/mruby/mruby.git
