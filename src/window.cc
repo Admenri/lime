@@ -346,6 +346,15 @@ ATTR_DEF(int, Openness, Window) {
   }
 }
 
+ATTR_DEF(int, Scale, Window) {
+  if (value.has_value()) {
+    scale_ = *value;
+    return std::nullopt;
+  } else {
+    return scale_;
+  }
+}
+
 ATTR_DEF(RefPtr<Tone>, Tone, Window) {
   if (value.has_value()) {
     tone_->Set(*value);

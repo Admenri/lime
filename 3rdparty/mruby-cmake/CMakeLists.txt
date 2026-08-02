@@ -68,6 +68,11 @@ set(MRUBY_GEMS
   mruby-bigint
 )
 
+set(EXTERNAL_MRUBY_GEMS
+  mruby-marshal-c
+)
+set(EXTERNAL_MRUBY_GEMS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gems")
+
 # ── Process gems: collect sources, generate mrblib C files ───────────────────
 set(MRUBY_GEMS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mruby/mrbgems")
 set(MRUBY_GEMS_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/gems")
@@ -94,18 +99,20 @@ function(_write_c_byte_array file_path out_var)
   endif()
   file(READ "${file_path}" _bytes HEX)
   # _bytes is a hex string like "23202D2D0A..."
+  # Each source byte is encoded as 2 hex characters, so the hex string
+  # length is twice the file size in bytes.
+  math(EXPR _hex_len "${_total} * 2")
   set(_pos 0)
   set(_col 0)
-  while(_pos LESS _total)
-    math(EXPR _end "${_pos} + 1")
+  while(_pos LESS _hex_len)
     string(SUBSTRING "${_bytes}" ${_pos} 2 _hex)
     string(APPEND _result "0x${_hex}")
     math(EXPR _pos "${_pos} + 2")
-    if(_pos LESS _total)
+    if(_pos LESS _hex_len)
       string(APPEND _result ", ")
     endif()
     math(EXPR _col "${_col} + 1")
-    if(_col EQUAL 16 AND _pos LESS _total)
+    if(_col EQUAL 16 AND _pos LESS _hex_len)
       string(APPEND _result "\n")
       set(_col 0)
     endif()
@@ -200,6 +207,105 @@ foreach(gem ${MRUBY_GEMS})
     list(APPEND MRUBY_GEMS_SOURCES "${_gem_init_c}")
     list(APPEND MRUBY_GEM_C_SOURCES "${_gem_init_c}")
     set(gem_has_src TRUE)  # now it has C source (stubs)
+    message(STATUS "Gem init stubs: ${gem}")
+  endif()
+
+  list(APPEND MRUBY_GEMS_SOURCES "${gem_mrblib_c}")
+  list(APPEND MRUBY_GEM_GEN_SOURCES "${gem_mrblib_c}")
+
+  if(gem_has_src)
+    list(APPEND MRUBY_GEMS_ACTIVE "${gem}")
+  endif()
+endforeach()
+
+# ── Process external gems ──────────────────────────────────────────────────
+foreach(gem ${EXTERNAL_MRUBY_GEMS})
+  set(gem_dir "${EXTERNAL_MRUBY_GEMS_DIR}/${gem}")
+  set(gem_has_src FALSE)
+
+  # ── Collect C source files from src/ and core/ ──────────────────────────
+  if(EXISTS "${gem_dir}/src")
+    file(GLOB gem_src_files "${gem_dir}/src/*.c")
+    list(LENGTH gem_src_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_src_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_src_files})
+    endif()
+  endif()
+  if(EXISTS "${gem_dir}/core")
+    file(GLOB gem_core_files "${gem_dir}/core/*.c")
+    list(LENGTH gem_core_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_core_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_core_files})
+    endif()
+  endif()
+
+  # ── Add gem include dirs for compilation ────────────────────────────────
+  if(EXISTS "${gem_dir}/include")
+    target_include_directories(mruby PRIVATE "${gem_dir}/include")
+  endif()
+  if(EXISTS "${gem_dir}/src")
+    target_include_directories(mruby PRIVATE "${gem_dir}/src")
+  endif()
+
+  # ── Generate mrblib C file at CONFIGURE time ────────────────────────────
+  set(mrblib_dir "${gem_dir}/mrblib")
+  set(gem_mrblib_c "${MRUBY_GEMS_BUILD_DIR}/${gem}_mrblib.c")
+  if(EXISTS "${mrblib_dir}")
+    file(GLOB rb_files RELATIVE "${mrblib_dir}" "${mrblib_dir}/*.rb")
+    list(SORT rb_files)
+    if(rb_files)
+      _gem_func_name("${gem}" gem_fn)
+      set(_mrblib_body "")
+      string(APPEND _mrblib_body "/* Auto-generated - DO NOT EDIT */\n")
+      string(APPEND _mrblib_body "#include <mruby/compile.h>\n\n")
+
+      foreach(rb ${rb_files})
+        set(_rb_path "${mrblib_dir}/${rb}")
+        _write_c_byte_array("${_rb_path}" _c_bytes)
+        string(REGEX REPLACE "[^a-zA-Z0-9_]" "_" _var "mrblib_${gem_fn}_${rb}")
+        string(APPEND _mrblib_body "static const unsigned char ${_var}[] = {\n${_c_bytes}\n};\n\n")
+      endforeach()
+
+      string(APPEND _mrblib_body "void mrb_load_gem_${gem_fn}(mrb_state *mrb)\n{\n")
+      foreach(rb ${rb_files})
+        string(REGEX REPLACE "[^a-zA-Z0-9_]" "_" _var "mrblib_${gem_fn}_${rb}")
+        string(APPEND _mrblib_body "  mrb_load_nstring(mrb, (const char*)${_var}, sizeof(${_var}));\n")
+      endforeach()
+      string(APPEND _mrblib_body "}\n")
+
+      file(WRITE "${gem_mrblib_c}" "${_mrblib_body}")
+      set(gem_has_mrblib TRUE)
+      message(STATUS "Gem mrblib: ${gem} (${rb_files})")
+    endif()
+  endif()
+
+  # ── Stub if no mrblib ──────────────────────────────────────────────────
+  if(NOT EXISTS "${gem_mrblib_c}")
+    _gem_func_name("${gem}" gem_fn)
+    file(WRITE "${gem_mrblib_c}"
+      "/* Auto-generated empty stub */\n"
+      "#include <mruby.h>\n"
+      "void mrb_load_gem_${gem_fn}(mrb_state *mrb) { (void)mrb; }\n"
+    )
+  endif()
+
+  # ── Generate init/final stubs for gems without C source ─────────────────
+  if(NOT gem_has_src)
+    _gem_func_name("${gem}" gem_fn)
+    set(_gem_init_c "${MRUBY_GEMS_BUILD_DIR}/${gem}_init.c")
+    file(WRITE "${_gem_init_c}"
+      "/* Auto-generated stubs for gem without C source */\n"
+      "#include <mruby.h>\n"
+      "void mrb_${gem_fn}_gem_init(mrb_state *mrb) { (void)mrb; }\n"
+      "void mrb_${gem_fn}_gem_final(mrb_state *mrb) { (void)mrb; }\n"
+    )
+    list(APPEND MRUBY_GEMS_SOURCES "${_gem_init_c}")
+    list(APPEND MRUBY_GEM_C_SOURCES "${_gem_init_c}")
+    set(gem_has_src TRUE)
     message(STATUS "Gem init stubs: ${gem}")
   endif()
 
@@ -356,6 +462,17 @@ foreach(gem ${MRUBY_GEMS})
     list(APPEND MRUBY_PP_INCLUDE_DIRS "${gem_dir}/include")
   endif()
   # Some gems include local headers from their src/ directory
+  if(EXISTS "${gem_dir}/src")
+    list(APPEND MRUBY_PP_INCLUDE_DIRS "${gem_dir}/src")
+  endif()
+endforeach()
+
+# Add external gem include directories for presym preprocessing
+foreach(gem ${EXTERNAL_MRUBY_GEMS})
+  set(gem_dir "${EXTERNAL_MRUBY_GEMS_DIR}/${gem}")
+  if(EXISTS "${gem_dir}/include")
+    list(APPEND MRUBY_PP_INCLUDE_DIRS "${gem_dir}/include")
+  endif()
   if(EXISTS "${gem_dir}/src")
     list(APPEND MRUBY_PP_INCLUDE_DIRS "${gem_dir}/src")
   endif()

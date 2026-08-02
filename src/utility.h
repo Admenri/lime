@@ -45,6 +45,7 @@ class Rect : public RefCounted<Rect> {
   Rect(int xv, int yv, int w, int h) : x(xv), y(yv), width(w), height(h) {}
   Rect() {}
 
+  /*-export.begin-*/
   void Set(int xv, int yv, int w, int h) {
     x = xv;
     y = yv;
@@ -66,6 +67,9 @@ class Rect : public RefCounted<Rect> {
     height = 0;
   }
 
+  int x = 0, y = 0, width = 0, height = 0;
+  /*-export.end-*/
+
   raylib::Rectangle As() {
     raylib::Rectangle result = {};
     result.x = static_cast<float>(x);
@@ -74,8 +78,6 @@ class Rect : public RefCounted<Rect> {
     result.height = static_cast<float>(height);
     return result;
   }
-
-  int x = 0, y = 0, width = 0, height = 0;
 };
 
 class Color : public RefCounted<Color> {
@@ -89,6 +91,7 @@ class Color : public RefCounted<Color> {
       : red(r), green(g), blue(b), alpha(a) {}
   Color() {}
 
+  /*-export.begin-*/
   void Set(float r, float g, float b, float a = 255.f) {
     red = r;
     green = g;
@@ -102,6 +105,9 @@ class Color : public RefCounted<Color> {
     blue = color->blue;
     alpha = color->alpha;
   }
+
+  float red = 0, green = 0, blue = 0, alpha = 0;
+  /*-export.end-*/
 
   raylib::Color As() {
     raylib::Color result = {};
@@ -120,8 +126,6 @@ class Color : public RefCounted<Color> {
     vec.w = alpha / 255.0f;
     return vec;
   }
-
-  float red = 0, green = 0, blue = 0, alpha = 0;
 };
 
 class Tone : public RefCounted<Tone> {
@@ -130,6 +134,7 @@ class Tone : public RefCounted<Tone> {
       : red(r), green(g), blue(b), gray(a) {}
   Tone() {}
 
+  /*-export.begin-*/
   void Set(float r, float g, float b, float a = 0.f) {
     red = r;
     green = g;
@@ -144,6 +149,9 @@ class Tone : public RefCounted<Tone> {
     gray = tone->gray;
   }
 
+  float red = 0, green = 0, blue = 0, gray = 0;
+  /*-export.end-*/
+
   raylib::Vector4 Normalize() {
     raylib::Vector4 vec = {};
     vec.x = red / 255.0f;
@@ -154,8 +162,6 @@ class Tone : public RefCounted<Tone> {
   }
 
   bool HasEffect() { return red || green || blue || gray; }
-
-  float red = 0, green = 0, blue = 0, gray = 0;
 };
 
 }  // namespace rgssx

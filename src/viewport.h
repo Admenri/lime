@@ -14,7 +14,9 @@ class ViewportChild : public Drawable {
  public:
   ViewportChild(RefPtr<Viewport> viewport);
 
+  /*-export.begin-*/
   virtual ATTR(RefPtr<Viewport>, Viewport);
+  /*-export.end-*/
 
  private:
   RefPtr<Viewport> viewport_;
@@ -31,8 +33,7 @@ class Viewport : public RefCounted<Viewport>,
   Viewport();
   ~Viewport();
 
-  DrawableSet* drawable_set() { return &drawables_; }
-
+  /*-export.begin-*/
   void Flash(RefPtr<Color> color, int duration);
   void Update();
 
@@ -47,6 +48,10 @@ class Viewport : public RefCounted<Viewport>,
   ATTR(bool, Clip);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
+  /*-export.end-*/
+
+ public:
+  DrawableSet* drawable_set() { return &drawables_; }
 
  private:
   void DisposeObject() override;

@@ -38,9 +38,12 @@ class Drawable {
   Drawable();
   virtual ~Drawable();
 
+  /*-export.begin-*/
   virtual ATTR(bool, Visible);
   virtual ATTR(int, Z);
+  /*-export.end-*/
 
+ public:
   virtual void Prepare() {}
   virtual void Draw(DrawParam param) {}
 

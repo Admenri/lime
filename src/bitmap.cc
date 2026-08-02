@@ -1,9 +1,27 @@
 #include "bitmap.h"
 
+#include "filesystem.h"
+
 namespace rgssx {
 
 Bitmap::Bitmap(std::string filename) {
-  auto image = raylib::LoadImage(filename.c_str());
+  raylib::Image image = {};
+
+  // RGSS style loading: the extension may be omitted and the virtual file
+  // system will resolve the actual file (e.g. "Iconset" -> "Iconset.png").
+  IOService::Instance()->OpenRead(
+      filename,
+      [&](std::unique_ptr<std::istream> stream, const std::string& ext) {
+        std::string data = ReadStream(*stream);
+
+        // raylib needs a file type hint (e.g. ".png")
+        std::string file_type = "." + ext;
+        image = raylib::LoadImageFromMemory(file_type.c_str(),
+                                            (const unsigned char*)data.data(),
+                                            (int)data.size());
+        return true;  // matched, stop enumeration
+      });
+
   if (!image.data)
     throw Exception("failed to load image: {}", filename);
 

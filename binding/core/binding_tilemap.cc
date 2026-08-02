@@ -1,0 +1,122 @@
+#include "binding_tilemap.h"
+
+#include "binding_bitmap.h"
+#include "binding_table.h"
+#include "binding_viewport.h"
+#include "tilemap.h"
+
+namespace binding {
+
+const mrb_data_type kTilemapBitmapsDataType = {"TilemapBitmapArray", nullptr};
+
+MRB_FUNC(TilemapBitmaps_Get) {
+  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  mrb_int index;
+  mrb_get_args(mrb, "i", &index);
+
+  EXC_BEGIN {
+    auto result = self_obj->GetBitmap(index);
+    if (result)
+      return WrapObject(mrb, result.get(), kBitmapDataType);
+    return mrb_nil_value();
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(TilemapBitmaps_Set) {
+  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  mrb_int index;
+  mrb_value bitmap_val;
+  mrb_get_args(mrb, "io", &index, &bitmap_val);
+
+  auto bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+
+  EXC_BEGIN {
+    self_obj->SetBitmap(index, bitmap);
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+// -------------------------------------------------------------------------
+
+// Define mrb data type
+MRB_DATATYPE_DEFINE(Tilemap);
+
+MRB_FUNC(Tilemap_initialize) {
+  mrb_value viewport_val = mrb_nil_value();
+  mrb_get_args(mrb, "|o", &viewport_val);
+
+  auto viewport = GetObject<rgssx::Viewport>(mrb, viewport_val, kViewportDataType);
+
+  rgssx::RefPtr<rgssx::Tilemap> obj = nullptr;
+  EXC_BEGIN {
+    obj = rgssx::MakeRefCounted<rgssx::Tilemap>(viewport);
+  } EXC_END(mrb);
+
+  SetupSelfData(self, obj.get(), kTilemapDataType);
+  return self;
+}
+
+MRB_FUNC(Tilemap_Update) {
+  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  EXC_BEGIN {
+    self_obj->Update();
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Tilemap_GetBitmaps) {
+  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+
+  RClass* klass = mrb_class_get(mrb, kTilemapBitmapsDataType.struct_name);
+  RData* data = mrb_data_object_alloc(mrb, klass, self_obj, &kTilemapBitmapsDataType);
+  mrb_value obj = mrb_obj_value(data);
+  SetupSelfData(obj, self_obj, kTilemapBitmapsDataType);
+
+  return obj;
+}
+
+BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, Viewport, rgssx::Viewport, kViewportDataType);
+BINDING_ATTR_BOOL(Tilemap, rgssx::Tilemap, Visible);
+BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, Z);
+BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, MapData, rgssx::Table, kTableDataType);
+BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, FlashData, rgssx::Table, kTableDataType);
+BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, Flags, rgssx::Table, kTableDataType);
+BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OX);
+BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OY);
+
+// Inherited from Dispoable
+BINDING_INHERITED_DISPOABLE(Tilemap, rgssx::Tilemap);
+
+void InitTilemapBinding(mrb_state* mrb) {
+  auto klass = DefineClass(mrb, "Tilemap");
+
+  mrb_define_method(mrb, klass, "initialize", Tilemap_initialize, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "update", Tilemap_Update, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "bitmaps", Tilemap_GetBitmaps, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "viewport", Tilemap_Viewport, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "viewport=", Tilemap_ViewportEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "visible", Tilemap_Visible, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "visible=", Tilemap_VisibleEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "z", Tilemap_Z, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "z=", Tilemap_ZEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "map_data", Tilemap_MapData, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "map_data=", Tilemap_MapDataEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "flash_data", Tilemap_FlashData, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "flash_data=", Tilemap_FlashDataEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "flags", Tilemap_Flags, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "flags=", Tilemap_FlagsEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "ox", Tilemap_OX, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "ox=", Tilemap_OXEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "oy", Tilemap_OY, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "oy=", Tilemap_OYEqual, MRB_ARGS_REQ(1));
+  // Inherited from Dispoable
+  mrb_define_method(mrb, klass, "dispose", Tilemap_Dispose, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "is_disposed", Tilemap_IsDisposed, MRB_ARGS_NONE());
+
+  auto bitmaps_klass = DefineClass(mrb, kTilemapBitmapsDataType.struct_name);
+  mrb_define_method(mrb, bitmaps_klass, "[]", TilemapBitmaps_Get, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, bitmaps_klass, "[]=", TilemapBitmaps_Set, MRB_ARGS_REQ(2));
+}
+
+}  // namespace binding

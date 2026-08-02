@@ -17,6 +17,7 @@ class Window : public RefCounted<Window>,
   Window();
   ~Window();
 
+  /*-export.begin-*/
   void Update();
   void Move(int x, int y, int width, int height);
   bool Opened();
@@ -42,6 +43,7 @@ class Window : public RefCounted<Window>,
   ATTR(int, Openness);
   ATTR(RefPtr<Tone>, Tone);
   ATTR(int, Scale);
+  /*-export.end-*/
 
  private:
   void DisposeObject() override;

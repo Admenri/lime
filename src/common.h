@@ -67,6 +67,7 @@ class Exception : public std::exception {
 
 class Dispoable {
  public:
+  /*-export.begin-*/
   bool IsDisposed() { return disposed_; }
   void Dispose() {
     if (!disposed_) {
@@ -74,6 +75,7 @@ class Dispoable {
       disposed_ = true;
     }
   }
+  /*-export.end-*/
 
  protected:
   void Guard() {

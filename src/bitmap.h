@@ -12,8 +12,7 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   Bitmap(int width, int height);
   ~Bitmap();
 
-  raylib::RenderTexture2D& render_texture() { return texture_; }
-
+  /*-export.begin-*/
   int Width();
   int Height();
   RefPtr<Rect> GetRect();
@@ -57,6 +56,10 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   RefPtr<Rect> TextSize(std::string str);
 
   void SaveFile(std::string filename);
+  /*-export.end-*/
+
+ public:
+  raylib::RenderTexture2D& render_texture() { return texture_; }
 
  private:
   void DisposeObject() override;

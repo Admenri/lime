@@ -13,6 +13,7 @@ class Plane : public RefCounted<Plane>, public Dispoable, public ViewportChild {
   Plane(RefPtr<Viewport> viewport = nullptr);
   ~Plane();
 
+  /*-export.begin-*/
   ATTR(RefPtr<Bitmap>, Bitmap);
   ATTR(int, OX);
   ATTR(int, OY);
@@ -22,6 +23,7 @@ class Plane : public RefCounted<Plane>, public Dispoable, public ViewportChild {
   ATTR(int, BlendType);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
+  /*-export.end-*/
 
  private:
   void DisposeObject() override;

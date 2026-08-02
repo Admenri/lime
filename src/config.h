@@ -11,8 +11,10 @@ class Config : public Singleton<Config> {
  public:
   Config(std::string inifile);
 
-  std::string scripts;
-  std::string title;
+  int rgss_version = 0;
+
+  std::string scripts = "Data/Scripts.rvdata2";
+  std::string title = "RGSSX";
   std::string rtp;
 
   int width = 544;

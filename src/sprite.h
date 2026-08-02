@@ -15,6 +15,7 @@ class Sprite : public RefCounted<Sprite>,
   Sprite(RefPtr<Viewport> viewport = nullptr);
   ~Sprite();
 
+  /*-export.begin-*/
   void Flash(RefPtr<Color> color, int duration);
   void Update();
 
@@ -41,6 +42,7 @@ class Sprite : public RefCounted<Sprite>,
   ATTR(int, BlendType);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
+  /*-export.end-*/
 
  private:
   void DisposeObject() override;

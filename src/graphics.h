@@ -12,8 +12,7 @@ class Graphics : public Singleton<Graphics> {
   Graphics(int w, int h, std::string title, bool vsync, bool fullscreen);
   ~Graphics();
 
-  DrawableSet* drawable_set() { return &drawables_; }
-
+  /*-export.begin-*/
   void Update();
   void Wait(int duration);
   void FadeIn(int duration);
@@ -34,6 +33,10 @@ class Graphics : public Singleton<Graphics> {
   ATTR(int, FrameRate);
   ATTR(int, FrameCount);
   ATTR(int, Brightness);
+  /*-export.end-*/
+
+ public:
+  DrawableSet* drawable_set() { return &drawables_; }
 
  private:
   void RenderFrame(raylib::RenderTexture2D target);

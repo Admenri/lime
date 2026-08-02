@@ -23,16 +23,19 @@ class Input : public Singleton<Input> {
   Input(int version);
   ~Input();
 
-  // sym -> keycode
-  using KeySym = std::pair<std::string, int>;
-  void SetKeyBinding(std::vector<KeySym> bindings) { bindings_ = bindings_; }
-
+  /*-export.begin-*/
   void Update();
   bool Pressed(std::string sym);
   bool Triggered(std::string sym);
   bool Repeated(std::string sym);
   int Dir4();
   int Dir8();
+  /*-export.end-*/
+
+ public:
+  // sym -> keycode
+  using KeySym = std::pair<std::string, int>;
+  void SetKeyBinding(std::vector<KeySym> bindings) { bindings_ = bindings_; }
 
  private:
   void UpdateDir4();

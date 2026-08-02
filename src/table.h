@@ -10,6 +10,7 @@ class Table : public RefCounted<Table> {
  public:
   Table(int xsize, int ysize = 1, int zsize = 1);
 
+  /*-export.begin-*/
   void Resize(int xsize, int ysize = 1, int zsize = 1);
   int XSize();
   int YSize();
@@ -17,6 +18,7 @@ class Table : public RefCounted<Table> {
 
   int16_t Get(int x, int y = 0, int z = 0);
   void Set(int16_t value, int x, int y = 0, int z = 0);
+  /*-export.end-*/
 
  private:
   int xsize_ = 0, ysize_ = 0, zsize_ = 0;

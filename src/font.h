@@ -6,13 +6,12 @@
 
 namespace rgssx {
 
-class Font {
+class Font : public RefCounted<Font> {
  public:
   Font(std::vector<std::string> names = {}, int size = 24);
   ~Font();
 
-  raylib::Font& font() { return font_; }
-
+  /*-export.begin-*/
   static bool Exist(std::string name);
 
   ATTR(std::vector<std::string>, Name);
@@ -32,6 +31,10 @@ class Font {
   static ATTR(bool, DefaultShadow);
   static ATTR(RefPtr<Color>, DefaultColor);
   static ATTR(RefPtr<Color>, DefaultOutColor);
+  /*-export.end-*/
+
+ public:
+  raylib::Font& font() { return font_; }
 
  private:
   raylib::Font font_;

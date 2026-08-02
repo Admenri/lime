@@ -28,6 +28,7 @@ class Tilemap : public RefCounted<Tilemap>,
   Tilemap(RefPtr<Viewport> viewport = nullptr);
   ~Tilemap();
 
+  /*-export.begin-*/
   void Update();
 
   void SetBitmap(int index, RefPtr<Bitmap> bitmap);
@@ -42,6 +43,7 @@ class Tilemap : public RefCounted<Tilemap>,
   ATTR(RefPtr<Table>, Flags);
   ATTR(int, OX);
   ATTR(int, OY);
+  /*-export.end-*/
 
  private:
   friend class TilemapAbove;
