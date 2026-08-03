@@ -65,8 +65,8 @@ MRB_FUNC(Sprite_Height) {
   return mrb_nil_value();
 }
 
-BINDING_ATTR_OBJECT(Sprite, rgssx::Sprite, Bitmap, rgssx::Bitmap, kBitmapDataType);
-BINDING_ATTR_OBJECT(Sprite, rgssx::Sprite, SrcRect, rgssx::Rect, kRectDataType);
+BINDING_ATTR_OBJECT_REF(Sprite, rgssx::Sprite, Bitmap, rgssx::Bitmap, kBitmapDataType);
+BINDING_ATTR_OBJECT_REF(Sprite, rgssx::Sprite, SrcRect, rgssx::Rect, kRectDataType);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, X);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, Y);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, OX);
@@ -83,12 +83,12 @@ BINDING_ATTR_INT(Sprite, rgssx::Sprite, BushDepth);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, BushOpacity);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, Opacity);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, BlendType);
-BINDING_ATTR_OBJECT(Sprite, rgssx::Sprite, Color, rgssx::Color, kColorDataType);
-BINDING_ATTR_OBJECT(Sprite, rgssx::Sprite, Tone, rgssx::Tone, kToneDataType);
+BINDING_ATTR_OBJECT_REF(Sprite, rgssx::Sprite, Color, rgssx::Color, kColorDataType);
+BINDING_ATTR_OBJECT_REF(Sprite, rgssx::Sprite, Tone, rgssx::Tone, kToneDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Sprite, rgssx::Sprite);
-BINDING_ATTR_OBJECT(Sprite, rgssx::Sprite, Viewport, rgssx::Viewport, kViewportDataType);
+BINDING_ATTR_OBJECT_REF(Sprite, rgssx::Sprite, Viewport, rgssx::Viewport, kViewportDataType);
 BINDING_ATTR_BOOL(Sprite, rgssx::Sprite, Visible);
 BINDING_ATTR_INT(Sprite, rgssx::Sprite, Z);
 
@@ -142,7 +142,7 @@ void InitSpriteBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "tone=", Sprite_ToneEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Sprite_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "is_disposed", Sprite_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Sprite_IsDisposed, MRB_ARGS_NONE());
   // Inherited from ViewportChild / Drawable
   mrb_define_method(mrb, klass, "viewport", Sprite_Viewport, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "viewport=", Sprite_ViewportEqual, MRB_ARGS_REQ(1));

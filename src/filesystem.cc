@@ -298,19 +298,20 @@ void IOService::OpenRead(const std::string& file_path, OpenCallback callback) {
   PHYSFS_enumerate(dir.c_str(), OpenReadEnumCallback, &data);
 
   if (!data.physfs_error.empty())
-    throw std::runtime_error(data.physfs_error + ": " + file_path);
+    throw Exception("{}: {}", data.physfs_error, file_path);
 
   if (data.match_count <= 0)
-    throw std::runtime_error("No file match: " + file_path);
+    throw Exception("No file match: {}", file_path);
 }
 
 std::unique_ptr<std::istream> IOService::OpenReadRaw(
     const std::string& filename) {
   PHYSFS_File* file = PHYSFS_openRead(filename.c_str());
-  if (!file)
-    throw std::runtime_error(
-        std::string(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode())) + ": " +
-        filename);
+  if (!file) {
+    std::string error_message =
+        PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
+    throw Exception("{}: {}", error_message, filename);
+  }
 
   return std::make_unique<InputFileStream>(file);
 }
@@ -318,10 +319,11 @@ std::unique_ptr<std::istream> IOService::OpenReadRaw(
 std::unique_ptr<std::ostream> IOService::OpenWrite(
     const std::string& filename) {
   PHYSFS_File* file = PHYSFS_openWrite(filename.c_str());
-  if (!file)
-    throw std::runtime_error(
-        std::string(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode())) + ": " +
-        filename);
+  if (!file) {
+    std::string error_message =
+        PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
+    throw Exception("{}: {}", error_message, filename);
+  }
 
   return std::make_unique<OutputFileStream>(file);
 }

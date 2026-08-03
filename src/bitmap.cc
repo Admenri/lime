@@ -4,7 +4,7 @@
 
 namespace rgssx {
 
-Bitmap::Bitmap(std::string filename) {
+Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
   raylib::Image image = {};
 
   // RGSS style loading: the extension may be omitted and the virtual file
@@ -34,7 +34,7 @@ Bitmap::Bitmap(std::string filename) {
   raylib::UnloadImage(image);
 }
 
-Bitmap::Bitmap(int width, int height) {
+Bitmap::Bitmap(int width, int height) : font_(MakeRefCounted<Font>()) {
   texture_ = raylib::LoadRenderTexture(width, height);
   Clear();
 }
@@ -72,7 +72,7 @@ void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
                         int opacity) {
   Dispoable::Guard();
   raylib::BeginTextureMode(texture_);
-  raylib::BeginBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
+  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   raylib::Color tint = raylib::MakeAlphaColor(
       static_cast<uint8_t>(std::clamp<int>(opacity, 0, 255)));
   raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
@@ -191,7 +191,7 @@ void Bitmap::DrawText(int x,
   Dispoable::Guard();
   // TODO
   raylib::BeginTextureMode(texture_);
-  raylib::BeginBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
+  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   raylib::DrawTextPro({}, str.c_str(), {(float)x, (float)y}, {}, 0, 30, 0,
                       raylib::RAYWHITE);
   raylib::EndBlendMode();
@@ -214,6 +214,15 @@ void Bitmap::SaveFile(std::string filename) {
   auto image = raylib::LoadImageFromTexture(texture_.texture);
   raylib::ExportImage(image, filename.c_str());
   raylib::UnloadImage(image);
+}
+
+ATTR_DEF(RefPtr<Font>, Font, Bitmap) {
+  if (value.has_value()) {
+    font_ = *value;
+    return std::nullopt;
+  } else {
+    return font_;
+  }
 }
 
 void Bitmap::DisposeObject() {

@@ -140,7 +140,7 @@ static const int kCursorAlphaTable[] = {
 };
 
 Window::Window(int x, int y, int width, int height)
-    : ViewportChild(nullptr),
+    : ViewportChild(nullptr, ZValue(100, std::numeric_limits<int>::max())),
       window_skin_(nullptr),
       contents_(MakeRefCounted<Bitmap>(1, 1)),
       cursor_rect_(MakeRefCounted<Rect>()),

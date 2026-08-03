@@ -156,6 +156,26 @@ width
 width=
 ```
 
+### 对象引用属性（BINDING_ATTR_OBJECT_REF）
+
+当一个类在导出块中声明了 `MARSHAL_DUMP` / `MARSHAL_LOAD`（即可被 marshal 序列化的类，
+当前为 Table、Rect、Color、Tone），那么**该类作为其它类的属性时**，必须使用
+`BINDING_ATTR_OBJECT_REF`，**不能**使用普通的 `BINDING_ATTR_OBJECT`。
+
+例如 Tone 具有 `MARSHAL_DUMP` / `MARSHAL_LOAD`，因此在 Window 中：
+
+```cpp
+BINDING_ATTR_OBJECT_REF(Window, rgssx::Window, Tone, rgssx::Tone, kToneDataType);
+```
+
+`BINDING_ATTR_OBJECT_REF` 与 `BINDING_ATTR_OBJECT` 的区别：前者会把包装后的 Ruby 对象
+缓存在实例变量 `@_<attr>` 中，保证多次读取返回**同一个** Ruby 对象（对象身份一致），
+这是 marshal 序列化 / 反序列化时保持对象引用关系所必需的；后者每次读取都会新建一个
+包装对象。
+
+判断依据：只要属性类型（`objty`）对应的类拥有 `MARSHAL_DUMP` / `MARSHAL_LOAD` 定义，
+该处属性一律使用 `BINDING_ATTR_OBJECT_REF`。
+
 ---
 
 # initialize（构造函数）
@@ -316,6 +336,63 @@ y=
 ```
 
 等对应 getter / setter。
+
+---
+
+# 序列化（Marshal）
+
+当检测到一个类的导出块（`/*-export.begin-*/` ... `/*-export.end-*/`）中声明了
+`MARSHAL_DUMP` / `MARSHAL_LOAD` 这一对序列化函数（即“P D”：dump / load 成对出现）时，
+需要为该类额外生成两个用于 marshal 序列化与反序列化的函数：
+
+- `_dump`：**实例方法（method）**。mruby-marshal-c 在 `Marshal.dump` 时会以
+  `obj._dump(limit)` 调用它，返回值必须是 String，随后写入 `TYPE_USERDEF`。
+- `_load`：**类方法（class method）**。mruby-marshal-c 在 `Marshal.load` 读到
+  `TYPE_USERDEF` 时会以 `Klass._load(data)` 调用它，传入 `_dump` 产生的 String，
+  返回反序列化后的新对象。
+
+模板如下（`Class` 替换为实际类名，`kClassDataType` 替换为对应数据类型常量）：
+
+```cpp
+MRB_FUNC(Class__dump) {
+  auto* self_obj = GetSelfData<Class>(self);
+  mrb_int limit;
+  mrb_get_args(mrb, "i", &limit);
+
+  EXC_BEGIN {
+    auto result = Class::MarshalDump(RefPtr<Class>(self_obj));
+    return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Class__load) {
+  mrb_value data;
+  mrb_get_args(mrb, "o", &data);
+
+  rgssx::RefPtr<Class> obj = nullptr;
+  EXC_BEGIN {
+    obj = Class::MarshalLoad(MRBStringValue(data));
+  } EXC_END(mrb);
+
+  return WrapObject(mrb, obj.get(), kClassDataType);
+}
+```
+
+注册方式：
+
+```cpp
+mrb_define_method(mrb, klass, "_dump", Class__dump, MRB_ARGS_REQ(1));
+mrb_define_class_method(mrb, klass, "_load", Class__load, MRB_ARGS_REQ(1));
+```
+
+注意：
+
+- `_dump` 的参数 `limit` 是 mruby-marshal-c 协议要求的深度参数，本项目中不使用，直接忽略即可。
+- `_load` 必须注册为**类方法**（`mrb_define_class_method`），因为它没有 `self` 实例。
+- 调用的是类中 `MARSHAL_DUMP` / `MARSHAL_LOAD` 展开出的静态函数 `MarshalDump` / `MarshalLoad`。
+
+当前声明了 `MARSHAL_DUMP` / `MARSHAL_LOAD` 的类：**Table、Rect、Color、Tone**。
 
 ---
 

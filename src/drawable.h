@@ -19,6 +19,8 @@ struct ZValue {
   double timestamp = 0;
 
   ZValue() : timestamp(raylib::GetTime()) {}
+  ZValue(int v) : value(v), timestamp(raylib::GetTime()) {}
+  ZValue(int v, int s) : value(v), sorting(s), timestamp(raylib::GetTime()) {}
 
   bool operator<(const ZValue& other) const {
     if (value != other.value)
@@ -36,6 +38,7 @@ struct ZValue {
 class Drawable {
  public:
   Drawable();
+  Drawable(const ZValue& order);
   virtual ~Drawable();
 
   /*-export.begin-*/

@@ -8,7 +8,7 @@
 namespace rgssx {
 
 Plane::Plane(RefPtr<Viewport> viewport)
-    : ViewportChild(viewport),
+    : ViewportChild(viewport, ZValue()),
       color_(MakeRefCounted<Color>()),
       tone_(MakeRefCounted<Tone>()) {}
 

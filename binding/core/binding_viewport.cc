@@ -90,19 +90,19 @@ MRB_FUNC(Viewport_Render) {
   return mrb_nil_value();
 }
 
-BINDING_ATTR_OBJECT(Viewport, rgssx::Viewport, Rect, rgssx::Rect, kRectDataType);
+BINDING_ATTR_OBJECT_REF(Viewport, rgssx::Viewport, Rect, rgssx::Rect, kRectDataType);
 BINDING_ATTR_INT(Viewport, rgssx::Viewport, OX);
 BINDING_ATTR_INT(Viewport, rgssx::Viewport, OY);
 BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, Angle);
 BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, ZoomX);
 BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, ZoomY);
 BINDING_ATTR_BOOL(Viewport, rgssx::Viewport, Clip);
-BINDING_ATTR_OBJECT(Viewport, rgssx::Viewport, Color, rgssx::Color, kColorDataType);
-BINDING_ATTR_OBJECT(Viewport, rgssx::Viewport, Tone, rgssx::Tone, kToneDataType);
+BINDING_ATTR_OBJECT_REF(Viewport, rgssx::Viewport, Color, rgssx::Color, kColorDataType);
+BINDING_ATTR_OBJECT_REF(Viewport, rgssx::Viewport, Tone, rgssx::Tone, kToneDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Viewport, rgssx::Viewport);
-BINDING_ATTR_OBJECT(Viewport, rgssx::Viewport, Viewport, rgssx::Viewport, kViewportDataType);
+BINDING_ATTR_OBJECT_REF(Viewport, rgssx::Viewport, Viewport, rgssx::Viewport, kViewportDataType);
 BINDING_ATTR_BOOL(Viewport, rgssx::Viewport, Visible);
 BINDING_ATTR_INT(Viewport, rgssx::Viewport, Z);
 
@@ -133,7 +133,7 @@ void InitViewportBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "tone=", Viewport_ToneEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Viewport_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "is_disposed", Viewport_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Viewport_IsDisposed, MRB_ARGS_NONE());
   // Inherited from ViewportChild / Drawable
   mrb_define_method(mrb, klass, "viewport", Viewport_Viewport, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "viewport=", Viewport_ViewportEqual, MRB_ARGS_REQ(1));

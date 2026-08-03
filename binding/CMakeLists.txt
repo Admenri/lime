@@ -12,6 +12,7 @@ target_sources(binding_mruby
  PUBLIC
   mruby_main.cc
   core/binding_init.cc
+  core/binding_audio.cc
   core/binding_bitmap.cc
   core/binding_color.cc
   core/binding_font.cc

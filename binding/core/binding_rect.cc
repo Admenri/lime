@@ -80,6 +80,35 @@ RECT_PROP_INT(height);
 
 #undef RECT_PROP_INT
 
+// Marshal serialization (instance method _dump) / deserialization (class
+// method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
+// _dump (method) and _load (class method).
+MRB_FUNC(Rect__dump) {
+  auto* self_obj = GetSelfData<rgssx::Rect>(self);
+  mrb_int limit;
+  mrb_get_args(mrb, "i", &limit);
+
+  EXC_BEGIN {
+    auto result =
+        rgssx::Rect::MarshalDump(rgssx::RefPtr<rgssx::Rect>(self_obj));
+    return mrb_str_new(mrb, result.data(),
+                       static_cast<mrb_int>(result.size()));
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Rect__load) {
+  mrb_value data;
+  mrb_get_args(mrb, "o", &data);
+
+  rgssx::RefPtr<rgssx::Rect> obj = nullptr;
+  EXC_BEGIN {
+    obj = rgssx::Rect::MarshalLoad(MRBStringValue(data));
+  } EXC_END(mrb);
+
+  return WrapObject(mrb, obj.get(), kRectDataType);
+}
+
 void InitRectBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Rect");
 
@@ -94,6 +123,8 @@ void InitRectBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "width=", Rect_widthEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "height", Rect_height, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "height=", Rect_heightEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "_dump", Rect__dump, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, klass, "_load", Rect__load, MRB_ARGS_REQ(1));
 }
 
 }  // namespace binding

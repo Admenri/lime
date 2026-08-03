@@ -77,6 +77,35 @@ MRB_FUNC(Table_Set) {
   return mrb_nil_value();
 }
 
+// Marshal serialization (instance method _dump) / deserialization (class
+// method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
+// _dump (method) and _load (class method).
+MRB_FUNC(Table__dump) {
+  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  mrb_int limit;
+  mrb_get_args(mrb, "i", &limit);
+
+  EXC_BEGIN {
+    auto result =
+        rgssx::Table::MarshalDump(rgssx::RefPtr<rgssx::Table>(self_obj));
+    return mrb_str_new(mrb, result.data(),
+                       static_cast<mrb_int>(result.size()));
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Table__load) {
+  mrb_value data;
+  mrb_get_args(mrb, "o", &data);
+
+  rgssx::RefPtr<rgssx::Table> obj = nullptr;
+  EXC_BEGIN {
+    obj = rgssx::Table::MarshalLoad(MRBStringValue(data));
+  } EXC_END(mrb);
+
+  return WrapObject(mrb, obj.get(), kTableDataType);
+}
+
 void InitTableBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Table");
 
@@ -87,6 +116,8 @@ void InitTableBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "z_size", Table_ZSize, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "[]", Table_Get, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "[]=", Table_Set, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "_dump", Table__dump, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, klass, "_load", Table__load, MRB_ARGS_REQ(1));
 }
 
 }  // namespace binding

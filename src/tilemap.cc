@@ -384,9 +384,7 @@ raylib::Image CreateShadowSet(int32_t tilesize) {
 }  // namespace
 
 TilemapAbove::TilemapAbove(Tilemap* parent, RefPtr<Viewport> viewport)
-    : ViewportChild(viewport), parent_(parent) {
-  Attr_Z(200);
-}
+    : ViewportChild(viewport, ZValue(200)), parent_(parent) {}
 
 void TilemapAbove::Draw(DrawParam param) {
   parent_->DrawLayer(parent_->above_quads_);
@@ -395,7 +393,7 @@ void TilemapAbove::Draw(DrawParam param) {
 // ----------------------------------------------------------------------
 
 Tilemap::Tilemap(RefPtr<Viewport> viewport)
-    : ViewportChild(viewport),
+    : ViewportChild(viewport, ZValue()),
       above_(std::make_unique<TilemapAbove>(this, viewport)) {}
 
 Tilemap::~Tilemap() {

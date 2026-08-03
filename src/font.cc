@@ -3,7 +3,10 @@
 namespace rgssx {
 
 Font::Font(std::vector<std::string> names, int size)
-    : name_(names), size_(size) {}
+    : name_(names),
+      size_(size),
+      color_(MakeRefCounted<Color>()),
+      out_color_(MakeRefCounted<Color>()) {}
 
 Font::~Font() {}
 

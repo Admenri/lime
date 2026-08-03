@@ -6,6 +6,8 @@ namespace rgssx {
 
 Drawable::Drawable() : prev_(this), next_(this) {}
 
+Drawable::Drawable(const ZValue& order) : prev_(this), next_(this), z_(order) {}
+
 Drawable::~Drawable() {
   RemoveFromList();
 }

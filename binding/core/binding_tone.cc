@@ -87,6 +87,35 @@ TONE_PROP_FLOAT(gray);
 
 #undef TONE_PROP_FLOAT
 
+// Marshal serialization (instance method _dump) / deserialization (class
+// method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
+// _dump (method) and _load (class method).
+MRB_FUNC(Tone__dump) {
+  auto* self_obj = GetSelfData<rgssx::Tone>(self);
+  mrb_int limit;
+  mrb_get_args(mrb, "i", &limit);
+
+  EXC_BEGIN {
+    auto result =
+        rgssx::Tone::MarshalDump(rgssx::RefPtr<rgssx::Tone>(self_obj));
+    return mrb_str_new(mrb, result.data(),
+                       static_cast<mrb_int>(result.size()));
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Tone__load) {
+  mrb_value data;
+  mrb_get_args(mrb, "o", &data);
+
+  rgssx::RefPtr<rgssx::Tone> obj = nullptr;
+  EXC_BEGIN {
+    obj = rgssx::Tone::MarshalLoad(MRBStringValue(data));
+  } EXC_END(mrb);
+
+  return WrapObject(mrb, obj.get(), kToneDataType);
+}
+
 void InitToneBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Tone");
 
@@ -100,6 +129,8 @@ void InitToneBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "blue=", Tone_blueEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "gray", Tone_gray, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "gray=", Tone_grayEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "_dump", Tone__dump, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, klass, "_load", Tone__load, MRB_ARGS_REQ(1));
 }
 
 }  // namespace binding

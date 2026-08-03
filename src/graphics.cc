@@ -34,6 +34,12 @@ Graphics::Graphics(int w,
 
   // Avoid OpenGL flipping
   raylib::rlDisableBackfaceCulling();
+
+  // Reset black screen
+  raylib::BeginDrawing();
+  raylib::Color clear_color = {0, 0, 0, 255};
+  raylib::ClearBackground(clear_color);
+  raylib::EndDrawing();
 }
 
 Graphics::~Graphics() {
@@ -48,7 +54,7 @@ void Graphics::Update() {
 
   // Screen present
   raylib::BeginDrawing();
-  raylib::BeginBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
+  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     raylib::ClearBackground({255, 0, 0, 255});
 
@@ -76,6 +82,7 @@ void Graphics::Wait(int duration) {
 }
 
 void Graphics::FadeIn(int duration) {
+  duration = std::max(duration, 1);
   int step = (255 - brightness_) / duration;
   for (int i = 0; i < duration; ++i) {
     brightness_ += step;
@@ -85,7 +92,8 @@ void Graphics::FadeIn(int duration) {
 }
 
 void Graphics::FadeOut(int duration) {
-  int step = (255 - brightness_) / duration;
+  duration = std::max(duration, 1);
+  int step = brightness_ / duration;
   for (int i = 0; i < duration; ++i) {
     brightness_ -= step;
     brightness_ = std::clamp<int>(brightness_, 0, 255);
@@ -240,8 +248,7 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
 
   // Screen rendering
   raylib::BeginTextureMode(target);
-  raylib::BeginBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
-  raylib::rlEnableScissorTest();
+  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     raylib::Color bgcolor = {0, 0, 0, 255};
     raylib::ClearBackground(bgcolor);
@@ -252,21 +259,22 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
     param.scissor.height = target.texture.height;
     param.target = target;
 
+    raylib::rlEnableScissorTest();
     raylib::rlScissor(0, 0, param.scissor.width, param.scissor.height);
     drawables_.DispatchDraw(param);
+    raylib::rlDisableScissorTest();
 
     if (brightness_ < 255) {
-      raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      raylib::BeginBlendMode(raylib::BLEND_ALPHA);
       {
-        raylib::Color brightness_norm =
-            raylib::MakeAlphaColor(static_cast<uint8_t>(255 - brightness_));
+        raylib::Color brightness_norm = {
+            0, 0, 0, static_cast<uint8_t>(255 - brightness_)};
         raylib::DrawRectangle(0, 0, target.texture.width, target.texture.height,
                               brightness_norm);
       }
       raylib::EndBlendMode();
     }
   }
-  raylib::rlDisableScissorTest();
   raylib::EndBlendMode();
   raylib::EndTextureMode();
 }

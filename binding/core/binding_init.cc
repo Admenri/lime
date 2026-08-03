@@ -1,5 +1,6 @@
 #include "binding_init.h"
 
+#include "binding_audio.h"
 #include "binding_bitmap.h"
 #include "binding_color.h"
 #include "binding_font.h"
@@ -17,6 +18,7 @@
 namespace binding {
 
 void InitBindings(mrb_state* mrb) {
+  InitAudioBinding(mrb);
   InitBitmapBinding(mrb);
   InitColorBinding(mrb);
   InitFontBinding(mrb);

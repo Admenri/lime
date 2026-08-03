@@ -4,7 +4,8 @@
 
 namespace rgssx {
 
-ViewportChild::ViewportChild(RefPtr<Viewport> viewport) : viewport_(viewport) {
+ViewportChild::ViewportChild(RefPtr<Viewport> viewport, const ZValue& z)
+    : Drawable(z), viewport_(viewport) {
   Drawable::SetParent(viewport_ ? viewport_->drawable_set()
                                 : Graphics::Instance()->drawable_set());
 }
@@ -26,7 +27,7 @@ Viewport::Viewport(RefPtr<Viewport> viewport,
                    int y,
                    int width,
                    int height)
-    : ViewportChild(viewport),
+    : ViewportChild(viewport, ZValue()),
       rect_(MakeRefCounted<Rect>(x, y, width, height)),
       color_(MakeRefCounted<Color>()),
       tone_(MakeRefCounted<Tone>()) {
@@ -73,7 +74,7 @@ void Viewport::Render(RefPtr<Bitmap> target) {
 
     // Rendering
     raylib::BeginTextureMode(target->render_texture());
-    raylib::BeginBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
+    raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
     raylib::rlEnableScissorTest();
     {
       raylib::Color bgcolor = {0, 0, 0, 255};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "font.h"
 #include "refptr.h"
 #include "utility.h"
 
@@ -56,6 +57,8 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   RefPtr<Rect> TextSize(std::string str);
 
   void SaveFile(std::string filename);
+
+  ATTR(RefPtr<Font>, Font);
   /*-export.end-*/
 
  public:
@@ -65,6 +68,7 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   void DisposeObject() override;
 
   raylib::RenderTexture2D texture_ = {};
+  RefPtr<Font> font_;
 };
 
 }  // namespace rgssx

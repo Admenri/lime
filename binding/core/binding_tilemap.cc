@@ -76,12 +76,12 @@ MRB_FUNC(Tilemap_GetBitmaps) {
   return obj;
 }
 
-BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, Viewport, rgssx::Viewport, kViewportDataType);
+BINDING_ATTR_OBJECT_REF(Tilemap, rgssx::Tilemap, Viewport, rgssx::Viewport, kViewportDataType);
 BINDING_ATTR_BOOL(Tilemap, rgssx::Tilemap, Visible);
 BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, Z);
-BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, MapData, rgssx::Table, kTableDataType);
-BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, FlashData, rgssx::Table, kTableDataType);
-BINDING_ATTR_OBJECT(Tilemap, rgssx::Tilemap, Flags, rgssx::Table, kTableDataType);
+BINDING_ATTR_OBJECT_REF(Tilemap, rgssx::Tilemap, MapData, rgssx::Table, kTableDataType);
+BINDING_ATTR_OBJECT_REF(Tilemap, rgssx::Tilemap, FlashData, rgssx::Table, kTableDataType);
+BINDING_ATTR_OBJECT_REF(Tilemap, rgssx::Tilemap, Flags, rgssx::Table, kTableDataType);
 BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OX);
 BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OY);
 
@@ -112,7 +112,7 @@ void InitTilemapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "oy=", Tilemap_OYEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Tilemap_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "is_disposed", Tilemap_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Tilemap_IsDisposed, MRB_ARGS_NONE());
 
   auto bitmaps_klass = DefineClass(mrb, kTilemapBitmapsDataType.struct_name);
   mrb_define_method(mrb, bitmaps_klass, "[]", TilemapBitmaps_Get, MRB_ARGS_REQ(1));

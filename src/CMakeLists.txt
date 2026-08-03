@@ -6,6 +6,7 @@ target_sources(rgssx_core
  PUBLIC
   raygui.c
   config.cc
+  audio.cc
   bitmap.cc
   drawable.cc
   filesystem.cc
@@ -17,6 +18,7 @@ target_sources(rgssx_core
   sprite.cc
   table.cc
   tilemap.cc
+  utility.cc
   viewport.cc
   window.cc
 )

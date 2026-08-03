@@ -6,7 +6,7 @@
 namespace rgssx {
 
 Sprite::Sprite(RefPtr<Viewport> viewport)
-    : ViewportChild(viewport),
+    : ViewportChild(viewport, ZValue()),
       src_rect_(MakeRefCounted<Rect>()),
       color_(MakeRefCounted<Color>()),
       tone_(MakeRefCounted<Tone>()) {}

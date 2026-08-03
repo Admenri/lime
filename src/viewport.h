@@ -12,7 +12,7 @@ class Viewport;
 
 class ViewportChild : public Drawable {
  public:
-  ViewportChild(RefPtr<Viewport> viewport);
+  ViewportChild(RefPtr<Viewport> viewport, const ZValue& z);
 
   /*-export.begin-*/
   virtual ATTR(RefPtr<Viewport>, Viewport);

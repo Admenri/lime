@@ -26,19 +26,19 @@ MRB_FUNC(Plane_initialize) {
   return self;
 }
 
-BINDING_ATTR_OBJECT(Plane, rgssx::Plane, Bitmap, rgssx::Bitmap, kBitmapDataType);
+BINDING_ATTR_OBJECT_REF(Plane, rgssx::Plane, Bitmap, rgssx::Bitmap, kBitmapDataType);
 BINDING_ATTR_INT(Plane, rgssx::Plane, OX);
 BINDING_ATTR_INT(Plane, rgssx::Plane, OY);
 BINDING_ATTR_FLOAT(Plane, rgssx::Plane, ZoomX);
 BINDING_ATTR_FLOAT(Plane, rgssx::Plane, ZoomY);
 BINDING_ATTR_INT(Plane, rgssx::Plane, Opacity);
 BINDING_ATTR_INT(Plane, rgssx::Plane, BlendType);
-BINDING_ATTR_OBJECT(Plane, rgssx::Plane, Color, rgssx::Color, kColorDataType);
-BINDING_ATTR_OBJECT(Plane, rgssx::Plane, Tone, rgssx::Tone, kToneDataType);
+BINDING_ATTR_OBJECT_REF(Plane, rgssx::Plane, Color, rgssx::Color, kColorDataType);
+BINDING_ATTR_OBJECT_REF(Plane, rgssx::Plane, Tone, rgssx::Tone, kToneDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Plane, rgssx::Plane);
-BINDING_ATTR_OBJECT(Plane, rgssx::Plane, Viewport, rgssx::Viewport, kViewportDataType);
+BINDING_ATTR_OBJECT_REF(Plane, rgssx::Plane, Viewport, rgssx::Viewport, kViewportDataType);
 BINDING_ATTR_BOOL(Plane, rgssx::Plane, Visible);
 BINDING_ATTR_INT(Plane, rgssx::Plane, Z);
 
@@ -66,7 +66,7 @@ void InitPlaneBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "tone=", Plane_ToneEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Plane_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "is_disposed", Plane_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Plane_IsDisposed, MRB_ARGS_NONE());
   // Inherited from ViewportChild / Drawable
   mrb_define_method(mrb, klass, "viewport", Plane_Viewport, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "viewport=", Plane_ViewportEqual, MRB_ARGS_REQ(1));

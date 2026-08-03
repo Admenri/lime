@@ -87,6 +87,35 @@ COLOR_PROP_FLOAT(alpha);
 
 #undef COLOR_PROP_FLOAT
 
+// Marshal serialization (instance method _dump) / deserialization (class
+// method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
+// _dump (method) and _load (class method).
+MRB_FUNC(Color__dump) {
+  auto* self_obj = GetSelfData<rgssx::Color>(self);
+  mrb_int limit;
+  mrb_get_args(mrb, "i", &limit);
+
+  EXC_BEGIN {
+    auto result =
+        rgssx::Color::MarshalDump(rgssx::RefPtr<rgssx::Color>(self_obj));
+    return mrb_str_new(mrb, result.data(),
+                       static_cast<mrb_int>(result.size()));
+  } EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Color__load) {
+  mrb_value data;
+  mrb_get_args(mrb, "o", &data);
+
+  rgssx::RefPtr<rgssx::Color> obj = nullptr;
+  EXC_BEGIN {
+    obj = rgssx::Color::MarshalLoad(MRBStringValue(data));
+  } EXC_END(mrb);
+
+  return WrapObject(mrb, obj.get(), kColorDataType);
+}
+
 void InitColorBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Color");
 
@@ -100,6 +129,8 @@ void InitColorBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "blue=", Color_blueEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "alpha", Color_alpha, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "alpha=", Color_alphaEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "_dump", Color__dump, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, klass, "_load", Color__load, MRB_ARGS_REQ(1));
 }
 
 }  // namespace binding

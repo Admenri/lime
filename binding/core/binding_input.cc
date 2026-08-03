@@ -68,9 +68,9 @@ void InitInputBinding(mrb_state* mrb) {
   auto mod = mrb_define_module(mrb, "Input");
 
   mrb_define_module_function(mrb, mod, "update", Input_Update, MRB_ARGS_NONE());
-  mrb_define_module_function(mrb, mod, "pressed", Input_Pressed, MRB_ARGS_REQ(1));
-  mrb_define_module_function(mrb, mod, "triggered", Input_Triggered, MRB_ARGS_REQ(1));
-  mrb_define_module_function(mrb, mod, "repeated", Input_Repeated, MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "press?", Input_Pressed, MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "trigger?", Input_Triggered, MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "repeat?", Input_Repeated, MRB_ARGS_REQ(1));
   mrb_define_module_function(mrb, mod, "dir4", Input_Dir4, MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "dir8", Input_Dir8, MRB_ARGS_NONE());
 }

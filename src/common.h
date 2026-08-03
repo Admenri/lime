@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "define.h"
+
 namespace raylib {
 #include "raylib.h"
 #include "rlgl.h"
@@ -32,11 +34,6 @@ inline Color MakeAlphaColor(uint8_t alpha) {
 }
 
 }  // namespace raylib
-
-#define ATTR(ty, name) \
-  std::optional<ty> Attr_##name(std::optional<ty> value = std::nullopt)
-#define ATTR_DEF(ty, name, klass) \
-  std::optional<ty> klass::Attr_##name(std::optional<ty> value)
 
 namespace rgssx {
 

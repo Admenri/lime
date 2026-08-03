@@ -9,16 +9,17 @@
 #include "mruby/class.h"
 #include "mruby/compile.h"
 #include "mruby/data.h"
+#include "mruby/error.h"
 #include "mruby/string.h"
 #include "mruby/variable.h"
+#include "mruby/version.h"
 
 #include "refptr.h"
 
 namespace binding {
 
-// Expose rgssx class names unqualified so the bindgen templates (e.g.
-// MRB_DATATYPE_DEFINE(类名)) can use plain identifiers like "Bitmap".
-using namespace rgssx;
+extern RClass* g_reset_exception;
+extern RClass* g_rgss_exception;
 
 // Klass define helper function.
 inline RClass* DefineClass(mrb_state* mrb, const char* name) {
@@ -54,6 +55,9 @@ template <typename Ty>
 inline mrb_value WrapObject(mrb_state* mrb,
                             Ty* ptr,
                             const mrb_data_type& type) {
+  if (!ptr)
+    return mrb_nil_value();
+
   RClass* klass = mrb_class_get(mrb, type.struct_name);
   RData* data = mrb_data_object_alloc(mrb, klass, ptr, &type);
   mrb_value obj = mrb_obj_value(data);
@@ -68,7 +72,7 @@ inline mrb_value WrapObject(mrb_state* mrb,
 #define MRB_DATATYPE_DEFINE(type)           \
   const mrb_data_type k##type##DataType = { \
       #type,                                \
-      ReleaseDataType<type>,                \
+      ReleaseDataType<rgssx::type>,         \
   };
 
 template <typename Ty>
@@ -78,9 +82,9 @@ inline void ReleaseDataType(mrb_state* mrb, void* ptr) {
 
 // Exception helper function.
 #define EXC_BEGIN try
-#define EXC_END(mrb)                           \
-  catch (const std::exception& e) {            \
-    mrb_raise(mrb, E_RUNTIME_ERROR, e.what()); \
+#define EXC_END(mrb)                            \
+  catch (const std::exception& e) {             \
+    mrb_raise(mrb, g_rgss_exception, e.what()); \
   }
 
 // Converts a CamelCase identifier to snake_case (e.g. "GetRect" -> "get_rect",
@@ -235,6 +239,38 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     return mrb_nil_value();                                 \
   }
 
+// Reference object attribute.
+#define BINDING_ATTR_OBJECT_REF(prefix, ty, cap, objty, dataty)               \
+  MRB_FUNC(prefix##_##cap) {                                                  \
+    auto* self_obj = GetSelfData<ty>(self);                                   \
+    EXC_BEGIN {                                                               \
+      auto result = self_obj->Attr_##cap();                                   \
+      auto result_iv = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@_" #cap)); \
+      if (!mrb_nil_p(result_iv))                                              \
+        return result_iv;                                                     \
+      if (result.has_value()) {                                               \
+        auto result_obj = WrapObject(mrb, result->get(), dataty);             \
+        mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@_" #cap), result_obj);    \
+        return result_obj;                                                    \
+      }                                                                       \
+      return mrb_nil_value();                                                 \
+    }                                                                         \
+    EXC_END(mrb);                                                             \
+    return mrb_nil_value();                                                   \
+  }                                                                           \
+  MRB_FUNC(prefix##_##cap##Equal) {                                           \
+    auto* self_obj = GetSelfData<ty>(self);                                   \
+    mrb_value val;                                                            \
+    mrb_get_args(mrb, "o", &val);                                             \
+    auto obj = GetObject<objty>(mrb, val, dataty);                            \
+    EXC_BEGIN {                                                               \
+      self_obj->Attr_##cap(obj);                                              \
+      mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@_" #cap), val);             \
+    }                                                                         \
+    EXC_END(mrb);                                                             \
+    return mrb_nil_value();                                                   \
+  }
+
 // Inherited Dispoable methods (IsDisposed / Dispose). Per the bindgen rules,
 // the parent class's exported section is merged into the derived class.
 #define BINDING_INHERITED_DISPOABLE(prefix, ty)      \
@@ -254,5 +290,11 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     EXC_END(mrb);                                    \
     return mrb_nil_value();                          \
   }
+
+inline std::string MRBStringValue(mrb_value str) {
+  if (mrb_string_p(str))
+    return std::string(RSTRING_PTR(str), RSTRING_LEN(str));
+  return {};
+}
 
 }  // namespace binding

@@ -46,6 +46,9 @@ class Rect : public RefCounted<Rect> {
   Rect() {}
 
   /*-export.begin-*/
+  MARSHAL_DUMP(Rect);
+  MARSHAL_LOAD(Rect);
+
   void Set(int xv, int yv, int w, int h) {
     x = xv;
     y = yv;
@@ -92,6 +95,9 @@ class Color : public RefCounted<Color> {
   Color() {}
 
   /*-export.begin-*/
+  MARSHAL_DUMP(Color);
+  MARSHAL_LOAD(Color);
+
   void Set(float r, float g, float b, float a = 255.f) {
     red = r;
     green = g;
@@ -135,6 +141,9 @@ class Tone : public RefCounted<Tone> {
   Tone() {}
 
   /*-export.begin-*/
+  MARSHAL_DUMP(Tone);
+  MARSHAL_LOAD(Tone);
+
   void Set(float r, float g, float b, float a = 0.f) {
     red = r;
     green = g;

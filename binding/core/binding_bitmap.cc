@@ -1,6 +1,7 @@
 #include "binding_bitmap.h"
 
 #include "binding_color.h"
+#include "binding_font.h"
 #include "binding_rect.h"
 #include "bitmap.h"
 #include "utility.h"
@@ -299,6 +300,9 @@ MRB_FUNC(Bitmap_SaveFile) {
   return mrb_nil_value();
 }
 
+// Attribute: font (RefPtr<Font>)
+BINDING_ATTR_OBJECT_REF(Bitmap, rgssx::Bitmap, Font, rgssx::Font, kFontDataType);
+
 // Inherited from Dispoable
 BINDING_INHERITED_DISPOABLE(Bitmap, rgssx::Bitmap);
 
@@ -324,9 +328,12 @@ void InitBitmapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "draw_text", Bitmap_DrawText, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "text_size", Bitmap_TextSize, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "save_file", Bitmap_SaveFile, MRB_ARGS_REQ(1));
+  // Attribute: font
+  mrb_define_method(mrb, klass, "font", Bitmap_Font, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "font=", Bitmap_FontEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Bitmap_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "is_disposed", Bitmap_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Bitmap_IsDisposed, MRB_ARGS_NONE());
 }
 
 }  // namespace binding
