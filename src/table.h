@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "define.h"
-#include "refptr.h"
+#include "src/define.h"
+#include "src/refptr.h"
 
 namespace rgssx {
 

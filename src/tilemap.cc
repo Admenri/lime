@@ -1,6 +1,6 @@
-#include "tilemap.h"
+#include "src/tilemap.h"
 
-#include "shader.h"
+#include "src/shader.h"
 
 namespace rgssx {
 
@@ -607,9 +607,8 @@ void Tilemap::ParseMapData() {
   };
 
   auto read_autotile_common =
-      [&](int32_t pattern_id, const raylib::Vector2& offset,
-          const raylib::Color& color, int32_t x, int32_t y,
-          const raylib::Rectangle* rect_src, bool above) {
+      [&](int32_t pattern_id, const raylib::Vector2& offset, int32_t x,
+          int32_t y, const raylib::Rectangle* rect_src, bool above) {
         TileQuad quads[4];
 
         for (int32_t i = 0; i < 4; ++i) {
@@ -628,15 +627,13 @@ void Tilemap::ParseMapData() {
 
           quads[i].source = tex_rect;
           quads[i].destination = pos_rect;
-          quads[i].color = color;
         }
 
         process_quads(quads, 4, above);
       };
 
   auto read_autotile_table = [&](int32_t pattern_id,
-                                 const raylib::Vector2& offset,
-                                 const raylib::Color& color, int32_t x,
+                                 const raylib::Vector2& offset, int32_t x,
                                  int32_t y, bool occlusion, bool above) {
     TileQuad quads[6];
 
@@ -663,15 +660,13 @@ void Tilemap::ParseMapData() {
 
       quads[i].source = tex_rect;
       quads[i].destination = pos_rect;
-      quads[i].color = color;
     }
 
     process_quads(quads, 6, above);
   };
 
   auto read_autotile_waterfall = [&](int32_t pattern_id,
-                                     const raylib::Vector2& offset,
-                                     const raylib::Color& color, int32_t x,
+                                     const raylib::Vector2& offset, int32_t x,
                                      int32_t y, bool above) {
     if (pattern_id > 0x3)
       return;
@@ -693,14 +688,13 @@ void Tilemap::ParseMapData() {
 
       quads[i].source = tex_rect;
       quads[i].destination = pos_rect;
-      quads[i].color = color;
     }
 
     process_quads(quads, 2, above);
   };
 
-  auto process_tile_A1 = [&](int16_t tile_id, const raylib::Color& color,
-                             int32_t x, int32_t y, bool above) {
+  auto process_tile_A1 = [&](int16_t tile_id, int32_t x, int32_t y,
+                             bool above) {
     tile_id -= 0x0800;
 
     const int32_t autotile_id = tile_id / 0x30;
@@ -728,17 +722,14 @@ void Tilemap::ParseMapData() {
     // Transform pattern source to waterfall style
     const raylib::Vector2 src_pos = src_offset[autotile_id];
     if (src_pos.x == -1)
-      return read_autotile_waterfall(pattern_id,
-                                     waterfall_offset[(autotile_id - 5) / 2],
-                                     color, x, y, above);
+      return read_autotile_waterfall(
+          pattern_id, waterfall_offset[(autotile_id - 5) / 2], x, y, above);
 
-    read_autotile_common(pattern_id, src_pos, color, x, y, kAutotileSrcRegular,
-                         above);
+    read_autotile_common(pattern_id, src_pos, x, y, kAutotileSrcRegular, above);
   };
 
-  auto process_tile_A2 = [&](int16_t tile_id, const raylib::Color& color,
-                             int32_t x, int32_t y, bool above, bool is_table,
-                             bool occlusion) {
+  auto process_tile_A2 = [&](int16_t tile_id, int32_t x, int32_t y, bool above,
+                             bool is_table, bool occlusion) {
     tile_id -= 0x0B00;
 
     const int32_t autotile_id = tile_id / 0x30;
@@ -747,14 +738,12 @@ void Tilemap::ParseMapData() {
     // Process table foot occlusion
     raylib::Vector2 offset(16 + (autotile_id % 8) * 2, (autotile_id / 8) * 3);
     if (is_table)
-      return read_autotile_table(pattern_id, offset, color, x, y, occlusion,
-                                 above);
-    read_autotile_common(pattern_id, offset, color, x, y, kAutotileSrcRegular,
-                         above);
+      return read_autotile_table(pattern_id, offset, x, y, occlusion, above);
+    read_autotile_common(pattern_id, offset, x, y, kAutotileSrcRegular, above);
   };
 
-  auto process_tile_A3 = [&](int16_t tile_id, const raylib::Color& color,
-                             int32_t x, int32_t y, bool above) {
+  auto process_tile_A3 = [&](int16_t tile_id, int32_t x, int32_t y,
+                             bool above) {
     tile_id -= 0x1100;
 
     const int32_t autotile_id = tile_id / 0x30;
@@ -764,12 +753,11 @@ void Tilemap::ParseMapData() {
 
     const raylib::Vector2 offset((autotile_id % 8) * 2,
                                  (autotile_id / 8) * 2 + 12);
-    read_autotile_common(pattern_id, offset, color, x, y, kAutotileSrcWall,
-                         above);
+    read_autotile_common(pattern_id, offset, x, y, kAutotileSrcWall, above);
   };
 
-  auto process_tile_A4 = [&](int16_t tile_id, const raylib::Color& color,
-                             int32_t x, int32_t y, bool above) {
+  auto process_tile_A4 = [&](int16_t tile_id, int32_t x, int32_t y,
+                             bool above) {
     tile_id -= 0x1700;
 
     const int32_t autotile_id = tile_id / 0x30;
@@ -781,19 +769,18 @@ void Tilemap::ParseMapData() {
                                  12 + vertical_offset[offset_index]);
 
     if (!(offset_index % 2)) {
-      read_autotile_common(pattern_id, offset, color, x, y, kAutotileSrcRegular,
+      read_autotile_common(pattern_id, offset, x, y, kAutotileSrcRegular,
                            above);
     } else {
       if (pattern_id >= 0x10)
         return;
 
-      read_autotile_common(pattern_id, offset, color, x, y, kAutotileSrcWall,
-                           above);
+      read_autotile_common(pattern_id, offset, x, y, kAutotileSrcWall, above);
     }
   };
 
-  auto process_tile_A5 = [&](int16_t tile_id, const raylib::Color& color,
-                             int32_t x, int32_t y, bool above) {
+  auto process_tile_A5 = [&](int16_t tile_id, int32_t x, int32_t y,
+                             bool above) {
     tile_id -= 0x0600;
 
     int32_t ox = tile_id % 0x8;
@@ -814,13 +801,12 @@ void Tilemap::ParseMapData() {
     TileQuad quad;
     quad.source = tex;
     quad.destination = pos;
-    quad.color = color;
 
     process_quads(&quad, 1, above);
   };
 
-  auto process_tile_bcde = [&](int16_t tile_id, const raylib::Color& color,
-                               int32_t x, int32_t y, bool above) {
+  auto process_tile_bcde = [&](int16_t tile_id, int32_t x, int32_t y,
+                               bool above) {
     int32_t ox = tile_id % 0x8;
     int32_t oy = (tile_id / 0x8) % 0x10;
     int32_t ob = tile_id / (0x8 * 0x10);
@@ -851,7 +837,6 @@ void Tilemap::ParseMapData() {
     TileQuad quad;
     quad.source = tex;
     quad.destination = pos;
-    quad.color = color;
 
     process_quads(&quad, 1, above);
   };
@@ -870,14 +855,12 @@ void Tilemap::ParseMapData() {
     TileQuad quad;
     quad.source = tex;
     quad.destination = pos;
-    quad.color = {};
 
     process_quads(&quad, 1, false);
   };
 
-  auto process_common_tile = [&](int16_t tile_id, const raylib::Color& color,
-                                 int32_t x, int32_t y, int32_t z,
-                                 int16_t under_tile_id) {
+  auto process_common_tile = [&](int16_t tile_id, int32_t x, int32_t y,
+                                 int32_t z, int16_t under_tile_id) {
     int16_t flag = get_map_flag(flags_, tile_id);
     bool over_player = (flag & 0x10) && (z >= 2);
     bool is_table = rgss3_style_
@@ -885,18 +868,18 @@ void Tilemap::ParseMapData() {
                         : (tile_id - 0x0B00) % (8 * 0x30) >= (7 * 0x30);
 
     if (tile_id >= 0x0800 && tile_id < 0x0B00)  // A1
-      return process_tile_A1(tile_id, color, x, y, over_player);
+      return process_tile_A1(tile_id, x, y, over_player);
     if (tile_id >= 0x0B00 && tile_id < 0x1100)  // A2
-      return process_tile_A2(tile_id, color, x, y, over_player, is_table,
+      return process_tile_A2(tile_id, x, y, over_player, is_table,
                              under_tile_id >= 0x1100 && under_tile_id < 0x2000);
     if (tile_id >= 0x1100 && tile_id < 0x1700)  // A3
-      return process_tile_A3(tile_id, color, x, y, over_player);
+      return process_tile_A3(tile_id, x, y, over_player);
     if (tile_id >= 0x1700 && tile_id < 0x2000)  // A4
-      return process_tile_A4(tile_id, color, x, y, over_player);
+      return process_tile_A4(tile_id, x, y, over_player);
     if (tile_id >= 0x0600 && tile_id < 0x0680)  // A5
-      return process_tile_A5(tile_id, color, x, y, over_player);
+      return process_tile_A5(tile_id, x, y, over_player);
     if (tile_id < 0x0400)  // B ~ E
-      return process_tile_bcde(tile_id, color, x, y, over_player);
+      return process_tile_bcde(tile_id, x, y, over_player);
   };
 
   auto process_shadow_layer = [&](int32_t ox, int32_t oy, int32_t w,
@@ -952,20 +935,8 @@ void Tilemap::ParseMapData() {
         const int16_t under_tile_id =
             get_wrap_data(map_data_, x + ox, y + oy + 1, 0);
 
-        // Flash data
-        const int16_t flash_color =
-            get_wrap_data(flash_data_, x + ox, y + oy, 0);
-
-        // Process tile flash
-        raylib::Color blend_color;
-        if (flash_color) {
-          blend_color.b = ((flash_color & 0x000F) >> 0) / 0xF;
-          blend_color.g = ((flash_color & 0x00F0) >> 4) / 0xF;
-          blend_color.r = ((flash_color & 0x0F00) >> 8) / 0xF;
-        }
-
         // Process tile (non-shadow tile)
-        process_common_tile(tile_id, blend_color, x, y, z, under_tile_id);
+        process_common_tile(tile_id, x, y, z, under_tile_id);
       }
     }
   };
@@ -1033,12 +1004,10 @@ void Tilemap::DrawLayer(const std::vector<TileQuad>& data) {
                            &animation_offset_, raylib::SHADER_UNIFORM_VEC2);
     raylib::SetShaderValue(shader.shader, shader.u_tile_size, &tilesize_,
                            raylib::SHADER_UNIFORM_FLOAT);
-    raylib::SetShaderValue(shader.shader, shader.u_flash_alpha,
-                           &flash_alpha_norm, raylib::SHADER_UNIFORM_FLOAT);
 
     for (auto& it : data) {
-      raylib::DrawTexturePro(atlas_.texture, it.source, it.destination, {}, 0,
-                             it.color);
+      auto tex = atlas_.texture;
+      raylib::DrawTexturePro(tex, it.source, it.destination, {}, 0, {});
     }
   }
   raylib::EndBlendMode();

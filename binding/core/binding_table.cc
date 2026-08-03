@@ -1,6 +1,6 @@
 #include "binding_table.h"
 
-#include "table.h"
+#include "src/table.h"
 
 namespace binding {
 

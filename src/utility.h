@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-#include "common.h"
-#include "refptr.h"
+#include "src/common.h"
+#include "src/refptr.h"
 
 namespace rgssx {
 

@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.30)
 set(PRISM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mruby/mrbgems/mruby-compiler/lib/prism")
 add_subdirectory(prism_parser)
 
+set(ONIG_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/oniguruma")
+add_subdirectory(oniguruma)
+
 set(PRESYM_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 set(PRESYM_HEADER_DIR "${PRESYM_INCLUDE_DIR}/mruby/presym")
 
@@ -13,7 +16,7 @@ add_library(mruby STATIC)
 file(GLOB MRUBY_CORE_SOURCES "mruby/src/*.c")
 target_sources(mruby PUBLIC ${MRUBY_CORE_SOURCES})
 target_include_directories(mruby PUBLIC "mruby/include" ${PRESYM_INCLUDE_DIR})
-target_link_libraries(mruby PUBLIC prism)
+target_link_libraries(mruby PUBLIC prism onig)
 target_compile_definitions(mruby
  PUBLIC
   MRC_TARGET_MRUBY=1
@@ -36,7 +39,6 @@ set(MRUBY_GEMS
   mruby-proc-ext
   mruby-symbol-ext
   mruby-object-ext
-  mruby-regexp
   mruby-objectspace
   mruby-set
   mruby-fiber
@@ -57,8 +59,8 @@ set(MRUBY_GEMS
   # metaprog
   mruby-metaprog
   mruby-method
-  mruby-eval
   mruby-binding
+  mruby-eval
   mruby-proc-binding
   mruby-compiler
   # math
@@ -70,6 +72,7 @@ set(MRUBY_GEMS
 
 set(EXTERNAL_MRUBY_GEMS
   mruby-marshal-c
+  mruby-onig-regexp
 )
 set(EXTERNAL_MRUBY_GEMS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gems")
 
@@ -425,6 +428,7 @@ string(APPEND _gi_body "    gem_funcs[i].loader(mrb);\n")
 string(APPEND _gi_body "    mrb_gc_arena_restore(mrb, ai);\n")
 string(APPEND _gi_body "    mrb_vm_ci_env_clear(mrb, mrb->c->cibase);\n")
 string(APPEND _gi_body "    if (mrb->exc) {\n")
+string(APPEND _gi_body "      mrb_p(mrb, mrb_format(\"Gem initialize error (%d/%d)\", i, NUM_GEMS));\n")
 string(APPEND _gi_body "      mrb_exc_raise(mrb, mrb_obj_value(mrb->exc));\n")
 string(APPEND _gi_body "    }\n")
 string(APPEND _gi_body "  }\n")
@@ -483,6 +487,11 @@ endforeach()
 if(EXISTS "${PRISM_SOURCE_DIR}")
   get_target_property(PRISM_INCLUDES prism INCLUDE_DIRECTORIES)
   list(APPEND MRUBY_PP_INCLUDE_DIRS "${PRISM_INCLUDES}")
+endif()
+
+if(EXISTS "${ONIG_SOURCE_DIR}")
+  get_target_property(ONIG_INCLUDES onig INCLUDE_DIRECTORIES)
+  list(APPEND MRUBY_PP_INCLUDE_DIRS "${ONIG_INCLUDES}")
 endif()
 
 # ── Build include flags as a list ────────────────────────────────────────────

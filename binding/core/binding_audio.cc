@@ -1,6 +1,6 @@
 #include "binding_audio.h"
 
-#include "audio.h"
+#include "src/audio.h"
 
 namespace binding {
 

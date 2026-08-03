@@ -1,7 +1,8 @@
 #include "binding_graphics.h"
 
 #include "binding_bitmap.h"
-#include "graphics.h"
+
+#include "src/graphics.h"
 
 namespace binding {
 

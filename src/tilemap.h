@@ -1,11 +1,11 @@
 #pragma once
 
-#include "bitmap.h"
-#include "common.h"
-#include "refptr.h"
-#include "table.h"
-#include "utility.h"
-#include "viewport.h"
+#include "src/bitmap.h"
+#include "src/common.h"
+#include "src/refptr.h"
+#include "src/table.h"
+#include "src/utility.h"
+#include "src/viewport.h"
 
 namespace rgssx {
 
@@ -50,7 +50,6 @@ class Tilemap : public RefCounted<Tilemap>,
   struct TileQuad {
     raylib::Rectangle source;
     raylib::Rectangle destination;
-    raylib::Color color;
   };
 
   void DisposeObject() override;

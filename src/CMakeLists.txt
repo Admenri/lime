@@ -5,7 +5,7 @@ add_library(rgssx_core)
 target_sources(rgssx_core
  PUBLIC
   raygui.c
-  config.cc
+  profile.cc
   audio.cc
   bitmap.cc
   drawable.cc
@@ -29,5 +29,3 @@ endif()
 
 target_link_libraries(rgssx_core PUBLIC raylib physfs-static)
 target_compile_definitions(rgssx_core PUBLIC PHYSFS_STATIC)
-
-target_include_directories(rgssx_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

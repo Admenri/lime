@@ -1,6 +1,6 @@
-#include "config.h"
+#include "src/profile.h"
 
-#include "filesystem.h"
+#include "src/filesystem.h"
 
 namespace rgssx {
 

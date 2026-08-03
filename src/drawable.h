@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common.h"
-#include "utility.h"
+#include "src/common.h"
+#include "src/utility.h"
 
 namespace rgssx {
 

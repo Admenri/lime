@@ -1,4 +1,4 @@
-#include "graphics.h"
+#include "src/graphics.h"
 
 namespace rgssx {
 
@@ -8,7 +8,7 @@ Graphics::Graphics(int w,
                    bool vsync,
                    bool fullscreen) {
   // Flags
-  uint32_t flags = raylib::FLAG_MSAA_4X_HINT;
+  uint32_t flags = raylib::FLAG_WINDOW_HIGHDPI;
   if (vsync)
     flags |= raylib::FLAG_VSYNC_HINT;
   if (fullscreen)
@@ -84,7 +84,7 @@ void Graphics::Wait(int duration) {
 void Graphics::FadeIn(int duration) {
   duration = std::max(duration, 1);
   int step = (255 - brightness_) / duration;
-  for (int i = 0; i < duration; ++i) {
+  for (int i = 0; i < duration + 1; ++i) {
     brightness_ += step;
     brightness_ = std::clamp<int>(brightness_, 0, 255);
     Update();
@@ -94,7 +94,7 @@ void Graphics::FadeIn(int duration) {
 void Graphics::FadeOut(int duration) {
   duration = std::max(duration, 1);
   int step = brightness_ / duration;
-  for (int i = 0; i < duration; ++i) {
+  for (int i = 0; i < duration + 1; ++i) {
     brightness_ -= step;
     brightness_ = std::clamp<int>(brightness_, 0, 255);
     Update();
@@ -119,6 +119,8 @@ void Graphics::TransitionBitmap(int duration,
                                 RefPtr<Bitmap> bitmap,
                                 int vague) {
   if (frozen_) {
+    brightness_ = 255;
+
     auto current_texture = raylib::LoadRenderTexture(Width(), Height());
     auto frozen_texture = raylib::LoadRenderTexture(Width(), Height());
     std::swap(screen_buffer_, frozen_texture);

@@ -3,7 +3,8 @@
 #include "binding_bitmap.h"
 #include "binding_table.h"
 #include "binding_viewport.h"
-#include "tilemap.h"
+
+#include "src/tilemap.h"
 
 namespace binding {
 

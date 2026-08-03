@@ -10,7 +10,7 @@
 #include <memory>
 #include <ostream>
 
-#include "common.h"
+#include "src/common.h"
 
 namespace rgssx {
 

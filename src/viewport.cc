@@ -1,6 +1,6 @@
-#include "viewport.h"
+#include "src/viewport.h"
 
-#include "graphics.h"
+#include "src/graphics.h"
 
 namespace rgssx {
 

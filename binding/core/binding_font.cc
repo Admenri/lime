@@ -1,8 +1,9 @@
 #include "binding_font.h"
 
 #include "binding_color.h"
-#include "font.h"
-#include "utility.h"
+
+#include "src/font.h"
+#include "src/utility.h"
 
 namespace binding {
 

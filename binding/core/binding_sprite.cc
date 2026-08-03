@@ -5,7 +5,8 @@
 #include "binding_rect.h"
 #include "binding_tone.h"
 #include "binding_viewport.h"
-#include "sprite.h"
+
+#include "src/sprite.h"
 
 namespace binding {
 

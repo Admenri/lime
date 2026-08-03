@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "define.h"
+#include "src/define.h"
 
 namespace raylib {
 #include "raylib.h"

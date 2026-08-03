@@ -1,10 +1,10 @@
 #pragma once
 
-#include "bitmap.h"
-#include "common.h"
-#include "drawable.h"
-#include "refptr.h"
-#include "viewport.h"
+#include "src/bitmap.h"
+#include "src/common.h"
+#include "src/drawable.h"
+#include "src/refptr.h"
+#include "src/viewport.h"
 
 namespace rgssx {
 

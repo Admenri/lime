@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "src/audio.h"
 
 namespace rgssx {
 

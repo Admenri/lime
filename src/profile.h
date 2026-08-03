@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "common.h"
-#include "inirw.h"
+#include "src/common.h"
+#include "src/inirw.h"
 
 namespace rgssx {
 

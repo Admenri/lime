@@ -14,7 +14,7 @@
 #include "mruby/variable.h"
 #include "mruby/version.h"
 
-#include "refptr.h"
+#include "src/refptr.h"
 
 namespace binding {
 

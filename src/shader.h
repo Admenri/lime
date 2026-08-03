@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "src/common.h"
 
 namespace rgssx {
 
@@ -50,7 +50,6 @@ struct TilemapShader : public ShaderBase {
   int u_offset = 0;
   int u_anim_offset = 0;
   int u_tile_size = 0;
-  int u_flash_alpha = 0;
 };
 
 struct ShaderSet : public Singleton<ShaderSet> {

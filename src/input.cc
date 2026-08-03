@@ -1,4 +1,4 @@
-#include "input.h"
+#include "src/input.h"
 
 namespace rgssx {
 

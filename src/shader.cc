@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "src/shader.h"
 
 const std::string kBaseVertexGLSL = R"(
 #version 100
@@ -148,10 +148,8 @@ uniform mat4 mvp;
 uniform vec2 offset;
 uniform vec2 animOffset;
 uniform float tileSize;
-uniform float flashAlpha;
 
 varying vec2 fragTexCoord;
-varying vec4 fragColor;
 
 const vec2 kRegularArea = vec2(12.0, 12.0);
 const vec4 kWaterfallArea = vec4(12.0, 0.0, 4.0, 12.0);
@@ -175,8 +173,6 @@ void main() {
   uv.y += animOffset.y * addition2;
 
   fragTexCoord = uv;
-  fragColor = color;
-  fragColor.a = (fragColor.rgb == vec3(0.0)) ? 0.0 : flashAlpha;
   gl_Position = mvp * vec4(pos, 1.0);
 }
 
@@ -188,14 +184,12 @@ const std::string kTilemapFragmentGLSL = R"(
 precision mediump float;
 
 varying vec2 fragTexCoord;
-varying vec4 fragColor;
 
 uniform sampler2D texture0;
 
 void main() {
   vec4 texelColor = texture2D(texture0, fragTexCoord);
-  gl_FragColor.rgb = mix(texelColor.rgb, fragColor.rgb, fragColor.a);
-  gl_FragColor.a = texelColor.a;
+  gl_FragColor = texelColor;
 }
 )";
 
@@ -252,7 +246,6 @@ TilemapShader::TilemapShader() {
   u_offset = raylib::GetShaderLocation(shader, "offset");
   u_anim_offset = raylib::GetShaderLocation(shader, "animOffset");
   u_tile_size = raylib::GetShaderLocation(shader, "tileSize");
-  u_flash_alpha = raylib::GetShaderLocation(shader, "flashAlpha");
 }
 
 }  // namespace rgssx

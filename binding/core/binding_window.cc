@@ -4,7 +4,8 @@
 #include "binding_rect.h"
 #include "binding_tone.h"
 #include "binding_viewport.h"
-#include "window.h"
+
+#include "src/window.h"
 
 namespace binding {
 

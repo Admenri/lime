@@ -1,4 +1,4 @@
-#include "drawable.h"
+#include "src/drawable.h"
 
 namespace rgssx {
 

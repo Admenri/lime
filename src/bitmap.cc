@@ -1,6 +1,6 @@
-#include "bitmap.h"
+#include "src/bitmap.h"
 
-#include "filesystem.h"
+#include "src/filesystem.h"
 
 namespace rgssx {
 
@@ -61,9 +61,8 @@ void Bitmap::Blt(int x,
                  RefPtr<Rect> src_rect,
                  int opacity) {
   Dispoable::Guard();
-  StretchBlt(
-      MakeRefCounted<Rect>(x, y, src_bitmap->Width(), src_bitmap->Height()),
-      src_bitmap, src_rect, opacity);
+  StretchBlt(MakeRefCounted<Rect>(x, y, src_rect->width, src_rect->height),
+             src_bitmap, src_rect, opacity);
 }
 
 void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
@@ -73,10 +72,12 @@ void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
   Dispoable::Guard();
   raylib::BeginTextureMode(texture_);
   raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-  raylib::Color tint = raylib::MakeAlphaColor(
-      static_cast<uint8_t>(std::clamp<int>(opacity, 0, 255)));
-  raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
-                         dst_rect->As(), {}, 0, tint);
+  {
+    raylib::Color tint = raylib::MakeAlphaColor(
+        static_cast<uint8_t>(std::clamp<int>(opacity, 0, 255)));
+    raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
+                           dst_rect->As(), {}, 0, tint);
+  }
   raylib::EndBlendMode();
   raylib::EndTextureMode();
 }
@@ -206,7 +207,7 @@ void Bitmap::DrawText(RefPtr<Rect> rect, std::string str, int align) {
 RefPtr<Rect> Bitmap::TextSize(std::string str) {
   Dispoable::Guard();
   // TODO
-  return nullptr;
+  return MakeRefCounted<Rect>();
 }
 
 void Bitmap::SaveFile(std::string filename) {

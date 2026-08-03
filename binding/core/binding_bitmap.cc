@@ -3,8 +3,9 @@
 #include "binding_color.h"
 #include "binding_font.h"
 #include "binding_rect.h"
-#include "bitmap.h"
-#include "utility.h"
+
+#include "src/bitmap.h"
+#include "src/utility.h"
 
 namespace binding {
 
@@ -244,36 +245,40 @@ MRB_FUNC(Bitmap_RadialBlur) {
 }
 
 MRB_FUNC(Bitmap_DrawText) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+  // auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  // const mrb_value* args;
+  // mrb_int argc;
+  // mrb_get_args(mrb, "*", &args, &argc);
 
-  EXC_BEGIN {
-    if (argc == 5) {
-      // DrawText(x, y, width, height, str)  (align = 0)
-      std::string str = mrb_str_to_cstr(mrb, args[4]);
-      self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
-                         mrb_integer(args[2]), mrb_integer(args[3]), str);
-    } else if (argc == 6) {
-      // DrawText(x, y, width, height, str, align)
-      std::string str = mrb_str_to_cstr(mrb, args[4]);
-      self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
-                         mrb_integer(args[2]), mrb_integer(args[3]), str,
-                         mrb_integer(args[5]));
-    } else if (argc == 2) {
-      // DrawText(rect, str)  (align = 0)
-      std::string str = mrb_str_to_cstr(mrb, args[1]);
-      self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str);
-    } else if (argc == 3) {
-      // DrawText(rect, str, align)
-      std::string str = mrb_str_to_cstr(mrb, args[1]);
-      self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str,
-                         mrb_integer(args[2]));
-    } else {
-      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
-    }
-  } EXC_END(mrb);
+  // EXC_BEGIN {
+  //   if (argc == 5) {
+  //     // DrawText(x, y, width, height, str)  (align = 0)
+  //     mrb_p(mrb, args[4]);
+  //     std::string str = mrb_str_to_cstr(mrb, args[4]);
+  //     self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
+  //                        mrb_integer(args[2]), mrb_integer(args[3]), str);
+  //   } else if (argc == 6) {
+  //     // DrawText(x, y, width, height, str, align)
+  //     mrb_p(mrb, args[4]);
+  //     std::string str = mrb_str_to_cstr(mrb, args[4]);
+  //     self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
+  //                        mrb_integer(args[2]), mrb_integer(args[3]), str,
+  //                        mrb_integer(args[5]));
+  //   } else if (argc == 2) {
+  //     // DrawText(rect, str)  (align = 0)
+  //     mrb_p(mrb, args[1]);
+  //     std::string str = mrb_str_to_cstr(mrb, args[1]);
+  //     self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str);
+  //   } else if (argc == 3) {
+  //     // DrawText(rect, str, align)
+  //     mrb_p(mrb, args[1]);
+  //     std::string str = mrb_str_to_cstr(mrb, args[1]);
+  //     self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str,
+  //                        mrb_integer(args[2]));
+  //   } else {
+  //     mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
+  //   }
+  // } EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -312,7 +317,7 @@ void InitBitmapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "initialize", Bitmap_initialize, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "width", Bitmap_Width, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "height", Bitmap_Height, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "get_rect", Bitmap_GetRect, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "rect", Bitmap_GetRect, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "blt", Bitmap_Blt, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "stretch_blt", Bitmap_StretchBlt, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "fill_rect", Bitmap_FillRect, MRB_ARGS_ANY());

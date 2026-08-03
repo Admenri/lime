@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common.h"
-#include "refptr.h"
-#include "utility.h"
+#include "src/common.h"
+#include "src/refptr.h"
+#include "src/utility.h"
 
 namespace rgssx {
 

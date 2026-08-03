@@ -1,4 +1,4 @@
-#include "font.h"
+#include "src/font.h"
 
 namespace rgssx {
 

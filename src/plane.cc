@@ -1,9 +1,9 @@
-#include "plane.h"
+#include "src/plane.h"
 
 #include <cmath>
 
-#include "graphics.h"
-#include "shader.h"
+#include "src/graphics.h"
+#include "src/shader.h"
 
 namespace rgssx {
 

@@ -7,9 +7,9 @@
 
 #include "3rdparty/mruby-cmake/gems/mruby-marshal-c/include/mruby/marshal.h"
 
-#include "config.h"
-#include "filesystem.h"
-#include "graphics.h"
+#include "src/filesystem.h"
+#include "src/graphics.h"
+#include "src/profile.h"
 
 #include "core/binding_init.h"
 

@@ -1,7 +1,7 @@
-#include "sprite.h"
+#include "src/sprite.h"
 
-#include "graphics.h"
-#include "shader.h"
+#include "src/graphics.h"
+#include "src/shader.h"
 
 namespace rgssx {
 

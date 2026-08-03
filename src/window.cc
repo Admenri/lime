@@ -1,6 +1,6 @@
-#include "window.h"
+#include "src/window.h"
 
-#include "shader.h"
+#include "src/shader.h"
 
 namespace raylib {
 

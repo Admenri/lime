@@ -4,7 +4,8 @@
 #include "binding_color.h"
 #include "binding_tone.h"
 #include "binding_viewport.h"
-#include "plane.h"
+
+#include "src/plane.h"
 
 namespace binding {
 

@@ -1,6 +1,6 @@
-#include "table.h"
+#include "src/table.h"
 
-#include "common.h"
+#include "src/common.h"
 
 namespace rgssx {
 

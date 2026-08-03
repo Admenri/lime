@@ -1,6 +1,6 @@
 #include "binding_color.h"
 
-#include "utility.h"
+#include "src/utility.h"
 
 namespace binding {
 

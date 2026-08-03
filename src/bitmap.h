@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common.h"
-#include "font.h"
-#include "refptr.h"
-#include "utility.h"
+#include "src/common.h"
+#include "src/font.h"
+#include "src/refptr.h"
+#include "src/utility.h"
 
 namespace rgssx {
 

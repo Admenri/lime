@@ -1,9 +1,9 @@
 
 #include "src/common.h"
-#include "src/config.h"
 #include "src/filesystem.h"
 #include "src/graphics.h"
 #include "src/input.h"
+#include "src/profile.h"
 
 #if defined(_WIN32)
 #include "src/platform/win32.h"
