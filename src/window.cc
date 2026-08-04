@@ -380,6 +380,9 @@ void Window::Draw(DrawParam param) {
   raylib::Rectangle padding_rect{fpad, fpad, std::max(0.0f, fw - fpad * 2.0f),
                                  std::max(0.0f, fh - (fpad + fpad_bottom))};
 
+  raylib::rlEnableColorBlend();
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+
   if (width_ >= scale_ * 2 && height_ >= scale_ * 2) {
     RectRegion window_rect = {static_cast<int>(x_ + padding_rect.x),
                               static_cast<int>(y_ + padding_rect.y),
@@ -470,17 +473,13 @@ void Window::Draw(DrawParam param) {
         }
         raylib::EndShaderMode();
 
-        const raylib::Color tiled_tint = raylib::MakeAlphaColor(
-            static_cast<uint8_t>((opacity_ * back_opacity_) / 255));
-
         // 2. Tiled layer
-        raylib::DrawTextureTiled(skin_texture, background2_src, background_dest,
-                                 {}, 0.0f, 1.0f, tiled_tint);
-
-        const raylib::Color frame_tint =
-            raylib::MakeAlphaColor(static_cast<uint8_t>(opacity_));
+        raylib::DrawTextureTiled(
+            skin_texture, background2_src, background_dest, {}, 0, 1,
+            raylib::MakeColor((opacity_ * back_opacity_) / 255));
 
         // 3. Corners & frames
+        const raylib::Color frame_tint = raylib::MakeColor(opacity_);
         raylib::DrawTexturePro(skin_texture, corner_left_top_src,
                                corner_left_top_dest, {}, 0.0f, frame_tint);
         raylib::DrawTexturePro(skin_texture, corner_right_top_src,
@@ -568,11 +567,9 @@ void Window::Draw(DrawParam param) {
                                  pause_dest, {}, 0.0f, raylib::RAYWHITE);
         }
 
-        const raylib::Color contents_tint =
-            raylib::MakeAlphaColor(static_cast<uint8_t>(
-                contents_opacity_ * kCursorAlphaTable[cursor_index_] / 255));
-
         // 6. Cursor
+        const raylib::Color contents_tint = raylib::MakeColor(
+            contents_opacity_ * kCursorAlphaTable[cursor_index_] / 255);
         if (cursor_rect_->width > 0 && cursor_rect_->height > 0) {
           const raylib::Rectangle clip = {
               static_cast<float>(window_scissor.x),
@@ -695,9 +692,8 @@ void Window::Draw(DrawParam param) {
         d.width = right - left;
         d.height = bottom - top;
 
-        const raylib::Color tint =
-            raylib::MakeAlphaColor(static_cast<uint8_t>(contents_opacity_));
-        raylib::DrawTexturePro(contents_texture, s, d, {}, 0.0f, tint);
+        raylib::DrawTexturePro(contents_texture, s, d, {}, 0,
+                               raylib::MakeColor(contents_opacity_));
       }
     }
   }

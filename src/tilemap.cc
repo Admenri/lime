@@ -994,7 +994,8 @@ void Tilemap::UpdateViewport(DrawParam param) {
 void Tilemap::DrawLayer(const std::vector<TileQuad>& data) {
   auto& shader = ShaderSet::Instance()->tilemap;
   raylib::BeginShaderMode(shader.shader);
-  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlEnableColorBlend();
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     const float flash_alpha_norm = flash_opacity_ / 255.0f;
 
@@ -1010,7 +1011,6 @@ void Tilemap::DrawLayer(const std::vector<TileQuad>& data) {
       raylib::DrawTexturePro(tex, it.source, it.destination, {}, 0, {});
     }
   }
-  raylib::EndBlendMode();
   raylib::EndShaderMode();
 }
 

@@ -9,32 +9,6 @@
 
 #include "src/define.h"
 
-namespace raylib {
-#include "raylib.h"
-#include "rlgl.h"
-
-// HOOK raylib y flipping otrho
-inline void BeginTextureRender(RenderTexture2D target) {
-  raylib::BeginTextureMode(target);
-
-  // invert vertical raylib internal projection
-  raylib::rlMatrixMode(RL_PROJECTION);
-  raylib::rlLoadIdentity();
-  raylib::rlOrtho(0, target.texture.width, 0, target.texture.height, 0.0, 1.0);
-}
-#define BeginTextureMode BeginTextureRender
-
-inline void EndBlendModePremultiply() {
-  rlSetBlendMode(RL_BLEND_ALPHA_PREMULTIPLY);
-}
-#define EndBlendMode EndBlendModePremultiply
-
-inline Color MakeAlphaColor(uint8_t alpha) {
-  return Color{alpha, alpha, alpha, alpha};
-}
-
-}  // namespace raylib
-
 namespace rgssx {
 
 template <typename Ty>

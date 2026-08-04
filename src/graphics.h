@@ -50,24 +50,4 @@ class Graphics : public Singleton<Graphics> {
   int frame_rate_ = 60;
 };
 
-inline raylib::BlendMode GetRaylibBlend(int type) {
-  switch (type) {
-    default:
-    case 0:
-      raylib::rlSetBlendFactorsSeparate(RL_ONE, RL_ONE_MINUS_SRC_ALPHA, RL_ONE,
-                                        RL_ONE_MINUS_SRC_ALPHA, RL_FUNC_ADD,
-                                        RL_FUNC_ADD);
-      return raylib::BLEND_CUSTOM_SEPARATE;
-    case 1:
-      raylib::rlSetBlendFactorsSeparate(RL_ONE, RL_ONE, RL_ONE, RL_ONE,
-                                        RL_FUNC_ADD, RL_FUNC_ADD);
-      return raylib::BLEND_CUSTOM_SEPARATE;
-    case 2:
-      raylib::rlSetBlendFactorsSeparate(RL_ONE, RL_ONE, RL_ZERO, RL_ONE,
-                                        RL_FUNC_REVERSE_SUBTRACT,
-                                        RL_FUNC_REVERSE_SUBTRACT);
-      return raylib::BLEND_CUSTOM_SEPARATE;
-  }
-}
-
 }  // namespace rgssx

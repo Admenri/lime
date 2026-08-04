@@ -2,6 +2,7 @@
 
 #include "src/common.h"
 #include "src/font.h"
+#include "src/raywarp.h"
 #include "src/refptr.h"
 #include "src/utility.h"
 

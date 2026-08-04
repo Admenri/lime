@@ -54,7 +54,7 @@ void Graphics::Update() {
 
   // Screen present
   raylib::BeginDrawing();
-  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     raylib::ClearBackground({255, 0, 0, 255});
 
@@ -72,7 +72,6 @@ void Graphics::Update() {
     auto fps_text = raylib::TextFormat("FPS: %i", raylib::GetFPS());
     raylib::DrawText(fps_text, 20, 20, 24, raylib::DARKGRAY);
   }
-  raylib::EndBlendMode();
   raylib::EndDrawing();
 }
 
@@ -250,7 +249,7 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
 
   // Screen rendering
   raylib::BeginTextureMode(target);
-  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     raylib::Color bgcolor = {0, 0, 0, 255};
     raylib::ClearBackground(bgcolor);
@@ -267,17 +266,16 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
     raylib::rlDisableScissorTest();
 
     if (brightness_ < 255) {
-      raylib::BeginBlendMode(raylib::BLEND_ALPHA);
+      raylib::rlEnableColorBlend();
+      raylib::rlSetBlendMode(raylib::BLEND_ALPHA);
       {
         raylib::Color brightness_norm = {
             0, 0, 0, static_cast<uint8_t>(255 - brightness_)};
         raylib::DrawRectangle(0, 0, target.texture.width, target.texture.height,
                               brightness_norm);
       }
-      raylib::EndBlendMode();
     }
   }
-  raylib::EndBlendMode();
   raylib::EndTextureMode();
 }
 

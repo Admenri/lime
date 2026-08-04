@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/common.h"
+#include "src/raywarp.h"
 
 namespace rgssx {
 

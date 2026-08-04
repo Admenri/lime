@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include "src/graphics.h"
 #include "src/shader.h"
 
 namespace rgssx {
@@ -115,8 +114,9 @@ void Plane::Draw(DrawParam param) {
 
     auto& shader = ShaderSet::Instance()->viewport;
 
-    raylib::BeginBlendMode(GetRaylibBlend(blend_type_));
     raylib::BeginShaderMode(shader.shader);
+    raylib::rlEnableColorBlend();
+    raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
     {
       auto color_norm = color_->Normalize();
       auto tone_norm = tone_->Normalize();
@@ -162,7 +162,6 @@ void Plane::Draw(DrawParam param) {
       }
     }
     raylib::EndShaderMode();
-    raylib::EndBlendMode();
   }
 }
 

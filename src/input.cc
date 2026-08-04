@@ -1,5 +1,7 @@
 #include "src/input.h"
 
+#include "src/raywarp.h"
+
 namespace rgssx {
 
 const Input::KeySym kDefaultKeyboardBindings[] = {

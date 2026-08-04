@@ -1,6 +1,5 @@
 #include "src/sprite.h"
 
-#include "src/graphics.h"
 #include "src/shader.h"
 
 namespace rgssx {
@@ -239,8 +238,9 @@ void Sprite::Draw(DrawParam param) {
 
     auto& shader = ShaderSet::Instance()->sprite;
 
-    raylib::BeginBlendMode(GetRaylibBlend(blend_type_));
     raylib::BeginShaderMode(shader.shader);
+    raylib::rlEnableColorBlend();
+    raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
     {
       auto color_norm = color_->Normalize();
       auto tone_norm = tone_->Normalize();
@@ -305,7 +305,6 @@ void Sprite::Draw(DrawParam param) {
       raylib::rlPopMatrix();
     }
     raylib::EndShaderMode();
-    raylib::EndBlendMode();
   }
 }
 

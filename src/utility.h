@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "src/common.h"
+#include "src/raywarp.h"
 #include "src/refptr.h"
 
 namespace rgssx {

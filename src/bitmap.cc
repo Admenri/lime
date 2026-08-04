@@ -71,14 +71,11 @@ void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
                         int opacity) {
   Dispoable::Guard();
   raylib::BeginTextureMode(texture_);
-  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-  {
-    raylib::Color tint = raylib::MakeAlphaColor(
-        static_cast<uint8_t>(std::clamp<int>(opacity, 0, 255)));
-    raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
-                           dst_rect->As(), {}, 0, tint);
-  }
-  raylib::EndBlendMode();
+  raylib::rlEnableColorBlend();
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
+                         dst_rect->As(), {}, 0,
+                         raylib::MakeColor(std::clamp<int>(opacity, 0, 255)));
   raylib::EndTextureMode();
 }
 
@@ -91,7 +88,6 @@ void Bitmap::FillRect(int x,
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   raylib::DrawRectangle(x, y, width, height, color->As());
-  raylib::rlEnableColorBlend();
   raylib::EndTextureMode();
 }
 
@@ -117,7 +113,6 @@ void Bitmap::GradientFillRect(int x,
     raylib::DrawRectangleGradientH(x, y, width, height, color1->As(),
                                    color2->As());
   }
-  raylib::rlEnableColorBlend();
   raylib::EndTextureMode();
 }
 
@@ -142,7 +137,6 @@ void Bitmap::ClearRect(int x, int y, int width, int height) {
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   raylib::DrawRectangle(x, y, width, height, {});
-  raylib::rlEnableColorBlend();
   raylib::EndTextureMode();
 }
 
@@ -163,8 +157,7 @@ void Bitmap::SetPixel(int x, int y, RefPtr<Color> color) {
   Dispoable::Guard();
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
-  raylib::DrawRectangle(x, y, 1, 1, color->As());
-  raylib::rlEnableColorBlend();
+  raylib::DrawPixel(x, y, color->As());
   raylib::EndTextureMode();
 }
 
@@ -191,12 +184,6 @@ void Bitmap::DrawText(int x,
                       int align) {
   Dispoable::Guard();
   // TODO
-  raylib::BeginTextureMode(texture_);
-  raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-  raylib::DrawTextPro({}, str.c_str(), {(float)x, (float)y}, {}, 0, 30, 0,
-                      raylib::RAYWHITE);
-  raylib::EndBlendMode();
-  raylib::EndTextureMode();
 }
 
 void Bitmap::DrawText(RefPtr<Rect> rect, std::string str, int align) {
@@ -227,8 +214,8 @@ ATTR_DEF(RefPtr<Font>, Font, Bitmap) {
 }
 
 void Bitmap::DisposeObject() {
-  // Clean GPU texture
   raylib::UnloadRenderTexture(texture_);
+
   texture_ = {};
 }
 

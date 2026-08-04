@@ -74,7 +74,7 @@ void Viewport::Render(RefPtr<Bitmap> target) {
 
     // Rendering
     raylib::BeginTextureMode(target->render_texture());
-    raylib::BeginBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+    raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
     raylib::rlEnableScissorTest();
     {
       raylib::Color bgcolor = {0, 0, 0, 255};
@@ -90,7 +90,6 @@ void Viewport::Render(RefPtr<Bitmap> target) {
       drawables_.DispatchDraw(param);
     }
     raylib::rlDisableScissorTest();
-    raylib::EndBlendMode();
     raylib::EndTextureMode();
   }
 }
@@ -284,7 +283,6 @@ void Viewport::Draw(DrawParam param) {
       }
       raylib::rlPopMatrix();
     }
-    raylib::rlEnableColorBlend();
     raylib::rlDrawRenderBatchActive();
     raylib::EndShaderMode();
   }
