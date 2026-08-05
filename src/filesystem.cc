@@ -32,140 +32,6 @@ const char* FindFileExtName(const char* filename) {
   return nullptr;
 }
 
-// std::streambuf adapter that forwards all IO to a PhysicsFS file handle.
-class PHYSFSStreamBuf : public std::streambuf {
- public:
-  explicit PHYSFSStreamBuf(PHYSFS_File* file) : file_(file) {}
-
-  ~PHYSFSStreamBuf() override {
-    if (file_)
-      PHYSFS_close(file_);
-  }
-
-  // Read -------------------------------------------------------------
-  std::streamsize xsgetn(char_type* s, std::streamsize n) override {
-    if (!file_)
-      return 0;
-
-    PHYSFS_sint64 result = PHYSFS_readBytes(file_, s, n);
-    return (result != -1) ? result : 0;
-  }
-
-  int_type underflow() override {
-    if (!file_)
-      return traits_type::eof();
-
-    char_type c;
-    PHYSFS_sint64 result = PHYSFS_readBytes(file_, &c, 1);
-    if (result != 1)
-      return traits_type::eof();
-
-    // Rewind so the byte is not consumed
-    PHYSFS_seek(file_, PHYSFS_tell(file_) - 1);
-    return traits_type::to_int_type(c);
-  }
-
-  int_type uflow() override {
-    if (!file_)
-      return traits_type::eof();
-
-    char_type c;
-    PHYSFS_sint64 result = PHYSFS_readBytes(file_, &c, 1);
-    return (result == 1) ? traits_type::to_int_type(c) : traits_type::eof();
-  }
-
-  // Write ------------------------------------------------------------
-  std::streamsize xsputn(const char_type* s, std::streamsize n) override {
-    if (!file_)
-      return 0;
-
-    PHYSFS_sint64 result = PHYSFS_writeBytes(file_, s, n);
-    return (result != -1) ? result : 0;
-  }
-
-  int_type overflow(int_type ch) override {
-    if (!file_)
-      return traits_type::eof();
-
-    if (!traits_type::eq_int_type(ch, traits_type::eof())) {
-      char_type c = traits_type::to_char_type(ch);
-      PHYSFS_sint64 result = PHYSFS_writeBytes(file_, &c, 1);
-      if (result != 1)
-        return traits_type::eof();
-    }
-
-    return traits_type::not_eof(ch);
-  }
-
-  // Positioning ------------------------------------------------------
-  pos_type seekoff(off_type off,
-                   std::ios_base::seekdir dir,
-                   std::ios_base::openmode which) override {
-    if (!file_)
-      return pos_type(off_type(-1));
-
-    int64_t base;
-    switch (dir) {
-      case std::ios_base::beg:
-        base = 0;
-        break;
-      case std::ios_base::cur:
-        base = PHYSFS_tell(file_);
-        break;
-      case std::ios_base::end:
-        base = PHYSFS_fileLength(file_);
-        break;
-      default:
-        return pos_type(off_type(-1));
-    }
-
-    if (!PHYSFS_seek(file_, base + off))
-      return pos_type(off_type(-1));
-
-    return pos_type(PHYSFS_tell(file_));
-  }
-
-  pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
-    return seekoff(off_type(pos), std::ios_base::beg, which);
-  }
-
-  std::streamsize showmanyc() override {
-    if (!file_)
-      return 0;
-
-    PHYSFS_sint64 length = PHYSFS_fileLength(file_);
-    PHYSFS_sint64 pos = PHYSFS_tell(file_);
-    return static_cast<std::streamsize>(
-        std::max<PHYSFS_sint64>(0, length - pos));
-  }
-
- private:
-  PHYSFS_File* file_ = nullptr;
-};
-
-// RAII streams owning their streambuf (and therefore the file handle).
-class InputFileStream : public std::istream {
- public:
-  explicit InputFileStream(PHYSFS_File* file) : std::istream(nullptr) {
-    buf_ = std::make_unique<PHYSFSStreamBuf>(file);
-    rdbuf(buf_.get());
-  }
-
- private:
-  std::unique_ptr<PHYSFSStreamBuf> buf_;
-};
-
-class OutputFileStream : public std::ostream {
- public:
-  explicit OutputFileStream(PHYSFS_File* file) : std::ostream(nullptr) {
-    buf_ = std::make_unique<PHYSFSStreamBuf>(file);
-    rdbuf(buf_.get());
-  }
-
- private:
-  std::unique_ptr<PHYSFSStreamBuf> buf_;
-};
-
 struct OpenReadEnumData {
   IOService::OpenCallback callback;
   std::string full_path;
@@ -212,7 +78,7 @@ PHYSFS_EnumerateCallbackResult OpenReadEnumCallback(void* data,
   }
 
   // Ownership of the stream (and thus the file) is transferred to the callback
-  auto stream = std::make_unique<InputFileStream>(file);
+  auto stream = std::make_unique<IOStream>(file);
   if (enum_data->callback(std::move(stream),
                           FindFileExtName(filename.c_str()))) {
     // Matched and stop
@@ -225,6 +91,43 @@ PHYSFS_EnumerateCallbackResult OpenReadEnumCallback(void* data,
 }
 
 }  // namespace
+
+IOStream::IOStream(void* ptr) : ptr_(ptr) {}
+
+IOStream::~IOStream() {
+  PHYSFS_close(static_cast<PHYSFS_file*>(ptr_));
+}
+
+int64_t IOStream::Tell() {
+  return PHYSFS_tell(static_cast<PHYSFS_file*>(ptr_));
+}
+
+int32_t IOStream::Seek(uint64_t pos) {
+  return PHYSFS_seek(static_cast<PHYSFS_file*>(ptr_), pos);
+}
+
+int64_t IOStream::Read(void* buffer, uint32_t size) {
+  return PHYSFS_readBytes(static_cast<PHYSFS_file*>(ptr_), buffer, size);
+}
+
+int64_t IOStream::Write(const void* buffer, uint32_t size) {
+  return PHYSFS_writeBytes(static_cast<PHYSFS_file*>(ptr_), buffer, size);
+}
+
+int64_t IOStream::Length() {
+  return PHYSFS_fileLength(static_cast<PHYSFS_file*>(ptr_));
+}
+
+std::string IOStream::ReadAll() {
+  std::string data(Length(), 0);
+  auto pos = Tell();
+  Seek(0);
+  Read(data.data(), Length());
+  Seek(pos);
+  return data;
+}
+
+// ----------------------------------------------------------------
 
 IOService::IOService(const std::string& argv0) {
   const char* init_data = argv0.c_str();
@@ -304,8 +207,7 @@ void IOService::OpenRead(const std::string& file_path, OpenCallback callback) {
     throw Exception("No file match: {}", file_path);
 }
 
-std::unique_ptr<std::istream> IOService::OpenReadRaw(
-    const std::string& filename) {
+std::unique_ptr<IOStream> IOService::OpenReadRaw(const std::string& filename) {
   PHYSFS_File* file = PHYSFS_openRead(filename.c_str());
   if (!file) {
     std::string error_message =
@@ -313,11 +215,10 @@ std::unique_ptr<std::istream> IOService::OpenReadRaw(
     throw Exception("{}: {}", error_message, filename);
   }
 
-  return std::make_unique<InputFileStream>(file);
+  return std::make_unique<IOStream>(file);
 }
 
-std::unique_ptr<std::ostream> IOService::OpenWrite(
-    const std::string& filename) {
+std::unique_ptr<IOStream> IOService::OpenWrite(const std::string& filename) {
   PHYSFS_File* file = PHYSFS_openWrite(filename.c_str());
   if (!file) {
     std::string error_message =
@@ -325,7 +226,7 @@ std::unique_ptr<std::ostream> IOService::OpenWrite(
     throw Exception("{}: {}", error_message, filename);
   }
 
-  return std::make_unique<OutputFileStream>(file);
+  return std::make_unique<IOStream>(file);
 }
 
 }  // namespace rgssx

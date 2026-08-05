@@ -54,7 +54,7 @@ static int MarshalWriterString(mrb_state* mrb,
 static mrb_value RGSSLoadData(mrb_state* mrb, const char* filename) {
   auto* io_service = rgssx::IOService::Instance();
   auto stream = io_service->OpenReadRaw(filename);
-  auto raw_data = rgssx::ReadStream(*stream);
+  auto raw_data = stream->ReadAll();
 
   return mrb_marshal_load(mrb, MarshalReaderString,
                           mrb_str_new(mrb, raw_data.data(), raw_data.size()));
@@ -89,7 +89,7 @@ MRB_FUNC(save_data) {
   auto ai = mrb_gc_arena_save(mrb);
   mrb_value str = mrb_str_new(mrb, NULL, 0);
   mrb_marshal_dump(mrb, data, MarshalWriterString, str, -1);
-  stream->write(RSTRING_PTR(str), RSTRING_LEN(str));
+  stream->Write(RSTRING_PTR(str), RSTRING_LEN(str));
   mrb_gc_arena_restore(mrb, ai);
 
   return mrb_nil_value();

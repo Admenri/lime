@@ -14,7 +14,8 @@ Config::Config(std::string inifile) {
   // Load the ini through the virtual file system (explicit extension)
   try {
     auto stream = IOService::Instance()->OpenReadRaw(inifile);
-    parser_.LoadFromString(ReadStream(*stream));
+    auto content = stream->ReadAll();
+    parser_.LoadFromString(content);
   } catch (const std::exception&) {
     // Missing or unreadable ini: fall back to defaults
   }

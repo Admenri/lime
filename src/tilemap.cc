@@ -402,7 +402,10 @@ ATTR_DEF(int, OY, Tilemap) {
 
 void Tilemap::DisposeObject() {
   Drawable::RemoveFromList();
+
   above_.reset();
+
+  raylib::UnloadTexture(shadow_texture_);
 }
 
 void Tilemap::Draw(DrawParam param) {

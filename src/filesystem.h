@@ -14,11 +14,22 @@
 
 namespace rgssx {
 
-// Reads the entire stream content into a string (may hold binary data).
-inline std::string ReadStream(std::istream& stream) {
-  return std::string((std::istreambuf_iterator<char>(stream)),
-                     std::istreambuf_iterator<char>());
-}
+class IOStream {
+ public:
+  IOStream(void* ptr);
+  ~IOStream();
+
+  int64_t Tell();
+  int32_t Seek(uint64_t pos);
+  int64_t Read(void* buffer, uint32_t size);
+  int64_t Write(const void* buffer, uint32_t size);
+  int64_t Length();
+
+  std::string ReadAll();
+
+ private:
+  void* ptr_;
+};
 
 class IOService : public Singleton<IOService> {
  public:
@@ -40,10 +51,10 @@ class IOService : public Singleton<IOService> {
 
   // std::stream output
   using OpenCallback =
-      std::function<bool(std::unique_ptr<std::istream>, const std::string&)>;
+      std::function<bool(std::unique_ptr<IOStream>, const std::string&)>;
   void OpenRead(const std::string& file_path, OpenCallback callback);
-  std::unique_ptr<std::istream> OpenReadRaw(const std::string& filename);
-  std::unique_ptr<std::ostream> OpenWrite(const std::string& filename);
+  std::unique_ptr<IOStream> OpenReadRaw(const std::string& filename);
+  std::unique_ptr<IOStream> OpenWrite(const std::string& filename);
 };
 
 }  // namespace rgssx

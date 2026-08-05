@@ -10,15 +10,14 @@ Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
   // RGSS style loading: the extension may be omitted and the virtual file
   // system will resolve the actual file (e.g. "Iconset" -> "Iconset.png").
   IOService::Instance()->OpenRead(
-      filename,
-      [&](std::unique_ptr<std::istream> stream, const std::string& ext) {
-        std::string data = ReadStream(*stream);
+      filename, [&](std::unique_ptr<IOStream> stream, const std::string& ext) {
+        auto data = stream->ReadAll();
 
         // raylib needs a file type hint (e.g. ".png")
         std::string file_type = "." + ext;
-        image = raylib::LoadImageFromMemory(file_type.c_str(),
-                                            (const unsigned char*)data.data(),
-                                            (int)data.size());
+        image = raylib::LoadImageFromMemory(
+            file_type.c_str(), (uint8_t*)data.data(), (int)data.size());
+
         return true;  // matched, stop enumeration
       });
 
