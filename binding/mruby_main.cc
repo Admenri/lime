@@ -185,12 +185,15 @@ extern "C" void rgssx_main() {
                              MRB_ARGS_REQ(1));
 
   // RPG Database
+  auto rpg_ctx = mrb_ccontext_new(mrb);
+  mrb_ccontext_filename(mrb, rpg_ctx, "RPGDataStructure");
   if (config->rgss_version == 1)
-    mrb_load_string(mrb, rpg_rgss1);
+    mrb_load_string_cxt(mrb, rpg_rgss1, rpg_ctx);
   else if (config->rgss_version == 2)
-    mrb_load_string(mrb, rpg_rgss2);
+    mrb_load_string_cxt(mrb, rpg_rgss2, rpg_ctx);
   else if (config->rgss_version == 3)
-    mrb_load_string(mrb, rpg_rgss3);
+    mrb_load_string_cxt(mrb, rpg_rgss3, rpg_ctx);
+  mrb_ccontext_free(mrb, rpg_ctx);
 
   // Load and execute the main script
   try {
