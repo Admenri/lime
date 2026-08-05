@@ -117,20 +117,10 @@ DrawableSet::~DrawableSet() {
   }
 }
 
-void DrawableSet::DispatchPrepare() {
-  for (Drawable* node = root_.next_; node != &root_; node = node->next_) {
-    if (node->visible_) {
-      node->Prepare();
-    }
-  }
-}
-
 void DrawableSet::DispatchDraw(DrawParam param) {
-  for (Drawable* node = root_.next_; node != &root_; node = node->next_) {
-    if (node->visible_) {
+  for (Drawable* node = root_.next_; node != &root_; node = node->next_)
+    if (node->visible_)
       node->Draw(param);
-    }
-  }
 }
 
 }  // namespace rgssx

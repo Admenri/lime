@@ -47,35 +47,45 @@ class Tilemap : public RefCounted<Tilemap>,
 
  private:
   friend class TilemapAbove;
+
   struct TileQuad {
     raylib::Rectangle source;
     raylib::Rectangle destination;
   };
 
+  enum TileID {
+    TILE_A1 = 0,
+    TILE_A2,
+    TILE_A3,
+    TILE_A4,
+    TILE_A5,
+    TILE_B,
+    TILE_C,
+    TILE_D,
+    TILE_E,
+    TILE_NUMS,
+  };
+
   void DisposeObject() override;
-  void Prepare() override;
   void Draw(DrawParam param) override;
 
-  void MakeTilemapAtlas();
-  void ParseMapData();
+  void CreateShadowSet();
   void UpdateViewport(DrawParam param);
+  void DrawMapData(bool above);
 
-  void DrawLayer(const std::vector<TileQuad>& data);
-
-  raylib::RenderTexture2D atlas_ = {};
   std::unique_ptr<TilemapAbove> above_;
+  raylib::Texture shadow_texture_;
   raylib::Rectangle render_viewport_ = {};
   raylib::Vector2 render_offset_ = {};
-  raylib::Vector2 animation_offset_ = {};
 
   int flash_timer_ = 0;
   int flash_opacity_ = 0;
   int frame_index_ = 0;
 
-  std::vector<TileQuad> ground_quads_;
-  std::vector<TileQuad> above_quads_;
+  int regular_anim_ = 0;
+  int waterfall_anim_ = 0;
 
-  RefPtr<Bitmap> bitmaps_[9] = {};
+  RefPtr<Bitmap> bitmaps_[TILE_NUMS] = {};
   RefPtr<Table> map_data_;
   RefPtr<Table> flash_data_;
   RefPtr<Table> flags_;
@@ -83,8 +93,6 @@ class Tilemap : public RefCounted<Tilemap>,
   bool rgss3_style_ = true;
   bool xrepeat_ = true, yrepeat_ = true;
   int tilesize_ = 32;
-
-  bool atlas_dirty_ = true;
 };
 
 }  // namespace rgssx

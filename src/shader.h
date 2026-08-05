@@ -6,7 +6,11 @@
 namespace rgssx {
 
 struct ShaderBase {
+  ShaderBase() = default;
   ~ShaderBase();
+
+  ShaderBase(const ShaderBase&) = delete;
+  ShaderBase& operator=(const ShaderBase&) = delete;
 
   raylib::Shader shader = {};
 };
@@ -45,13 +49,7 @@ struct ViewportShader : public ShaderBase {
   int u_opacity = 0;
 };
 
-struct TilemapShader : public ShaderBase {
-  TilemapShader();
-
-  int u_offset = 0;
-  int u_anim_offset = 0;
-  int u_tile_size = 0;
-};
+// --------------------------------------------------------------
 
 struct ShaderSet : public Singleton<ShaderSet> {
   ShaderSet() = default;
@@ -60,7 +58,6 @@ struct ShaderSet : public Singleton<ShaderSet> {
   AlphaTransition alpha_trans;
   MappingTransition mapping_trans;
   ViewportShader viewport;
-  TilemapShader tilemap;
 };
 
 }  // namespace rgssx

@@ -48,7 +48,6 @@ class Drawable {
   /*-export.end-*/
 
  public:
-  virtual void Prepare() {}
   virtual void Draw(DrawParam param) {}
 
  protected:
@@ -78,7 +77,6 @@ class DrawableSet {
   DrawableSet();
   ~DrawableSet();
 
-  void DispatchPrepare();
   void DispatchDraw(DrawParam param);
 
  private:

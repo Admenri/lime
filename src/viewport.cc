@@ -69,9 +69,6 @@ void Viewport::Update() {
 
 void Viewport::Render(RefPtr<Bitmap> target) {
   if (target && !target->IsDisposed()) {
-    // Preparing
-    drawables_.DispatchPrepare();
-
     // Rendering
     raylib::BeginTextureMode(target->render_texture());
     raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
@@ -180,11 +177,6 @@ void Viewport::DisposeObject() {
 
   raylib::UnloadRenderTexture(cache_);
   cache_ = {};
-}
-
-void Viewport::Prepare() {
-  // Dispatching to children
-  drawables_.DispatchPrepare();
 }
 
 void Viewport::Draw(DrawParam param) {

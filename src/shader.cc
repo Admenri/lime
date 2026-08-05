@@ -136,65 +136,6 @@ void main() {
 
 // -------------------------------------------------------------
 
-const std::string kTilemapVertexGLSL = R"(
-#version 100
-
-attribute vec3 vertexPosition;
-attribute vec2 vertexTexCoord;
-attribute vec4 vertexColor;
-
-uniform mat4 mvp;
-
-uniform vec2 offset;
-uniform vec2 animOffset;
-uniform float tileSize;
-
-varying vec2 fragTexCoord;
-
-const vec2 kRegularArea = vec2(12.0, 12.0);
-const vec4 kWaterfallArea = vec4(12.0, 0.0, 4.0, 12.0);
-const vec4 kWaterfallAutotileArea = vec4(12.0, 0.0, 2.0, 6.0);
-
-float posInArea(vec2 pos, vec4 area) {
-  return pos.x >= area.x && pos.y >= area.y && pos.x <= area.x + area.z && pos.y <= area.y + area.w ? 1.0 : 0.0;
-}
-
-void main() {
-  vec3 pos = vertexPosition;
-  vec2 uv = vertexTexCoord;
-  vec4 color = vertexColor;
-
-  pos.xy += offset;
-
-  float addition1 = (uv.x <= kRegularArea.x * tileSize && uv.y <= kRegularArea.y * tileSize) ? 1.0 : 0.0;
-  uv.x += animOffset.x * addition1;
-
-  float addition2 = posInArea(uv, kWaterfallArea * tileSize) - posInArea(uv, kWaterfallAutotileArea * tileSize);
-  uv.y += animOffset.y * addition2;
-
-  fragTexCoord = uv;
-  gl_Position = mvp * vec4(pos, 1.0);
-}
-
-)";
-
-const std::string kTilemapFragmentGLSL = R"(
-#version 100
-
-precision mediump float;
-
-varying vec2 fragTexCoord;
-
-uniform sampler2D texture0;
-
-void main() {
-  vec4 texelColor = texture2D(texture0, fragTexCoord);
-  gl_FragColor = texelColor;
-}
-)";
-
-// -------------------------------------------------------------
-
 namespace rgssx {
 
 ShaderBase::~ShaderBase() {
@@ -237,15 +178,6 @@ ViewportShader::ViewportShader() {
   u_color = raylib::GetShaderLocation(shader, "color");
   u_tone = raylib::GetShaderLocation(shader, "tone");
   u_opacity = raylib::GetShaderLocation(shader, "opacity");
-}
-
-TilemapShader::TilemapShader() {
-  shader = raylib::LoadShaderFromMemory(kTilemapVertexGLSL.c_str(),
-                                        kTilemapFragmentGLSL.c_str());
-
-  u_offset = raylib::GetShaderLocation(shader, "offset");
-  u_anim_offset = raylib::GetShaderLocation(shader, "animOffset");
-  u_tile_size = raylib::GetShaderLocation(shader, "tileSize");
 }
 
 }  // namespace rgssx

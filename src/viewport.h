@@ -55,7 +55,6 @@ class Viewport : public RefCounted<Viewport>,
 
  private:
   void DisposeObject() override;
-  void Prepare() override;
   void Draw(DrawParam param) override;
 
   DrawableSet drawables_;

@@ -244,9 +244,6 @@ ATTR_DEF(int, Brightness, Graphics) {
 }
 
 void Graphics::RenderFrame(raylib::RenderTexture2D target) {
-  // Preparing
-  drawables_.DispatchPrepare();
-
   // Screen rendering
   raylib::BeginTextureMode(target);
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);

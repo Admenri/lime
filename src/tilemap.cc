@@ -294,107 +294,22 @@ const raylib::Rectangle kAutotileSrcWaterfall[] = {
     {0.0f, 0.0f, 0.5f, 1.0f}, {1.5f, 0.0f, 0.5f, 1.0f},
 };
 
-enum BitmapID {
-  TILE_A1 = 0,
-  TILE_A2,
-  TILE_A3,
-  TILE_A4,
-  TILE_A5,
-  TILE_B,
-  TILE_C,
-  TILE_D,
-  TILE_E,
-};
-
-struct AtlasBlock {
-  BitmapID tile_id;
-  raylib::Rectangle src_rect;
-  raylib::Vector2 dest_pos;
-};
-
-const AtlasBlock kTilemapAtlas[] = {
-    /* A1 tilemap */
-    {TILE_A1, {0.0f, 0.0f, 6.0f, 6.0f}, {0.0f, 0.0f}},
-    {TILE_A1, {8.0f, 0.0f, 6.0f, 6.0f}, {6.0f, 0.0f}},
-    {TILE_A1, {0.0f, 6.0f, 6.0f, 6.0f}, {0.0f, 6.0f}},
-    {TILE_A1, {8.0f, 6.0f, 6.0f, 6.0f}, {6.0f, 6.0f}},
-    {TILE_A1, {6.0f, 0.0f, 2.0f, 12.0f}, {12.0f, 0.0f}},
-    {TILE_A1, {14.0f, 0.0f, 2.0f, 12.0f}, {14.0f, 0.0f}},
-
-    /* A2 tilemap */
-    {TILE_A2, {0.0f, 0.0f, 16.0f, 12.0f}, {16.0f, 0.0f}},
-
-    /* A3 tilemap */
-    {TILE_A3, {0.0f, 0.0f, 16.0f, 8.0f}, {0.0f, 12.0f}},
-
-    /* A4 tilemap */
-    {TILE_A4, {0.0f, 0.0f, 16.0f, 15.0f}, {16.0f, 12.0f}},
-
-    /* A5 tilemap */
-    {TILE_A5, {0.0f, 0.0f, 8.0f, 8.0f}, {0.0f, 20.0f}},
-    {TILE_A5, {0.0f, 8.0f, 8.0f, 8.0f}, {8.0f, 20.0f}},
-
-    /* B tilemap */
-    {TILE_B, {0.0f, 0.0f, 16.0f, 16.0f}, {32.0f, 0.0f}},
-
-    /* C tilemap */
-    {TILE_C, {0.0f, 0.0f, 16.0f, 16.0f}, {48.0f, 0.0f}},
-
-    /* D tilemap */
-    {TILE_D, {0.0f, 0.0f, 16.0f, 16.0f}, {32.0f, 16.0f}},
-
-    /* E tilemap */
-    {TILE_E, {0.0f, 0.0f, 16.0f, 16.0f}, {48.0f, 16.0f}},
-};
-
-const raylib::Rectangle kShadowAtlasArea = {16.0f, 27.0f, 16.0f, 1.0f};
-
-raylib::Image CreateShadowSet(int32_t tilesize) {
-  std::vector<RectRegion> rects;
-
-  raylib::Image image = {};
-  image.width = kShadowAtlasArea.width * tilesize;
-  image.height = kShadowAtlasArea.height * tilesize;
-  image.data = raylib::MemAlloc(image.width * image.height * 4);
-  image.format = raylib::PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-  image.mipmaps = 1;
-
-  for (int32_t i = 0; i < 16; ++i) {
-    int32_t offset = i * tilesize;
-    if (i & 0x1)  // Left Top
-      rects.push_back({offset, 0, tilesize / 2, tilesize / 2});
-    if (i & 0x2)  // Right Top
-      rects.push_back({offset + tilesize / 2, 0, tilesize / 2, tilesize / 2});
-    if (i & 0x4)  // Left Bottom
-      rects.push_back({offset, tilesize / 2, tilesize / 2, tilesize / 2});
-    if (i & 0x8)  // Right Bottom
-      rects.push_back(
-          {offset + tilesize / 2, tilesize / 2, tilesize / 2, tilesize / 2});
-  }
-
-  for (auto& it : rects) {
-    raylib::Color shadow_tint = {0, 0, 0, 128};
-    raylib::ImageDrawRectangle(&image, it.x, it.y, it.width, it.height,
-                               shadow_tint);
-  }
-
-  return image;
-}
-
 }  // namespace
 
 TilemapAbove::TilemapAbove(Tilemap* parent, RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue(200)), parent_(parent) {}
 
 void TilemapAbove::Draw(DrawParam param) {
-  parent_->DrawLayer(parent_->above_quads_);
+  parent_->DrawMapData(true /*above*/);
 }
 
 // ----------------------------------------------------------------------
 
 Tilemap::Tilemap(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
-      above_(std::make_unique<TilemapAbove>(this, viewport)) {}
+      above_(std::make_unique<TilemapAbove>(this, viewport)) {
+  CreateShadowSet();
+}
 
 Tilemap::~Tilemap() {
   Dispose();
@@ -409,10 +324,8 @@ void Tilemap::Update() {
   const uint8_t kAniIndicesWaterfall[3 * 4] = {0, 1, 2, 0, 1, 2,
                                                0, 1, 2, 0, 1, 2};
 
-  const uint8_t animation_index1 = kAniIndicesRegular[frame_index_ / 30];
-  const uint8_t animation_index2 = kAniIndicesWaterfall[frame_index_ / 30];
-  animation_offset_ = raylib::Vector2(animation_index1 * 2 * tilesize_,
-                                      animation_index2 * tilesize_);
+  regular_anim_ = kAniIndicesRegular[frame_index_ / 30];
+  waterfall_anim_ = kAniIndicesWaterfall[frame_index_ / 30];
 
   flash_timer_ = ++flash_timer_ % 32;
   flash_opacity_ = std::abs(16 - flash_timer_) * 8 + 32;
@@ -420,7 +333,6 @@ void Tilemap::Update() {
 
 void Tilemap::SetBitmap(int index, RefPtr<Bitmap> bitmap) {
   bitmaps_[index] = bitmap;
-  atlas_dirty_ = true;
 }
 
 RefPtr<Bitmap> Tilemap::GetBitmap(int index) {
@@ -493,57 +405,91 @@ void Tilemap::DisposeObject() {
   above_.reset();
 }
 
-void Tilemap::Prepare() {
-  if (atlas_dirty_) {
-    MakeTilemapAtlas();
-    atlas_dirty_ = false;
-  }
-}
-
 void Tilemap::Draw(DrawParam param) {
   UpdateViewport(param);
 
-  ground_quads_.clear();
-  above_quads_.clear();
-
-  ParseMapData();
-
-  DrawLayer(ground_quads_);
+  DrawMapData(false /*above*/);
 }
 
-void Tilemap::MakeTilemapAtlas() {
-  raylib::UnloadRenderTexture(atlas_);
-  atlas_ = raylib::LoadRenderTexture(tilesize_ * 64, tilesize_ * 32);
+void Tilemap::CreateShadowSet() {
+  std::vector<RectRegion> rects;
 
-  // Bitmaps
-  raylib::BeginTextureMode(atlas_);
-  raylib::rlDisableColorBlend();
-  for (size_t i = 0; i < std::size(kTilemapAtlas); ++i) {
-    auto& atlas_info = kTilemapAtlas[i];
-    auto atlas_bitmap = bitmaps_[atlas_info.tile_id];
+  raylib::Image image = {};
+  image.width = 16 * tilesize_;
+  image.height = tilesize_;
+  image.data = raylib::MemAlloc(image.width * image.height * 4);
+  image.format = raylib::PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+  image.mipmaps = 1;
 
-    if (atlas_bitmap && !atlas_bitmap->IsDisposed()) {
-      raylib::Rectangle src_rect(atlas_info.src_rect.x * tilesize_,
-                                 atlas_info.src_rect.y * tilesize_,
-                                 atlas_info.src_rect.width * tilesize_,
-                                 atlas_info.src_rect.height * tilesize_);
-      raylib::Vector2 dst_pos(atlas_info.dest_pos.x * tilesize_,
-                              atlas_info.dest_pos.y * tilesize_);
+  std::memset(image.data, 0, image.width * image.height * 4);
 
-      raylib::DrawTextureRec(atlas_bitmap->render_texture().texture, src_rect,
-                             dst_pos, raylib::RAYWHITE);
-    }
+  for (int32_t i = 0; i < 16; ++i) {
+    int32_t offset = i * tilesize_;
+    if (i & 0x1)  // Left Top
+      rects.push_back({offset, 0, tilesize_ / 2, tilesize_ / 2});
+    if (i & 0x2)  // Right Top
+      rects.push_back(
+          {offset + tilesize_ / 2, 0, tilesize_ / 2, tilesize_ / 2});
+    if (i & 0x4)  // Left Bottom
+      rects.push_back({offset, tilesize_ / 2, tilesize_ / 2, tilesize_ / 2});
+    if (i & 0x8)  // Right Bottom
+      rects.push_back({offset + tilesize_ / 2, tilesize_ / 2, tilesize_ / 2,
+                       tilesize_ / 2});
   }
-  raylib::rlEnableColorBlend();
-  raylib::EndTextureMode();
 
-  // Shadow set
-  auto shadow_image = CreateShadowSet(tilesize_);
-  raylib::UpdateTextureRec(atlas_.texture, kShadowAtlasArea, shadow_image.data);
-  raylib::MemFree(shadow_image.data);
+  for (auto& it : rects) {
+    raylib::Color shadow_tint = {0, 0, 0, 128};
+    raylib::ImageDrawRectangle(&image, it.x, it.y, it.width, it.height,
+                               shadow_tint);
+  }
+
+  shadow_texture_ = raylib::LoadTextureFromImage(image);
+  raylib::UnloadImage(image);
 }
 
-void Tilemap::ParseMapData() {
+void Tilemap::UpdateViewport(DrawParam param) {
+  auto viewport = Attr_Viewport().value();
+  const int viewport_ox = viewport->Attr_OX().value(),
+            viewport_oy = viewport->Attr_OY().value();
+  const int tilemap_real_ox = ox_ + viewport_ox,
+            tilemap_real_oy = oy_ + viewport_oy;
+  const int viewport_width = param.scissor.width,
+            viewport_height = param.scissor.height;
+
+  // Quad parsing viewport
+  RectRegion new_viewport;
+  new_viewport.x = tilemap_real_ox / tilesize_;
+  new_viewport.y = tilemap_real_oy / tilesize_ - 1;
+  new_viewport.width =
+      (viewport_width / tilesize_) + !!(viewport_width % tilesize_) + 1;
+  new_viewport.height =
+      (viewport_height / tilesize_) + !!(viewport_height % tilesize_) + 2;
+  render_viewport_ = new_viewport.As();
+
+  // Rendering offset
+  const int display_offset_x = tilemap_real_ox % tilesize_,
+            display_offset_y = tilemap_real_oy % tilesize_;
+  render_offset_ = raylib::Vector2(static_cast<float>(-display_offset_x),
+                                   static_cast<float>(-display_offset_y));
+  render_offset_.y -= tilesize_;
+
+  // Apply viewport origin
+  render_offset_.x += viewport_ox;
+  render_offset_.y += viewport_oy;
+}
+
+void Tilemap::DrawMapData(bool above) {
+  auto process_quads = [&](const raylib::Texture& texture, TileQuad* quads,
+                           int32_t size) {
+    for (int32_t i = 0; i < size; ++i) {
+      raylib::Rectangle dest_pos = quads[i].destination;
+      dest_pos.x += render_offset_.x;
+      dest_pos.y += render_offset_.y;
+      raylib::DrawTexturePro(texture, quads[i].source, dest_pos, {}, 0,
+                             raylib::WHITE);
+    }
+  };
+
   auto value_wrap = [&](int32_t value, int32_t range) {
     int32_t res = value % range;
     return res < 0 ? res + range : res;
@@ -575,11 +521,6 @@ void Tilemap::ParseMapData() {
     return t->Get(tile_id, 0, 0);
   };
 
-  auto process_quads = [&](TileQuad* quads, int32_t size, bool above) {
-    std::vector<TileQuad>* target = above ? &above_quads_ : &ground_quads_;
-    target->insert(target->end(), quads, quads + size);
-  };
-
   auto autotile_set_pos = [&](raylib::Rectangle& pos, int32_t i) {
     switch (i) {
       case 0:  // Left Top
@@ -607,8 +548,9 @@ void Tilemap::ParseMapData() {
   };
 
   auto read_autotile_common =
-      [&](int32_t pattern_id, const raylib::Vector2& offset, int32_t x,
-          int32_t y, const raylib::Rectangle* rect_src, bool above) {
+      [&](int32_t pattern_id, const raylib::Texture& texture,
+          const raylib::Vector2& offset, int32_t x, int32_t y,
+          const raylib::Rectangle* rect_src) {
         TileQuad quads[4];
 
         for (int32_t i = 0; i < 4; ++i) {
@@ -629,12 +571,13 @@ void Tilemap::ParseMapData() {
           quads[i].destination = pos_rect;
         }
 
-        process_quads(quads, 4, above);
+        process_quads(texture, quads, 4);
       };
 
   auto read_autotile_table = [&](int32_t pattern_id,
+                                 const raylib::Texture& texture,
                                  const raylib::Vector2& offset, int32_t x,
-                                 int32_t y, bool occlusion, bool above) {
+                                 int32_t y, bool occlusion) {
     TileQuad quads[6];
 
     for (int32_t i = 0; i < 6; ++i) {
@@ -662,12 +605,13 @@ void Tilemap::ParseMapData() {
       quads[i].destination = pos_rect;
     }
 
-    process_quads(quads, 6, above);
+    process_quads(texture, quads, 6);
   };
 
   auto read_autotile_waterfall = [&](int32_t pattern_id,
+                                     const raylib::Texture& texture,
                                      const raylib::Vector2& offset, int32_t x,
-                                     int32_t y, bool above) {
+                                     int32_t y) {
     if (pattern_id > 0x3)
       return;
 
@@ -690,163 +634,179 @@ void Tilemap::ParseMapData() {
       quads[i].destination = pos_rect;
     }
 
-    process_quads(quads, 2, above);
+    process_quads(texture, quads, 2);
   };
 
-  auto process_tile_A1 = [&](int16_t tile_id, int32_t x, int32_t y,
-                             bool above) {
-    tile_id -= 0x0800;
+  auto process_tile_A1 = [&](int16_t tile_id, int32_t x, int32_t y) {
+    auto& bitmap = bitmaps_[TILE_A1];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    const int32_t autotile_id = tile_id / 0x30;
-    const int32_t pattern_id = tile_id % 0x30;
+      tile_id -= 0x0800;
+      const int32_t autotile_id = tile_id / 0x30;
+      const int32_t pattern_id = tile_id % 0x30;
 
-    // clang-format off
-    const raylib::Vector2 waterfall(-1, -1);
-    const raylib::Vector2 src_offset[] = {
-        {0,  0},  {0,  3},
-        {12, 0},  {12, 3},
-        {6,  0},  waterfall,
-        {6,  3},  waterfall,
+      // clang-format off
+      const raylib::Vector2 waterfall(-1, -1);
+      const raylib::Vector2 src_offset[] = {
+          {0,  0},  {0,  3}, // Ocean
+          {6,  0},  {6,  3}, // Overlay
+          {8,  0},  waterfall,
+          {8,  3},  waterfall,
+          {0,  6},  waterfall,
+          {0,  9},  waterfall,
+          {8,  6},  waterfall,
+          {8,  9},  waterfall};
+      const raylib::Vector2 waterfall_offset[] = {
+          {14, 0}, {14, 3},
+          {6,  6}, {6,  9},
+          {14, 6}, {14, 9},
+      };
+      // clang-format on
 
-        {0,  6},  waterfall,
-        {0,  9},  waterfall,
-        {6,  6},  waterfall,
-        {6,  9},  waterfall};
-    const raylib::Vector2 waterfall_offset[] = {
-        {14, 0}, {14, 3},
-        {12, 6}, {12, 9},
-        {14, 6}, {14, 9},
-    };
-    // clang-format on
+      // Transform pattern source to waterfall style
+      raylib::Vector2 src_pos = src_offset[autotile_id];
+      bool waterfall_component = (src_pos.x == -1);
+      bool regular_component =
+          !waterfall_component && autotile_id != 2 && autotile_id != 3;
 
-    // Transform pattern source to waterfall style
-    const raylib::Vector2 src_pos = src_offset[autotile_id];
-    if (src_pos.x == -1)
-      return read_autotile_waterfall(
-          pattern_id, waterfall_offset[(autotile_id - 5) / 2], x, y, above);
-
-    read_autotile_common(pattern_id, src_pos, x, y, kAutotileSrcRegular, above);
+      if (waterfall_component) {
+        src_pos.y += waterfall_anim_;
+        read_autotile_waterfall(pattern_id, texture,
+                                waterfall_offset[(autotile_id - 5) / 2], x, y);
+      } else {
+        if (regular_component)
+          src_pos.x += 2 * regular_anim_;
+        read_autotile_common(pattern_id, texture, src_pos, x, y,
+                             kAutotileSrcRegular);
+      }
+    }
   };
 
-  auto process_tile_A2 = [&](int16_t tile_id, int32_t x, int32_t y, bool above,
+  auto process_tile_A2 = [&](int16_t tile_id, int32_t x, int32_t y,
                              bool is_table, bool occlusion) {
-    tile_id -= 0x0B00;
+    auto& bitmap = bitmaps_[TILE_A2];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    const int32_t autotile_id = tile_id / 0x30;
-    const int32_t pattern_id = tile_id % 0x30;
+      tile_id -= 0x0B00;
+      const int32_t autotile_id = tile_id / 0x30;
+      const int32_t pattern_id = tile_id % 0x30;
 
-    // Process table foot occlusion
-    raylib::Vector2 offset(16 + (autotile_id % 8) * 2, (autotile_id / 8) * 3);
-    if (is_table)
-      return read_autotile_table(pattern_id, offset, x, y, occlusion, above);
-    read_autotile_common(pattern_id, offset, x, y, kAutotileSrcRegular, above);
+      // Process table foot occlusion
+      raylib::Vector2 offset((autotile_id % 8) * 2, (autotile_id / 8) * 3);
+      if (is_table) {
+        read_autotile_table(pattern_id, texture, offset, x, y, occlusion);
+      } else {
+        read_autotile_common(pattern_id, texture, offset, x, y,
+                             kAutotileSrcRegular);
+      }
+    }
   };
 
-  auto process_tile_A3 = [&](int16_t tile_id, int32_t x, int32_t y,
-                             bool above) {
-    tile_id -= 0x1100;
+  auto process_tile_A3 = [&](int16_t tile_id, int32_t x, int32_t y) {
+    auto& bitmap = bitmaps_[TILE_A3];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    const int32_t autotile_id = tile_id / 0x30;
-    const int32_t pattern_id = tile_id % 0x30;
-    if (pattern_id >= 0x10)
-      return;
-
-    const raylib::Vector2 offset((autotile_id % 8) * 2,
-                                 (autotile_id / 8) * 2 + 12);
-    read_autotile_common(pattern_id, offset, x, y, kAutotileSrcWall, above);
-  };
-
-  auto process_tile_A4 = [&](int16_t tile_id, int32_t x, int32_t y,
-                             bool above) {
-    tile_id -= 0x1700;
-
-    const int32_t autotile_id = tile_id / 0x30;
-    const int32_t pattern_id = tile_id % 0x30;
-
-    const int32_t vertical_offset[] = {0, 3, 5, 8, 10, 13};
-    const int32_t offset_index = autotile_id / 8;
-    const raylib::Vector2 offset(16 + (autotile_id % 8) * 2,
-                                 12 + vertical_offset[offset_index]);
-
-    if (!(offset_index % 2)) {
-      read_autotile_common(pattern_id, offset, x, y, kAutotileSrcRegular,
-                           above);
-    } else {
+      tile_id -= 0x1100;
+      const int32_t autotile_id = tile_id / 0x30;
+      const int32_t pattern_id = tile_id % 0x30;
       if (pattern_id >= 0x10)
         return;
 
-      read_autotile_common(pattern_id, offset, x, y, kAutotileSrcWall, above);
+      const raylib::Vector2 offset((autotile_id % 8) * 2,
+                                   (autotile_id / 8) * 2);
+      read_autotile_common(pattern_id, texture, offset, x, y, kAutotileSrcWall);
     }
   };
 
-  auto process_tile_A5 = [&](int16_t tile_id, int32_t x, int32_t y,
-                             bool above) {
-    tile_id -= 0x0600;
+  auto process_tile_A4 = [&](int16_t tile_id, int32_t x, int32_t y) {
+    auto& bitmap = bitmaps_[TILE_A4];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    int32_t ox = tile_id % 0x8;
-    int32_t oy = tile_id / 0x8;
+      tile_id -= 0x1700;
+      const int32_t autotile_id = tile_id / 0x30;
+      const int32_t pattern_id = tile_id % 0x30;
 
-    if (oy >= 8) {
-      oy -= 8;
-      ox += 8;
+      const int32_t vertical_offset[] = {0, 3, 5, 8, 10, 13};
+      const int32_t offset_index = autotile_id / 8;
+      const raylib::Vector2 offset((autotile_id % 8) * 2,
+                                   vertical_offset[offset_index]);
+
+      if (!(offset_index % 2)) {
+        read_autotile_common(pattern_id, texture, offset, x, y,
+                             kAutotileSrcRegular);
+      } else {
+        if (pattern_id >= 0x10)
+          return;
+
+        read_autotile_common(pattern_id, texture, offset, x, y,
+                             kAutotileSrcWall);
+      }
     }
-
-    const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
-                                         (20 + oy) * tilesize_ + 0.5f);
-
-    raylib::Rectangle tex(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
-                          tilesize_ - 1.0f);
-    raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
-
-    TileQuad quad;
-    quad.source = tex;
-    quad.destination = pos;
-
-    process_quads(&quad, 1, above);
   };
 
-  auto process_tile_bcde = [&](int16_t tile_id, int32_t x, int32_t y,
-                               bool above) {
-    int32_t ox = tile_id % 0x8;
-    int32_t oy = (tile_id / 0x8) % 0x10;
-    int32_t ob = tile_id / (0x8 * 0x10);
+  auto process_tile_A5 = [&](int16_t tile_id, int32_t x, int32_t y) {
+    auto& bitmap = bitmaps_[TILE_A5];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    ox += (ob % 2) * 0x8;
-    oy += (ob / 2) * 0x10;
+      tile_id -= 0x0600;
+      int32_t ox = tile_id % 0x8;
+      int32_t oy = tile_id / 0x8;
 
-    if (oy >= 48) {
-      /* E atlas */
-      oy -= 32;
-      ox += 16;
-    } else if (oy >= 32) {
-      /* D atlas */
-      oy -= 16;
-    } else if (oy >= 16) {
-      /* C atlas */
-      oy -= 16;
-      ox += 16;
+      const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
+                                           oy * tilesize_ + 0.5f);
+
+      raylib::Rectangle tex(atlas_position.x, atlas_position.y,
+                            tilesize_ - 1.0f, tilesize_ - 1.0f);
+      raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+
+      TileQuad quad;
+      quad.source = tex;
+      quad.destination = pos;
+
+      process_quads(texture, &quad, 1);
     }
+  };
 
-    const raylib::Vector2 atlas_position((32 + ox) * tilesize_ + 0.5f,
-                                         oy * tilesize_ + 0.5f);
+  auto process_tile_bcde = [&](int16_t tile_id, int32_t x, int32_t y) {
+    int32_t tile_type = tile_id / 0x100;
+    tile_id = tile_id % 0x100;
 
-    raylib::Rectangle tex(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
-                          tilesize_ - 1.0f);
-    raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+    auto& bitmap = bitmaps_[TILE_B + tile_type];
+    if (bitmap && !bitmap->IsDisposed()) {
+      auto& texture = bitmap->render_texture().texture;
 
-    TileQuad quad;
-    quad.source = tex;
-    quad.destination = pos;
+      int32_t ox = tile_id % 0x8;
+      int32_t oy = (tile_id / 0x8) % 0x10;
+      int32_t ob = tile_id / (0x8 * 0x10);
 
-    process_quads(&quad, 1, above);
+      ox += (ob % 2) * 0x8;
+      oy += (ob / 2) * 0x10;
+
+      const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
+                                           oy * tilesize_ + 0.5f);
+
+      raylib::Rectangle tex(atlas_position.x, atlas_position.y,
+                            tilesize_ - 1.0f, tilesize_ - 1.0f);
+      raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+
+      TileQuad quad;
+      quad.source = tex;
+      quad.destination = pos;
+
+      process_quads(texture, &quad, 1);
+    }
   };
 
   auto process_shadow_tile = [&](int8_t shadow_id, int32_t x, int32_t y) {
     int32_t ox = shadow_id;
 
-    const raylib::Vector2 atlas_position(
-        (kShadowAtlasArea.x + ox) * tilesize_ + 0.5f,
-        (kShadowAtlasArea.y) * tilesize_ + 0.5f);
+    const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
+                                         tilesize_ + 0.5f);
 
     raylib::Rectangle tex(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
                           tilesize_ - 1.0f);
@@ -856,7 +816,7 @@ void Tilemap::ParseMapData() {
     quad.source = tex;
     quad.destination = pos;
 
-    process_quads(&quad, 1, false);
+    process_quads(shadow_texture_, &quad, 1);
   };
 
   auto process_common_tile = [&](int16_t tile_id, int32_t x, int32_t y,
@@ -867,19 +827,22 @@ void Tilemap::ParseMapData() {
                         ? (flag & 0x80)
                         : (tile_id - 0x0B00) % (8 * 0x30) >= (7 * 0x30);
 
-    if (tile_id >= 0x0800 && tile_id < 0x0B00)  // A1
-      return process_tile_A1(tile_id, x, y, over_player);
-    if (tile_id >= 0x0B00 && tile_id < 0x1100)  // A2
-      return process_tile_A2(tile_id, x, y, over_player, is_table,
-                             under_tile_id >= 0x1100 && under_tile_id < 0x2000);
-    if (tile_id >= 0x1100 && tile_id < 0x1700)  // A3
-      return process_tile_A3(tile_id, x, y, over_player);
-    if (tile_id >= 0x1700 && tile_id < 0x2000)  // A4
-      return process_tile_A4(tile_id, x, y, over_player);
-    if (tile_id >= 0x0600 && tile_id < 0x0680)  // A5
-      return process_tile_A5(tile_id, x, y, over_player);
-    if (tile_id < 0x0400)  // B ~ E
-      return process_tile_bcde(tile_id, x, y, over_player);
+    if (over_player == above) {
+      if (tile_id >= 0x0800 && tile_id < 0x0B00)  // A1
+        return process_tile_A1(tile_id, x, y);
+      if (tile_id >= 0x0B00 && tile_id < 0x1100)  // A2
+        return process_tile_A2(
+            tile_id, x, y, is_table,
+            under_tile_id >= 0x1100 && under_tile_id < 0x2000);
+      if (tile_id >= 0x1100 && tile_id < 0x1700)  // A3
+        return process_tile_A3(tile_id, x, y);
+      if (tile_id >= 0x1700 && tile_id < 0x2000)  // A4
+        return process_tile_A4(tile_id, x, y);
+      if (tile_id >= 0x0600 && tile_id < 0x0680)  // A5
+        return process_tile_A5(tile_id, x, y);
+      if (tile_id < 0x0400)  // B ~ E
+        return process_tile_bcde(tile_id, x, y);
+    }
   };
 
   auto process_shadow_layer = [&](int32_t ox, int32_t oy, int32_t w,
@@ -950,7 +913,8 @@ void Tilemap::ParseMapData() {
     process_common_layer(ox, oy, w, h, 1);
 
     // Shadow area (3)
-    process_shadow_layer(ox, oy, w, h);
+    if (!above)
+      process_shadow_layer(ox, oy, w, h);
 
     // BCDE area (2)
     process_common_layer(ox, oy, w, h, 2);
@@ -958,60 +922,6 @@ void Tilemap::ParseMapData() {
 
   // Process tilemap data
   read_tilemap(render_viewport_);
-}
-
-void Tilemap::UpdateViewport(DrawParam param) {
-  auto viewport = Attr_Viewport().value();
-  const int viewport_ox = viewport->Attr_OX().value(),
-            viewport_oy = viewport->Attr_OY().value();
-  const int tilemap_real_ox = ox_ + viewport_ox,
-            tilemap_real_oy = oy_ + viewport_oy;
-  const int viewport_width = param.scissor.width,
-            viewport_height = param.scissor.height;
-
-  // Quad parsing viewport
-  RectRegion new_viewport;
-  new_viewport.x = tilemap_real_ox / tilesize_;
-  new_viewport.y = tilemap_real_oy / tilesize_ - 1;
-  new_viewport.width =
-      (viewport_width / tilesize_) + !!(viewport_width % tilesize_) + 1;
-  new_viewport.height =
-      (viewport_height / tilesize_) + !!(viewport_height % tilesize_) + 2;
-  render_viewport_ = new_viewport.As();
-
-  // Rendering offset
-  const int display_offset_x = tilemap_real_ox % tilesize_,
-            display_offset_y = tilemap_real_oy % tilesize_;
-  render_offset_ = raylib::Vector2(static_cast<float>(-display_offset_x),
-                                   static_cast<float>(-display_offset_y));
-  render_offset_.y -= tilesize_;
-
-  // Apply viewport origin
-  render_offset_.x += viewport_ox;
-  render_offset_.y += viewport_oy;
-}
-
-void Tilemap::DrawLayer(const std::vector<TileQuad>& data) {
-  auto& shader = ShaderSet::Instance()->tilemap;
-  raylib::BeginShaderMode(shader.shader);
-  raylib::rlEnableColorBlend();
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-  {
-    const float flash_alpha_norm = flash_opacity_ / 255.0f;
-
-    raylib::SetShaderValue(shader.shader, shader.u_offset, &render_offset_,
-                           raylib::SHADER_UNIFORM_VEC2);
-    raylib::SetShaderValue(shader.shader, shader.u_anim_offset,
-                           &animation_offset_, raylib::SHADER_UNIFORM_VEC2);
-    raylib::SetShaderValue(shader.shader, shader.u_tile_size, &tilesize_,
-                           raylib::SHADER_UNIFORM_FLOAT);
-
-    for (auto& it : data) {
-      auto tex = atlas_.texture;
-      raylib::DrawTexturePro(tex, it.source, it.destination, {}, 0, {});
-    }
-  }
-  raylib::EndShaderMode();
 }
 
 }  // namespace rgssx
