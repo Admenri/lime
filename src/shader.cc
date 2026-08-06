@@ -44,14 +44,14 @@ void main() {
   texelColor.rgb += tone.rgb;
 
   // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
 
   // Opacity
   texelColor *= opacity;
 
   // Bush effect
   float bushing = float(fragTexCoord.y < bushDepth);
-  texelColor.a *= clamp(bushOpacity + bushing, 0.0, 1.0);
+  texelColor *= clamp(bushOpacity + bushing, 0.0, 1.0);
 
   gl_FragColor = texelColor;
 }
@@ -125,7 +125,7 @@ void main() {
   texelColor.rgb += tone.rgb;
 
   // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
 
   // Opacity
   texelColor *= opacity;
