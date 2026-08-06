@@ -23,9 +23,23 @@ target_sources(rgssx_core
   window.cc
 )
 
+target_sources(rgssx_core
+ PUBLIC
+  font/font_face.cc
+  font/text_shaper.cc
+  font/font_atlas.cc
+  font/glyph_cache.cc
+  font/text_renderer.cc
+  font/font_manager.cc
+  font/font_system.cc
+)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_sources(rgssx_core PUBLIC platform/win32.cc)
 endif()
 
-target_link_libraries(rgssx_core PUBLIC raylib physfs-static)
+target_link_libraries(rgssx_core PUBLIC raylib)
+target_link_libraries(rgssx_core PUBLIC freetype harfbuzz)
+
+target_link_libraries(rgssx_core PUBLIC physfs-static)
 target_compile_definitions(rgssx_core PUBLIC PHYSFS_STATIC)

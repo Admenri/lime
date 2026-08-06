@@ -61,6 +61,7 @@ class Window : public RefCounted<Window>,
   RefPtr<Tone> tone_;
   int scale_ = 2;
 
+  bool rgss3_style_ = true;
   int pause_index_ = 0;
   int cursor_index_ = 0;
 };

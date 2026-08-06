@@ -384,12 +384,6 @@ void Window::Draw(DrawParam param) {
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
 
   if (width_ >= scale_ * 2 && height_ >= scale_ * 2) {
-    RectRegion window_rect = {static_cast<int>(x_ + padding_rect.x),
-                              static_cast<int>(y_ + padding_rect.y),
-                              static_cast<int>(padding_rect.width),
-                              static_cast<int>(padding_rect.height)};
-    auto window_scissor = RectRegion::MakeIntersect(param.scissor, window_rect);
-
     // Window frame & background
     if (auto windowskin = window_skin_; window_skin_) {
       auto& skin_texture = window_skin_->render_texture().texture;
@@ -566,131 +560,100 @@ void Window::Draw(DrawParam param) {
                                  pause_src[kPauseIndexTable[pause_index_]],
                                  pause_dest, {}, 0.0f, raylib::RAYWHITE);
         }
+      }
+    }
+
+    if (openness_ == 255) {
+      if (auto windowskin = window_skin_; window_skin_) {
+        auto& skin_texture = window_skin_->render_texture().texture;
 
         // 6. Cursor
         const raylib::Color contents_tint = raylib::MakeColor(
             contents_opacity_ * kCursorAlphaTable[cursor_index_] / 255);
-        if (cursor_rect_->width > 0 && cursor_rect_->height > 0) {
-          const raylib::Rectangle clip = {
-              static_cast<float>(window_scissor.x),
-              static_cast<float>(window_scissor.y),
-              static_cast<float>(window_scissor.width),
-              static_cast<float>(window_scissor.height)};
+        const auto cursor_rect = cursor_rect_->As();
+        if (cursor_rect.width > 0 && cursor_rect.height > 0) {
+          auto build_cursor_internal = [&](const raylib::Rectangle& rect,
+                                           int32_t unit,
+                                           raylib::Rectangle quad_rects[9]) {
+            const int32_t w = rect.width;
+            const int32_t h = rect.height;
+            const int32_t l = rect.x;
+            const int32_t r = l + w;
+            const int32_t t = rect.y;
+            const int32_t b = t + h;
 
-          const float cscale = static_cast<float>(scale_ >= 4 ? scale_ * 2 : 4);
-          const float cw = static_cast<float>(cursor_rect_->width);
-          const float ch = static_cast<float>(cursor_rect_->height);
-          const float cx =
-              fx + padding_rect.x + static_cast<float>(cursor_rect_->x);
-          const float cy =
-              fy + padding_rect.y + static_cast<float>(cursor_rect_->y);
+            int32_t i = 0;
+            // Left-Top
+            quad_rects[i++] = raylib::Rectangle(l, t, unit, unit);
+            // Right-Top
+            quad_rects[i++] = raylib::Rectangle(r - unit, t, unit, unit);
+            // Right-Bottom
+            quad_rects[i++] = raylib::Rectangle(r - unit, b - unit, unit, unit);
+            // Left-Bottom
+            quad_rects[i++] = raylib::Rectangle(l, b - unit, unit, unit);
 
-          // Cursor source: 16x16 region at (32, 32) in windowskin
-          const float ssx = 32.0f * fscale;
-          const float ssy = 32.0f * fscale;
-          const float ssw = 16.0f * fscale;
-          const float ssh = 16.0f * fscale;
-
-          // 9-patch: 4 corners + 4 edges + 1 center
-          const raylib::Rectangle src[9] = {
-              {ssx, ssy, cscale, cscale},
-              {ssx + ssw - cscale, ssy, cscale, cscale},
-              {ssx + ssw - cscale, ssy + ssh - cscale, cscale, cscale},
-              {ssx, ssy + ssh - cscale, cscale, cscale},
-              {ssx, ssy + cscale, cscale, ssh - cscale * 2.0f},
-              {ssx + ssw - cscale, ssy + cscale, cscale, ssh - cscale * 2.0f},
-              {ssx + cscale, ssy, ssw - cscale * 2.0f, cscale},
-              {ssx + cscale, ssy + ssh - cscale, ssw - cscale * 2.0f, cscale},
-              {ssx + cscale, ssy + cscale, ssw - cscale * 2.0f,
-               ssh - cscale * 2.0f},
+            // Left
+            quad_rects[i++] =
+                raylib::Rectangle(l, t + unit, unit, h - unit * 2);
+            // Right
+            quad_rects[i++] =
+                raylib::Rectangle(r - unit, t + unit, unit, h - unit * 2);
+            // Top
+            quad_rects[i++] =
+                raylib::Rectangle(l + unit, t, w - unit * 2, unit);
+            // Bottom
+            quad_rects[i++] =
+                raylib::Rectangle(l + unit, b - unit, w - unit * 2, unit);
+            // Center
+            quad_rects[i++] = raylib::Rectangle(l + unit, t + unit,
+                                                w - unit * 2, h - unit * 2);
           };
 
-          const raylib::Rectangle dst[9] = {
-              {cx, cy, cscale, cscale},
-              {cx + cw - cscale, cy, cscale, cscale},
-              {cx + cw - cscale, cy + ch - cscale, cscale, cscale},
-              {cx, cy + ch - cscale, cscale, cscale},
-              {cx, cy + cscale, cscale, ch - cscale * 2.0f},
-              {cx + cw - cscale, cy + cscale, cscale, ch - cscale * 2.0f},
-              {cx + cscale, cy, cw - cscale * 2.0f, cscale},
-              {cx + cscale, cy + ch - cscale, cw - cscale * 2.0f, cscale},
-              {cx + cscale, cy + cscale, cw - cscale * 2.0f,
-               ch - cscale * 2.0f},
+          auto build_cursor_quads = [&](const raylib::Rectangle& src,
+                                        const raylib::Rectangle& dst) {
+            const int32_t cursor_scale = scale_ >= 4 ? scale_ * 2 : 4;
+
+            raylib::Rectangle texcoords[9], positions[9];
+            build_cursor_internal(src, cursor_scale, texcoords);
+            build_cursor_internal(dst, cursor_scale, positions);
+
+            for (int32_t i = 0; i < 9; ++i)
+              raylib::DrawTexturePro(skin_texture, texcoords[i], positions[i],
+                                     {}, 0, contents_tint);
           };
 
-          for (int i = 0; i < 9; ++i) {
-            raylib::Rectangle s = src[i];
-            raylib::Rectangle d = dst[i];
+          const raylib::Rectangle cursor_src(32 * scale_, 32 * scale_,
+                                             16 * scale_, 16 * scale_);
+          if (cursor_rect.width > 0 && cursor_rect.height > 0) {
+            raylib::Rectangle cursor_dest(x_ + padding_rect.x + cursor_rect.x,
+                                          y_ + padding_rect.y + cursor_rect.y,
+                                          cursor_rect.width,
+                                          cursor_rect.height);
 
-            // Clip dst against window_scissor, adjust src proportionally
-            const float left = std::max(d.x, clip.x);
-            const float top = std::max(d.y, clip.y);
-            const float right = std::min(d.x + d.width, clip.x + clip.width);
-            const float bottom = std::min(d.y + d.height, clip.y + clip.height);
-
-            if (left < right && top < bottom) {
-              const float sx_ratio = (left - d.x) / d.width;
-              const float sy_ratio = (top - d.y) / d.height;
-              const float sw_ratio = (right - left) / d.width;
-              const float sh_ratio = (bottom - top) / d.height;
-
-              s.x += sx_ratio * s.width;
-              s.y += sy_ratio * s.height;
-              s.width *= sw_ratio;
-              s.height *= sh_ratio;
-
-              d.x = left;
-              d.y = top;
-              d.width = right - left;
-              d.height = bottom - top;
-
-              raylib::DrawTexturePro(skin_texture, s, d, {}, 0.0f,
-                                     contents_tint);
+            if (rgss3_style_) {
+              cursor_dest.x -= ox_;
+              cursor_dest.y -= oy_;
             }
+
+            build_cursor_quads(cursor_src, cursor_dest);
           }
         }
       }
-    }
 
-    // 7. Contents
-    if (contents_ && openness_ == 255) {
-      const raylib::Rectangle clip = {
-          static_cast<float>(window_scissor.x),
-          static_cast<float>(window_scissor.y),
-          static_cast<float>(window_scissor.width),
-          static_cast<float>(window_scissor.height)};
+      // 7. Contents
+      if (contents_) {
+        auto& contents_texture = contents_->render_texture().texture;
 
-      auto& contents_texture = contents_->render_texture().texture;
-      const float cx = fx + padding_rect.x - static_cast<float>(ox_);
-      const float cy = fy + padding_rect.y - static_cast<float>(oy_);
+        raylib::Rectangle s = {}, d = {};
+        s.x = 0;
+        s.y = 0;
+        s.width = contents_texture.width;
+        s.height = contents_texture.height;
 
-      raylib::Rectangle s = {0.0f, 0.0f,
-                             static_cast<float>(contents_texture.width),
-                             static_cast<float>(contents_texture.height)};
-      raylib::Rectangle d = {cx, cy, static_cast<float>(contents_texture.width),
-                             static_cast<float>(contents_texture.height)};
-
-      // Clip dst against window_scissor, adjust src proportionally
-      const float left = std::max(d.x, clip.x);
-      const float top = std::max(d.y, clip.y);
-      const float right = std::min(d.x + d.width, clip.x + clip.width);
-      const float bottom = std::min(d.y + d.height, clip.y + clip.height);
-
-      if (left < right && top < bottom) {
-        const float sx_ratio = (left - d.x) / d.width;
-        const float sy_ratio = (top - d.y) / d.height;
-        const float sw_ratio = (right - left) / d.width;
-        const float sh_ratio = (bottom - top) / d.height;
-
-        s.x += sx_ratio * s.width;
-        s.y += sy_ratio * s.height;
-        s.width *= sw_ratio;
-        s.height *= sh_ratio;
-
-        d.x = left;
-        d.y = top;
-        d.width = right - left;
-        d.height = bottom - top;
+        d.x = x_ + padding_rect.x - ox_;
+        d.y = y_ + padding_rect.y - oy_;
+        d.width = contents_texture.width;
+        d.height = contents_texture.height;
 
         raylib::DrawTexturePro(contents_texture, s, d, {}, 0,
                                raylib::MakeColor(contents_opacity_));

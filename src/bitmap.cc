@@ -1,6 +1,7 @@
 #include "src/bitmap.h"
 
 #include "src/filesystem.h"
+#include "src/font/font_system.h"
 
 namespace rgssx {
 
@@ -182,7 +183,52 @@ void Bitmap::DrawText(int x,
                       std::string str,
                       int align) {
   Dispoable::Guard();
-  // TODO
+
+  if (!font_ || str.empty())
+    return;
+
+  auto& fs = font_->font_system();
+  auto measured = fs.MeasureText(str.c_str());
+
+  // Horizontal position by alignment (0 = left, 1 = center, 2 = right).
+  float tx = static_cast<float>(x);
+  if (align == 1)
+    tx = x + (width - measured.x) / 2.0f;
+  else if (align == 2)
+    tx = x + (width - measured.x);
+
+  // RGSS centers text vertically inside the box.
+  float ty = y + (height - measured.y) / 2.0f;
+
+  auto text_color = raylib::WHITE;
+  if (auto c = font_->Attr_Color(); c.has_value() && *c)
+    text_color = (*c)->As();
+  auto out_color = raylib::BLACK;
+  if (auto c = font_->Attr_OutColor(); c.has_value() && *c)
+    out_color = (*c)->As();
+  const bool shadow = font_->Attr_Shadow().value_or(false);
+  const bool outline = font_->Attr_Outline().value_or(false);
+
+  raylib::BeginTextureMode(texture_);
+  {
+    raylib::rlEnableColorBlend();
+
+    // Drop shadow: a dark copy offset by 2px.
+    if (shadow)
+      fs.DrawText(str.c_str(), {tx + 2.0f, ty + 2.0f}, {0, 0, 0, 128});
+
+    // Outline: 1px stroke in the outline color (8 directions).
+    if (outline) {
+      static const raylib::Vector2 kOutlineOffsets[] = {
+          {-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+      for (const auto& off : kOutlineOffsets)
+        fs.DrawText(str.c_str(), {tx + off.x, ty + off.y}, out_color);
+    }
+
+    // Main text.
+    fs.DrawText(str.c_str(), {tx, ty}, text_color);
+  }
+  raylib::EndTextureMode();
 }
 
 void Bitmap::DrawText(RefPtr<Rect> rect, std::string str, int align) {
@@ -192,8 +238,13 @@ void Bitmap::DrawText(RefPtr<Rect> rect, std::string str, int align) {
 
 RefPtr<Rect> Bitmap::TextSize(std::string str) {
   Dispoable::Guard();
-  // TODO
-  return MakeRefCounted<Rect>();
+  if (!font_)
+    return MakeRefCounted<Rect>();
+
+  auto& fs = font_->font_system();
+  auto size = fs.MeasureText(str.c_str());
+  return MakeRefCounted<Rect>(0, 0, static_cast<int>(size.x),
+                              static_cast<int>(size.y));
 }
 
 void Bitmap::SaveFile(std::string filename) {

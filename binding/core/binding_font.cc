@@ -16,26 +16,28 @@ MRB_FUNC(Font_initialize) {
   mrb_get_args(mrb, "*", &args, &argc);
 
   std::vector<std::string> names;
-  mrb_int size = 24;
-
-  if (argc >= 1) {
-    mrb_value name_val = args[0];
-    if (mrb_array_p(name_val)) {
-      mrb_int len = RARRAY_LEN(name_val);
-      mrb_value* ptr = RARRAY_PTR(name_val);
-      for (mrb_int i = 0; i < len; ++i)
-        names.emplace_back(mrb_str_to_cstr(mrb, ptr[i]));
-    } else {
-      names.emplace_back(mrb_str_to_cstr(mrb, name_val));
-    }
-  }
-  if (argc >= 2)
-    size = mrb_integer(args[1]);
+  int size = 0;
 
   rgssx::RefPtr<rgssx::Font> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::MakeRefCounted<rgssx::Font>(names, size);
-  } EXC_END(mrb);
+    if (argc >= 1) {
+      mrb_value name_val = args[0];
+      if (mrb_array_p(name_val)) {
+        mrb_int len = RARRAY_LEN(name_val);
+        mrb_value* ptr = RARRAY_PTR(name_val);
+        for (mrb_int i = 0; i < len; ++i)
+          names.emplace_back(mrb_str_to_cstr(mrb, ptr[i]));
+      }
+    }
+    if (argc >= 2)
+      size = mrb_fixnum(args[1]);
+
+    if (argc == 1)
+      obj = rgssx::MakeRefCounted<rgssx::Font>(names);
+    else if (argc == 2)
+      obj = rgssx::MakeRefCounted<rgssx::Font>(names, size);
+  }
+  EXC_END(mrb);
 
   SetupSelfData(self, obj.get(), kFontDataType);
   return self;
@@ -47,7 +49,8 @@ MRB_FUNC(Font_Exist) {
 
   EXC_BEGIN {
     return mrb_bool_value(rgssx::Font::Exist(name));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -57,10 +60,9 @@ MRB_FUNC(Font_Name) {
   auto* self_obj = GetSelfData<rgssx::Font>(self);
   EXC_BEGIN {
     auto result = self_obj->Attr_Name();
-    if (result.has_value())
-      return WrapStringVector(mrb, *result);
-    return mrb_nil_value();
-  } EXC_END(mrb);
+    return WrapStringVector(mrb, *result);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -72,7 +74,8 @@ MRB_FUNC(Font_NameEqual) {
   std::vector<std::string> names = GetStringVector(mrb, val);
   EXC_BEGIN {
     self_obj->Attr_Name(names);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -80,10 +83,9 @@ MRB_FUNC(Font_Size) {
   auto* self_obj = GetSelfData<rgssx::Font>(self);
   EXC_BEGIN {
     auto result = self_obj->Attr_Size();
-    if (result.has_value())
-      return mrb_fixnum_value(*result);
-    return mrb_nil_value();
-  } EXC_END(mrb);
+    return mrb_fixnum_value(*result);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -94,31 +96,30 @@ MRB_FUNC(Font_SizeEqual) {
 
   EXC_BEGIN {
     self_obj->Attr_Size(static_cast<int>(size));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define FONT_BOOL_ATTR(name, cap)                        \
-  MRB_FUNC(Font_##cap) {                                 \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);     \
-    EXC_BEGIN {                                          \
-      auto result = self_obj->Attr_##cap();              \
-      if (result.has_value())                            \
-        return mrb_bool_value(*result);                  \
-      return mrb_nil_value();                            \
-    }                                                    \
-    EXC_END(mrb);                                        \
-    return mrb_nil_value();                              \
-  }                                                      \
-  MRB_FUNC(Font_##cap##Equal) {                          \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);     \
-    mrb_bool value;                                      \
-    mrb_get_args(mrb, "b", &value);                      \
-    EXC_BEGIN {                                          \
-      self_obj->Attr_##cap(value);                       \
-    }                                                    \
-    EXC_END(mrb);                                        \
-    return mrb_nil_value();                              \
+#define FONT_BOOL_ATTR(name, cap)                    \
+  MRB_FUNC(Font_##cap) {                             \
+    auto* self_obj = GetSelfData<rgssx::Font>(self); \
+    EXC_BEGIN {                                      \
+      auto result = self_obj->Attr_##cap();          \
+      return mrb_bool_value(*result);                \
+    }                                                \
+    EXC_END(mrb);                                    \
+    return mrb_nil_value();                          \
+  }                                                  \
+  MRB_FUNC(Font_##cap##Equal) {                      \
+    auto* self_obj = GetSelfData<rgssx::Font>(self); \
+    mrb_bool value;                                  \
+    mrb_get_args(mrb, "b", &value);                  \
+    EXC_BEGIN {                                      \
+      self_obj->Attr_##cap(value);                   \
+    }                                                \
+    EXC_END(mrb);                                    \
+    return mrb_nil_value();                          \
   }
 
 FONT_BOOL_ATTR(name, Bold);
@@ -128,28 +129,26 @@ FONT_BOOL_ATTR(name, Shadow);
 
 #undef FONT_BOOL_ATTR
 
-#define FONT_COLOR_ATTR(cap)                                          \
-  MRB_FUNC(Font_##cap) {                                              \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);                  \
-    EXC_BEGIN {                                                       \
-      auto result = self_obj->Attr_##cap();                           \
-      if (result.has_value())                                         \
-        return WrapObject(mrb, result->get(), kColorDataType);        \
-      return mrb_nil_value();                                         \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
-  }                                                                   \
-  MRB_FUNC(Font_##cap##Equal) {                                       \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);                  \
-    mrb_value val;                                                    \
-    mrb_get_args(mrb, "o", &val);                                     \
-    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType);   \
-    EXC_BEGIN {                                                       \
-      self_obj->Attr_##cap(color);                                    \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
+#define FONT_COLOR_ATTR(cap)                                        \
+  MRB_FUNC(Font_##cap) {                                            \
+    auto* self_obj = GetSelfData<rgssx::Font>(self);                \
+    EXC_BEGIN {                                                     \
+      auto result = self_obj->Attr_##cap();                         \
+      return WrapObject(mrb, result->get(), kColorDataType);        \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
+  }                                                                 \
+  MRB_FUNC(Font_##cap##Equal) {                                     \
+    auto* self_obj = GetSelfData<rgssx::Font>(self);                \
+    mrb_value val;                                                  \
+    mrb_get_args(mrb, "o", &val);                                   \
+    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType); \
+    EXC_BEGIN {                                                     \
+      self_obj->Attr_##cap(color);                                  \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
   }
 
 FONT_COLOR_ATTR(Color);
@@ -162,10 +161,9 @@ FONT_COLOR_ATTR(OutColor);
 MRB_FUNC(Font_DefaultName) {
   EXC_BEGIN {
     auto result = rgssx::Font::Attr_DefaultName();
-    if (result.has_value())
-      return WrapStringVector(mrb, *result);
-    return mrb_nil_value();
-  } EXC_END(mrb);
+    return WrapStringVector(mrb, *result);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -176,17 +174,17 @@ MRB_FUNC(Font_DefaultNameEqual) {
   std::vector<std::string> names = GetStringVector(mrb, val);
   EXC_BEGIN {
     rgssx::Font::Attr_DefaultName(names);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
 MRB_FUNC(Font_DefaultSize) {
   EXC_BEGIN {
     auto result = rgssx::Font::Attr_DefaultSize();
-    if (result.has_value())
-      return mrb_fixnum_value(*result);
-    return mrb_nil_value();
-  } EXC_END(mrb);
+    return mrb_fixnum_value(*result);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -196,29 +194,28 @@ MRB_FUNC(Font_DefaultSizeEqual) {
 
   EXC_BEGIN {
     rgssx::Font::Attr_DefaultSize(static_cast<int>(size));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define FONT_STATIC_BOOL_ATTR(cap)                      \
-  MRB_FUNC(Font_Default##cap) {                         \
-    EXC_BEGIN {                                         \
-      auto result = rgssx::Font::Attr_Default##cap();   \
-      if (result.has_value())                           \
-        return mrb_bool_value(*result);                 \
-      return mrb_nil_value();                           \
-    }                                                   \
-    EXC_END(mrb);                                       \
-    return mrb_nil_value();                             \
-  }                                                     \
-  MRB_FUNC(Font_Default##cap##Equal) {                  \
-    mrb_bool value;                                     \
-    mrb_get_args(mrb, "b", &value);                     \
-    EXC_BEGIN {                                         \
-      rgssx::Font::Attr_Default##cap(value);            \
-    }                                                   \
-    EXC_END(mrb);                                       \
-    return mrb_nil_value();                             \
+#define FONT_STATIC_BOOL_ATTR(cap)                    \
+  MRB_FUNC(Font_Default##cap) {                       \
+    EXC_BEGIN {                                       \
+      auto result = rgssx::Font::Attr_Default##cap(); \
+      return mrb_bool_value(*result);                 \
+    }                                                 \
+    EXC_END(mrb);                                     \
+    return mrb_nil_value();                           \
+  }                                                   \
+  MRB_FUNC(Font_Default##cap##Equal) {                \
+    mrb_bool value;                                   \
+    mrb_get_args(mrb, "b", &value);                   \
+    EXC_BEGIN {                                       \
+      rgssx::Font::Attr_Default##cap(value);          \
+    }                                                 \
+    EXC_END(mrb);                                     \
+    return mrb_nil_value();                           \
   }
 
 FONT_STATIC_BOOL_ATTR(Bold);
@@ -228,26 +225,24 @@ FONT_STATIC_BOOL_ATTR(Shadow);
 
 #undef FONT_STATIC_BOOL_ATTR
 
-#define FONT_STATIC_COLOR_ATTR(cap)                                   \
-  MRB_FUNC(Font_Default##cap) {                                       \
-    EXC_BEGIN {                                                       \
-      auto result = rgssx::Font::Attr_Default##cap();                 \
-      if (result.has_value())                                         \
-        return WrapObject(mrb, result->get(), kColorDataType);        \
-      return mrb_nil_value();                                         \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
-  }                                                                   \
-  MRB_FUNC(Font_Default##cap##Equal) {                                \
-    mrb_value val;                                                    \
-    mrb_get_args(mrb, "o", &val);                                     \
-    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType);   \
-    EXC_BEGIN {                                                       \
-      rgssx::Font::Attr_Default##cap(color);                          \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
+#define FONT_STATIC_COLOR_ATTR(cap)                                 \
+  MRB_FUNC(Font_Default##cap) {                                     \
+    EXC_BEGIN {                                                     \
+      auto result = rgssx::Font::Attr_Default##cap();               \
+      return WrapObject(mrb, result->get(), kColorDataType);        \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
+  }                                                                 \
+  MRB_FUNC(Font_Default##cap##Equal) {                              \
+    mrb_value val;                                                  \
+    mrb_get_args(mrb, "o", &val);                                   \
+    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType); \
+    EXC_BEGIN {                                                     \
+      rgssx::Font::Attr_Default##cap(color);                        \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
   }
 
 FONT_STATIC_COLOR_ATTR(Color);
@@ -274,37 +269,43 @@ void InitFontBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "color", Font_Color, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "color=", Font_ColorEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "out_color", Font_OutColor, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "out_color=", Font_OutColorEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "out_color=", Font_OutColorEqual,
+                    MRB_ARGS_REQ(1));
 
   mrb_define_class_method(mrb, klass, "exist", Font_Exist, MRB_ARGS_REQ(1));
-  mrb_define_class_method(mrb, klass, "default_name", Font_DefaultName, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, klass, "default_name", Font_DefaultName,
+                          MRB_ARGS_NONE());
   mrb_define_class_method(mrb, klass, "default_name=", Font_DefaultNameEqual,
                           MRB_ARGS_REQ(1));
-  mrb_define_class_method(mrb, klass, "default_size", Font_DefaultSize, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, klass, "default_size", Font_DefaultSize,
+                          MRB_ARGS_NONE());
   mrb_define_class_method(mrb, klass, "default_size=", Font_DefaultSizeEqual,
                           MRB_ARGS_REQ(1));
-  mrb_define_class_method(mrb, klass, "default_bold", Font_DefaultBold, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, klass, "default_bold", Font_DefaultBold,
+                          MRB_ARGS_NONE());
   mrb_define_class_method(mrb, klass, "default_bold=", Font_DefaultBoldEqual,
                           MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, klass, "default_italic", Font_DefaultItalic,
                           MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, klass, "default_italic=", Font_DefaultItalicEqual,
-                          MRB_ARGS_REQ(1));
+  mrb_define_class_method(
+      mrb, klass, "default_italic=", Font_DefaultItalicEqual, MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, klass, "default_outline", Font_DefaultOutline,
                           MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, klass, "default_outline=", Font_DefaultOutlineEqual,
+  mrb_define_class_method(mrb, klass,
+                          "default_outline=", Font_DefaultOutlineEqual,
                           MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, klass, "default_shadow", Font_DefaultShadow,
                           MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, klass, "default_shadow=", Font_DefaultShadowEqual,
-                          MRB_ARGS_REQ(1));
+  mrb_define_class_method(
+      mrb, klass, "default_shadow=", Font_DefaultShadowEqual, MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, klass, "default_color", Font_DefaultColor,
                           MRB_ARGS_NONE());
   mrb_define_class_method(mrb, klass, "default_color=", Font_DefaultColorEqual,
                           MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, klass, "default_out_color", Font_DefaultOutColor,
                           MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, klass, "default_out_color=", Font_DefaultOutColorEqual,
+  mrb_define_class_method(mrb, klass,
+                          "default_out_color=", Font_DefaultOutColorEqual,
                           MRB_ARGS_REQ(1));
 }
 

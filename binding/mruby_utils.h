@@ -120,16 +120,32 @@ inline rgssx::RefPtr<Ty> GetObject(mrb_state* mrb,
   return rgssx::RefPtr<Ty>(ptr);
 }
 
-// Ruby Array of Strings (or nil) <-> std::vector<std::string>.
+// Ruby Array of Strings (or a single String, or nil) <->
+// std::vector<std::string>. A bare String is treated as a one-element array
+// (RGSS allows both forms, e.g. Font.default_name = "SimHei" or
+// Font.default_name = ["Arial", "SimHei"]). Any other type raises a TypeError
+// instead of reading garbage lengths.
 inline std::vector<std::string> GetStringVector(mrb_state* mrb, mrb_value val) {
   std::vector<std::string> result;
   if (mrb_nil_p(val))
     return result;
+
+  if (mrb_string_p(val)) {
+    result.emplace_back(mrb_str_to_cstr(mrb, val));
+    return result;
+  }
+
+  if (!mrb_array_p(val))
+    mrb_raise(mrb, E_TYPE_ERROR, "expected Array or String");
+
   mrb_int len = RARRAY_LEN(val);
   mrb_value* ptr = RARRAY_PTR(val);
-  result.reserve(len);
-  for (mrb_int i = 0; i < len; ++i)
+  result.reserve(static_cast<size_t>(len));
+  for (mrb_int i = 0; i < len; ++i) {
+    if (!mrb_string_p(ptr[i]))
+      mrb_raise(mrb, E_TYPE_ERROR, "expected String elements");
     result.emplace_back(mrb_str_to_cstr(mrb, ptr[i]));
+  }
   return result;
 }
 
@@ -149,9 +165,7 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     auto* self_obj = GetSelfData<ty>(self);          \
     EXC_BEGIN {                                      \
       auto result = self_obj->Attr_##cap();          \
-      if (result.has_value())                        \
-        return mrb_fixnum_value(*result);            \
-      return mrb_nil_value();                        \
+      return mrb_fixnum_value(*result);              \
     }                                                \
     EXC_END(mrb);                                    \
     return mrb_nil_value();                          \
@@ -167,27 +181,25 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     return mrb_nil_value();                          \
   }
 
-#define BINDING_ATTR_FLOAT(prefix, ty, cap)                           \
-  MRB_FUNC(prefix##_##cap) {                                          \
-    auto* self_obj = GetSelfData<ty>(self);                           \
-    EXC_BEGIN {                                                       \
-      auto result = self_obj->Attr_##cap();                           \
-      if (result.has_value())                                         \
-        return mrb_float_value(mrb, static_cast<mrb_float>(*result)); \
-      return mrb_nil_value();                                         \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
-  }                                                                   \
-  MRB_FUNC(prefix##_##cap##Equal) {                                   \
-    auto* self_obj = GetSelfData<ty>(self);                           \
-    mrb_float value;                                                  \
-    mrb_get_args(mrb, "f", &value);                                   \
-    EXC_BEGIN {                                                       \
-      self_obj->Attr_##cap(static_cast<float>(value));                \
-    }                                                                 \
-    EXC_END(mrb);                                                     \
-    return mrb_nil_value();                                           \
+#define BINDING_ATTR_FLOAT(prefix, ty, cap)                         \
+  MRB_FUNC(prefix##_##cap) {                                        \
+    auto* self_obj = GetSelfData<ty>(self);                         \
+    EXC_BEGIN {                                                     \
+      auto result = self_obj->Attr_##cap();                         \
+      return mrb_float_value(mrb, static_cast<mrb_float>(*result)); \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
+  }                                                                 \
+  MRB_FUNC(prefix##_##cap##Equal) {                                 \
+    auto* self_obj = GetSelfData<ty>(self);                         \
+    mrb_float value;                                                \
+    mrb_get_args(mrb, "f", &value);                                 \
+    EXC_BEGIN {                                                     \
+      self_obj->Attr_##cap(static_cast<float>(value));              \
+    }                                                               \
+    EXC_END(mrb);                                                   \
+    return mrb_nil_value();                                         \
   }
 
 #define BINDING_ATTR_BOOL(prefix, ty, cap)  \
@@ -195,9 +207,7 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     auto* self_obj = GetSelfData<ty>(self); \
     EXC_BEGIN {                             \
       auto result = self_obj->Attr_##cap(); \
-      if (result.has_value())               \
-        return mrb_bool_value(*result);     \
-      return mrb_nil_value();               \
+      return mrb_bool_value(*result);       \
     }                                       \
     EXC_END(mrb);                           \
     return mrb_nil_value();                 \
@@ -220,9 +230,7 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     auto* self_obj = GetSelfData<ty>(self);                 \
     EXC_BEGIN {                                             \
       auto result = self_obj->Attr_##cap();                 \
-      if (result.has_value())                               \
-        return WrapObject(mrb, result->get(), dataty);      \
-      return mrb_nil_value();                               \
+      return WrapObject(mrb, result->get(), dataty);        \
     }                                                       \
     EXC_END(mrb);                                           \
     return mrb_nil_value();                                 \
@@ -248,12 +256,9 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
       auto result_iv = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@_" #cap)); \
       if (!mrb_nil_p(result_iv))                                              \
         return result_iv;                                                     \
-      if (result.has_value()) {                                               \
-        auto result_obj = WrapObject(mrb, result->get(), dataty);             \
-        mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@_" #cap), result_obj);    \
-        return result_obj;                                                    \
-      }                                                                       \
-      return mrb_nil_value();                                                 \
+      auto result_obj = WrapObject(mrb, result->get(), dataty);               \
+      mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@_" #cap), result_obj);      \
+      return result_obj;                                                      \
     }                                                                         \
     EXC_END(mrb);                                                             \
     return mrb_nil_value();                                                   \

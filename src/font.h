@@ -6,6 +6,10 @@
 
 namespace rgssx {
 
+namespace font {
+class FontSystem;
+}
+
 class Font : public RefCounted<Font> {
  public:
   Font(std::vector<std::string> names = {}, int size = 24);
@@ -34,10 +38,15 @@ class Font : public RefCounted<Font> {
   /*-export.end-*/
 
  public:
-  raylib::Font& font() { return font_; }
+  // Lazy-built dynamic font system (FreeType + HarfBuzz glyph atlas). Shared
+  // by every Font with the same (name chain, size, style); invalidated when
+  // Name, Size, Bold or Italic change. Used by Bitmap::DrawText()/TextSize().
+  font::FontSystem& font_system();
 
  private:
-  raylib::Font font_;
+  void ResetFontSystem();
+
+  std::shared_ptr<font::FontSystem> font_system_;
 
   std::vector<std::string> name_;
   int size_ = 24;

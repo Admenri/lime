@@ -12,6 +12,8 @@ endif()
 add_subdirectory(3rdparty/zlib)
 add_subdirectory(3rdparty/raylib)
 add_subdirectory(3rdparty/physfs)
+add_subdirectory(3rdparty/freetype)
+add_subdirectory(3rdparty/harfbuzz)
 add_subdirectory(3rdparty/mruby-cmake)
 
 add_subdirectory(src)

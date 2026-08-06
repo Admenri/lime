@@ -31,7 +31,8 @@ MRB_FUNC(Bitmap_initialize) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
 
   SetupSelfData(self, obj.get(), kBitmapDataType);
   return self;
@@ -41,7 +42,8 @@ MRB_FUNC(Bitmap_Width) {
   auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Width());
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -49,7 +51,8 @@ MRB_FUNC(Bitmap_Height) {
   auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Height());
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -58,7 +61,8 @@ MRB_FUNC(Bitmap_GetRect) {
   EXC_BEGIN {
     auto result = self_obj->GetRect();
     return WrapObject(mrb, result.get(), kRectDataType);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -68,12 +72,14 @@ MRB_FUNC(Bitmap_Blt) {
   mrb_value src_bitmap_val, src_rect_val;
   mrb_get_args(mrb, "iioo|i", &x, &y, &src_bitmap_val, &src_rect_val, &opacity);
 
-  auto src_bitmap = GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
+  auto src_bitmap =
+      GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
   auto src_rect = GetObject<rgssx::Rect>(mrb, src_rect_val, kRectDataType);
 
   EXC_BEGIN {
     self_obj->Blt(x, y, src_bitmap, src_rect, opacity);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -85,12 +91,14 @@ MRB_FUNC(Bitmap_StretchBlt) {
                &opacity);
 
   auto dst_rect = GetObject<rgssx::Rect>(mrb, dst_rect_val, kRectDataType);
-  auto src_bitmap = GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
+  auto src_bitmap =
+      GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
   auto src_rect = GetObject<rgssx::Rect>(mrb, src_rect_val, kRectDataType);
 
   EXC_BEGIN {
     self_obj->StretchBlt(dst_rect, src_bitmap, src_rect, opacity);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -113,7 +121,8 @@ MRB_FUNC(Bitmap_FillRect) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -138,7 +147,8 @@ MRB_FUNC(Bitmap_GradientFillRect) {
           GetObject<rgssx::Color>(mrb, args[2], kColorDataType),
           mrb_test(args[3]));
     } else if (argc == 6) {
-      // GradientFillRect(x, y, width, height, color1, color2)  (vertical = false)
+      // GradientFillRect(x, y, width, height, color1, color2)  (vertical =
+      // false)
       self_obj->GradientFillRect(
           mrb_integer(args[0]), mrb_integer(args[1]), mrb_integer(args[2]),
           mrb_integer(args[3]),
@@ -155,7 +165,8 @@ MRB_FUNC(Bitmap_GradientFillRect) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -163,7 +174,8 @@ MRB_FUNC(Bitmap_Clear) {
   auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
   EXC_BEGIN {
     self_obj->Clear();
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -184,7 +196,8 @@ MRB_FUNC(Bitmap_ClearRect) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -196,7 +209,8 @@ MRB_FUNC(Bitmap_GetPixel) {
   EXC_BEGIN {
     auto result = self_obj->GetPixel(x, y);
     return WrapObject(mrb, result.get(), kColorDataType);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -210,7 +224,8 @@ MRB_FUNC(Bitmap_SetPixel) {
 
   EXC_BEGIN {
     self_obj->SetPixel(x, y, color);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -221,7 +236,8 @@ MRB_FUNC(Bitmap_HueChange) {
 
   EXC_BEGIN {
     self_obj->HueChange(hue);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -229,7 +245,8 @@ MRB_FUNC(Bitmap_Blur) {
   auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
   EXC_BEGIN {
     self_obj->Blur();
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -240,45 +257,39 @@ MRB_FUNC(Bitmap_RadialBlur) {
 
   EXC_BEGIN {
     self_obj->RadialBlur(angle, division);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
 MRB_FUNC(Bitmap_DrawText) {
-  // auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
-  // const mrb_value* args;
-  // mrb_int argc;
-  // mrb_get_args(mrb, "*", &args, &argc);
+  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
 
-  // EXC_BEGIN {
-  //   if (argc == 5) {
-  //     // DrawText(x, y, width, height, str)  (align = 0)
-  //     mrb_p(mrb, args[4]);
-  //     std::string str = mrb_str_to_cstr(mrb, args[4]);
-  //     self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
-  //                        mrb_integer(args[2]), mrb_integer(args[3]), str);
-  //   } else if (argc == 6) {
-  //     // DrawText(x, y, width, height, str, align)
-  //     mrb_p(mrb, args[4]);
-  //     std::string str = mrb_str_to_cstr(mrb, args[4]);
-  //     self_obj->DrawText(mrb_integer(args[0]), mrb_integer(args[1]),
-  //                        mrb_integer(args[2]), mrb_integer(args[3]), str,
-  //                        mrb_integer(args[5]));
-  //   } else if (argc == 2) {
-  //     // DrawText(rect, str)  (align = 0)
-  //     mrb_p(mrb, args[1]);
-  //     std::string str = mrb_str_to_cstr(mrb, args[1]);
-  //     self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str);
-  //   } else if (argc == 3) {
-  //     // DrawText(rect, str, align)
-  //     mrb_p(mrb, args[1]);
-  //     std::string str = mrb_str_to_cstr(mrb, args[1]);
-  //     self_obj->DrawText(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType), str,
-  //                        mrb_integer(args[2]));
-  //   } else {
-  //     mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
-  //   }
-  // } EXC_END(mrb);
+  EXC_BEGIN {
+    mrb_int argc = mrb_get_argc(mrb);
+
+    if (argc < 4) {
+      mrb_value rect_obj;
+      mrb_value str;
+      mrb_int align = 0;
+      mrb_get_args(mrb, "oo|i", &rect_obj, &str, &align);
+
+      mrb_value str_raw = mrb_obj_as_string(mrb, str);
+      std::string str_std(RSTRING_PTR(str_raw), RSTRING_LEN(str_raw));
+      self_obj->DrawText(GetObject<rgssx::Rect>(mrb, rect_obj, kRectDataType),
+                         str_std, align);
+    } else {
+      mrb_int x, y, w, h;
+      mrb_value str;
+      mrb_int align = 0;
+      mrb_get_args(mrb, "iiiio|i", &x, &y, &w, &h, &str, &align);
+
+      mrb_value str_raw = mrb_obj_as_string(mrb, str);
+      std::string str_std(RSTRING_PTR(str_raw), RSTRING_LEN(str_raw));
+      self_obj->DrawText(x, y, w, h, str_std, align);
+    }
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -290,7 +301,8 @@ MRB_FUNC(Bitmap_TextSize) {
   EXC_BEGIN {
     auto result = self_obj->TextSize(str);
     return WrapObject(mrb, result.get(), kRectDataType);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -301,12 +313,17 @@ MRB_FUNC(Bitmap_SaveFile) {
 
   EXC_BEGIN {
     self_obj->SaveFile(filename);
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
 // Attribute: font (RefPtr<Font>)
-BINDING_ATTR_OBJECT_REF(Bitmap, rgssx::Bitmap, Font, rgssx::Font, kFontDataType);
+BINDING_ATTR_OBJECT_REF(Bitmap,
+                        rgssx::Bitmap,
+                        Font,
+                        rgssx::Font,
+                        kFontDataType);
 
 // Inherited from Dispoable
 BINDING_INHERITED_DISPOABLE(Bitmap, rgssx::Bitmap);
@@ -314,12 +331,14 @@ BINDING_INHERITED_DISPOABLE(Bitmap, rgssx::Bitmap);
 void InitBitmapBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Bitmap");
 
-  mrb_define_method(mrb, klass, "initialize", Bitmap_initialize, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "initialize", Bitmap_initialize,
+                    MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "width", Bitmap_Width, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "height", Bitmap_Height, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "rect", Bitmap_GetRect, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "blt", Bitmap_Blt, MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "stretch_blt", Bitmap_StretchBlt, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "stretch_blt", Bitmap_StretchBlt,
+                    MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "fill_rect", Bitmap_FillRect, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "gradient_fill_rect", Bitmap_GradientFillRect,
                     MRB_ARGS_ANY());
@@ -327,9 +346,11 @@ void InitBitmapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "clear_rect", Bitmap_ClearRect, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "get_pixel", Bitmap_GetPixel, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, klass, "set_pixel", Bitmap_SetPixel, MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "hue_change", Bitmap_HueChange, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "hue_change", Bitmap_HueChange,
+                    MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "blur", Bitmap_Blur, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "radial_blur", Bitmap_RadialBlur, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, klass, "radial_blur", Bitmap_RadialBlur,
+                    MRB_ARGS_REQ(2));
   mrb_define_method(mrb, klass, "draw_text", Bitmap_DrawText, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "text_size", Bitmap_TextSize, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "save_file", Bitmap_SaveFile, MRB_ARGS_REQ(1));
@@ -338,7 +359,8 @@ void InitBitmapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "font=", Bitmap_FontEqual, MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Bitmap_Dispose, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "disposed?", Bitmap_IsDisposed, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "disposed?", Bitmap_IsDisposed,
+                    MRB_ARGS_NONE());
 }
 
 }  // namespace binding

@@ -10,6 +10,12 @@
 [submodule "3rdparty/physfs"]
 	path = 3rdparty/physfs
 	url = https://github.com/icculus/physfs.git
+[submodule "3rdparty/freetype"]
+	path = 3rdparty/freetype
+	url = https://github.com/freetype/freetype.git
+[submodule "3rdparty/harfbuzz"]
+	path = 3rdparty/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git
 [submodule "3rdparty/mruby-cmake/mruby"]
 	path = 3rdparty/mruby-cmake/mruby
 	url = https://github.com/mruby/mruby.git
