@@ -1,5 +1,7 @@
 #include "src/audio.h"
 
+#include "src/filesystem.h"
+
 namespace rgssx {
 
 Audio::Audio() {}

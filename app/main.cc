@@ -1,4 +1,5 @@
 
+#include "src/audio.h"
 #include "src/common.h"
 #include "src/filesystem.h"
 #include "src/graphics.h"
@@ -53,6 +54,10 @@ int main(int argc, char** argv) {
   auto input = new rgssx::Input(config->rgss_version);
   rgssx::Input::Instance(input);
 
+  // Audio manager
+  auto audio = new rgssx::Audio();
+  rgssx::Audio::Instance(audio);
+
 // RTP reading
 #if defined(_WIN32)
   auto rtp_key = config->rtp;
@@ -68,6 +73,7 @@ int main(int argc, char** argv) {
 
   // Clean up
   rgssx::Graphics::Instance(nullptr);
+  rgssx::Audio::Instance(nullptr);
   rgssx::Input::Instance(nullptr);
   rgssx::Config::Instance(nullptr);
   rgssx::IOService::Instance(nullptr);

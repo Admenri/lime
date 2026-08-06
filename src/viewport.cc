@@ -233,6 +233,7 @@ void Viewport::Draw(DrawParam param) {
 
     raylib::EndTextureMode();
     raylib::BeginTextureMode(cache_);
+    raylib::rlDisableColorBlend();
     {
       raylib::rlMatrixMode(RL_MODELVIEW);
       raylib::rlPushMatrix();
