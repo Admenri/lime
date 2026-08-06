@@ -12,8 +12,6 @@ MRB_FUNC(Graphics_Update) {
     self_obj->Update();
   }
   EXC_END(mrb);
-  if (raylib::WindowShouldClose())
-    mrb_raise(mrb, mrb->eException_class, "exit");
   return mrb_nil_value();
 }
 

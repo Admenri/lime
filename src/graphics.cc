@@ -73,6 +73,9 @@ void Graphics::Update() {
     raylib::DrawText(fps_text, 20, 20, 24, raylib::DARKGRAY);
   }
   raylib::EndDrawing();
+
+  if (raylib::WindowShouldClose())
+    throw Exception("exit");
 }
 
 void Graphics::Wait(int duration) {

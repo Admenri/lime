@@ -5,7 +5,7 @@
 
 #include "mruby_utils.h"
 
-#include "3rdparty/mruby-cmake/gems/mruby-marshal-c/include/mruby/marshal.h"
+#include "3rdparty/mruby-cmake/gems/mruby-marshal/include/mruby/marshal.h"
 
 #include "src/filesystem.h"
 #include "src/graphics.h"

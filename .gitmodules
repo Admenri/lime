@@ -22,9 +22,6 @@
 [submodule "3rdparty/mruby-cmake/oniguruma"]
 	path = 3rdparty/mruby-cmake/oniguruma
 	url = https://github.com/kkos/oniguruma.git
-[submodule "3rdparty/mruby-cmake/gems/mruby-marshal-c"]
-	path = 3rdparty/mruby-cmake/gems/mruby-marshal-c
-	url = https://github.com/LanzaSchneider/mruby-marshal-c.git
 [submodule "3rdparty/mruby-cmake/gems/mruby-onig-regexp"]
 	path = 3rdparty/mruby-cmake/gems/mruby-onig-regexp
 	url = https://github.com/mattn/mruby-onig-regexp.git

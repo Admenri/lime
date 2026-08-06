@@ -71,7 +71,7 @@ set(MRUBY_GEMS
 )
 
 set(EXTERNAL_MRUBY_GEMS
-  mruby-marshal-c
+  mruby-marshal
   mruby-onig-regexp
 )
 set(EXTERNAL_MRUBY_GEMS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gems")
