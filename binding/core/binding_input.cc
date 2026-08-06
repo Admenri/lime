@@ -100,6 +100,14 @@ void InitInputBinding(mrb_state* mrb) {
                              MRB_ARGS_REQ(1));
   mrb_define_module_function(mrb, mod, "dir4", Input_Dir4, MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "dir8", Input_Dir8, MRB_ARGS_NONE());
+
+  for (size_t i = 0; i < std::size(rgssx::kKeyboardBindings); ++i) {
+    auto& binding_set = rgssx::kKeyboardBindings[i];
+    mrb_sym key = mrb_intern_static(mrb, binding_set.name.data(),
+                                    binding_set.name.size());
+    mrb_value val = mrb_fixnum_value(binding_set.key_id);
+    mrb_const_set(mrb, mrb_obj_value(mod), key, val);
+  }
 }
 
 }  // namespace binding

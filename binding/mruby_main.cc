@@ -164,8 +164,10 @@ extern "C" void rgssx_main() {
   InitBindings(mrb);
 
   // Internal exception class
-  g_reset_exception = mrb_define_class(mrb, "RGSSReset", mrb->eException_class);
-  g_rgss_exception = mrb_define_class(mrb, "RGSSError", mrb->eException_class);
+  g_reset_exception =
+      mrb_define_class(mrb, "RGSSReset", mrb->eStandardError_class);
+  g_rgss_exception =
+      mrb_define_class(mrb, "RGSSError", mrb->eStandardError_class);
 
   // Internal functions
   mrb_define_module_function(mrb, mrb->kernel_module, "rgss_main", rgss_main,
@@ -202,7 +204,9 @@ extern "C" void rgssx_main() {
     if (mrb_type(scripts) != MRB_TT_ARRAY)
       throw rgssx::Exception("scripts file is invalid.");
 
-    std::vector<uint8_t> scripts_buffer(1 << 16, 0);
+    std::vector<uint8_t> scripts_buffer;
+    scripts_buffer.resize(1024);
+
     for (int i = 0; i < RARRAY_LEN(scripts); ++i) {
       mrb_value script = mrb_ary_entry(scripts, i);
       if (mrb_type(script) != MRB_TT_ARRAY || RARRAY_LEN(script) < 3)
@@ -228,7 +232,7 @@ extern "C" void rgssx_main() {
                               src_size);
 
         if (result == Z_BUF_ERROR) {
-          scripts_buffer.resize(scripts_buffer.size() + 1 << 16);
+          scripts_buffer.resize(scripts_buffer.size() + 1024);
         } else {
           break;
         }

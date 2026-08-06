@@ -22,6 +22,12 @@ target_compile_definitions(mruby
   MRC_TARGET_MRUBY=1
   MRB_USE_BIGINT=1
   MRB_USE_RATIONAL=1
+  MRB_UTF8_STRING=1
+  MRB_NO_BOXING=1
+  MRB_SYMBOL_MAX=0
+  MRB_STR_LENGTH_MAX=0
+  MRB_ARY_LENGTH_MAX=0
+  MRB_FUNCALL_ARGC_MAX=32
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
