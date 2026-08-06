@@ -39,6 +39,16 @@ Bitmap::Bitmap(int width, int height) : font_(MakeRefCounted<Font>()) {
   Clear();
 }
 
+Bitmap::Bitmap(RefPtr<Bitmap> other)
+    : font_(MakeRefCounted<Font>(other->font_)) {
+  texture_ = raylib::LoadRenderTexture(other->Width(), other->Height());
+
+  raylib::BeginTextureMode(texture_);
+  raylib::rlDisableColorBlend();
+  raylib::DrawTexture(other->render_texture().texture, 0, 0, raylib::RAYWHITE);
+  raylib::EndTextureMode();
+}
+
 Bitmap::~Bitmap() {
   Dispose();
 }

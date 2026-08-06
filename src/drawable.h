@@ -10,7 +10,7 @@ class DrawableSet;
 
 struct DrawParam {
   int ox = 0, oy = 0;
-  RectRegion scissor;
+  raylib::Rectangle scissor;
   raylib::RenderTexture2D target;
 };
 

@@ -573,8 +573,8 @@ void Window::Draw(DrawParam param) {
         const auto cursor_rect = cursor_rect_->As();
         if (cursor_rect.width > 0 && cursor_rect.height > 0) {
           auto build_cursor_internal = [&](const raylib::Rectangle& rect,
-                                           int32_t unit,
-                                           raylib::Rectangle quad_rects[9]) {
+                                           raylib::Rectangle quad_rects[9],
+                                           int32_t unit) {
             const int32_t w = rect.width;
             const int32_t h = rect.height;
             const int32_t l = rect.x;
@@ -609,17 +609,60 @@ void Window::Draw(DrawParam param) {
                                                 w - unit * 2, h - unit * 2);
           };
 
+          // Manual glScissor: clip the 9-slice cursor to the window content
+          // area (#padding_rect, in window coordinates). Each quad's dest is
+          // intersected with the clip region, then the intersection is mapped
+          // back to the source. In a 9-slice each source rect maps to its dest
+          // by an independent per-axis scale (the four corners are 1:1, the
+          // borders and the center stretch), so the inverse mapping is linear.
+          const raylib::Rectangle clip_rect(
+              x_ + padding_rect.x, y_ + padding_rect.y, padding_rect.width,
+              padding_rect.height);
+
           auto build_cursor_quads = [&](const raylib::Rectangle& src,
                                         const raylib::Rectangle& dst) {
             const int32_t cursor_scale = scale_ >= 4 ? scale_ * 2 : 4;
 
             raylib::Rectangle texcoords[9], positions[9];
-            build_cursor_internal(src, cursor_scale, texcoords);
-            build_cursor_internal(dst, cursor_scale, positions);
+            build_cursor_internal(src, texcoords, cursor_scale);
+            build_cursor_internal(dst, positions, cursor_scale);
 
-            for (int32_t i = 0; i < 9; ++i)
-              raylib::DrawTexturePro(skin_texture, texcoords[i], positions[i],
-                                     {}, 0, contents_tint);
+            for (int32_t i = 0; i < 9; ++i) {
+              const raylib::Rectangle& dst_rect = positions[i];
+              const raylib::Rectangle& src_rect = texcoords[i];
+
+              // Region intersection of this quad's dest with the clip area.
+              const float clip_left = std::max(dst_rect.x, clip_rect.x);
+              const float clip_top = std::max(dst_rect.y, clip_rect.y);
+              const float clip_right = std::min(dst_rect.x + dst_rect.width,
+                                                clip_rect.x + clip_rect.width);
+              const float clip_bottom = std::min(
+                  dst_rect.y + dst_rect.height, clip_rect.y + clip_rect.height);
+              const float clip_width = clip_right - clip_left;
+              const float clip_height = clip_bottom - clip_top;
+              if (clip_width <= 0.0f || clip_height <= 0.0f)
+                continue;
+
+              // Inverse 9-slice mapping:
+              //   src - src_rect = (dst - dst_rect) * (src_rect.size /
+              //   dst_rect.size)
+              const float sx_scale = dst_rect.width != 0.0f
+                                         ? src_rect.width / dst_rect.width
+                                         : 0.0f;
+              const float sy_scale = dst_rect.height != 0.0f
+                                         ? src_rect.height / dst_rect.height
+                                         : 0.0f;
+
+              const raylib::Rectangle clipped_src(
+                  src_rect.x + (clip_left - dst_rect.x) * sx_scale,
+                  src_rect.y + (clip_top - dst_rect.y) * sy_scale,
+                  clip_width * sx_scale, clip_height * sy_scale);
+
+              raylib::DrawTexturePro(
+                  skin_texture, clipped_src,
+                  {clip_left, clip_top, clip_width, clip_height}, {}, 0,
+                  contents_tint);
+            }
           };
 
           const raylib::Rectangle cursor_src(32 * scale_, 32 * scale_,
@@ -655,8 +698,31 @@ void Window::Draw(DrawParam param) {
         d.width = contents_texture.width;
         d.height = contents_texture.height;
 
-        raylib::DrawTexturePro(contents_texture, s, d, {}, 0,
-                               raylib::MakeColor(contents_opacity_));
+        // Manual glScissor: clip the contents draw to the window content
+        // area (#padding_rect, in window coordinates). This draw is 1:1
+        // (no stretch: source size == dest size == texture size), so the
+        // inverse mapping from dest to source is a plain offset:
+        //   src = s + (clip - d)
+        const raylib::Rectangle clip_rect(
+            x_ + padding_rect.x, y_ + padding_rect.y, padding_rect.width,
+            padding_rect.height);
+
+        const float clip_left = std::max(d.x, clip_rect.x);
+        const float clip_top = std::max(d.y, clip_rect.y);
+        const float clip_right =
+            std::min(d.x + d.width, clip_rect.x + clip_rect.width);
+        const float clip_bottom =
+            std::min(d.y + d.height, clip_rect.y + clip_rect.height);
+        const float clip_width = clip_right - clip_left;
+        const float clip_height = clip_bottom - clip_top;
+        if (clip_width > 0.0f && clip_height > 0.0f) {
+          const raylib::Rectangle clipped_src(s.x + (clip_left - d.x),
+                                              s.y + (clip_top - d.y),
+                                              clip_width, clip_height);
+          raylib::DrawTexturePro(contents_texture, clipped_src,
+                                 {clip_left, clip_top, clip_width, clip_height},
+                                 {}, 0, raylib::MakeColor(contents_opacity_));
+        }
       }
     }
   }

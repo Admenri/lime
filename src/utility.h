@@ -8,34 +8,6 @@
 
 namespace rgssx {
 
-struct RectRegion {
-  static RectRegion MakeIntersect(const RectRegion& a, const RectRegion& b) {
-    int left = std::max(a.x, b.x);
-    int top = std::max(a.y, b.y);
-    int right = std::min(a.x + a.width, b.x + b.width);
-    int bottom = std::min(a.y + a.height, b.y + b.height);
-
-    if (right <= left || bottom <= top)
-      return {};
-
-    return {left, top, right - left, bottom - top};
-  }
-
-  raylib::Rectangle As() {
-    raylib::Rectangle result;
-    result.x = static_cast<float>(x);
-    result.y = static_cast<float>(y);
-    result.width = static_cast<float>(width);
-    result.height = static_cast<float>(height);
-    return result;
-  }
-
-  int x = 0;
-  int y = 0;
-  int width = 0;
-  int height = 0;
-};
-
 class Rect : public RefCounted<Rect> {
  public:
   Rect(raylib::Rectangle rect)
@@ -44,6 +16,7 @@ class Rect : public RefCounted<Rect> {
         width(static_cast<int>(rect.width)),
         height(static_cast<int>(rect.height)) {}
   Rect(int xv, int yv, int w, int h) : x(xv), y(yv), width(w), height(h) {}
+  Rect(RefPtr<Rect> o) : x(o->x), y(o->y), width(o->width), height(o->height) {}
   Rect() {}
 
   /*-export.begin-*/
@@ -93,6 +66,8 @@ class Color : public RefCounted<Color> {
         alpha(static_cast<float>(color.a)) {}
   Color(float r, float g, float b, float a = 255.f)
       : red(r), green(g), blue(b), alpha(a) {}
+  Color(RefPtr<Color> o)
+      : red(o->red), green(o->green), blue(o->blue), alpha(o->alpha) {}
   Color() {}
 
   /*-export.begin-*/
@@ -139,6 +114,8 @@ class Tone : public RefCounted<Tone> {
  public:
   Tone(float r, float g, float b, float a = 0.f)
       : red(r), green(g), blue(b), gray(a) {}
+  Tone(RefPtr<Tone> o)
+      : red(o->red), green(o->green), blue(o->blue), gray(o->gray) {}
   Tone() {}
 
   /*-export.begin-*/

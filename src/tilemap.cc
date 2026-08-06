@@ -415,7 +415,7 @@ void Tilemap::Draw(DrawParam param) {
 }
 
 void Tilemap::CreateShadowSet() {
-  std::vector<RectRegion> rects;
+  std::vector<raylib::Rectangle> rects;
 
   raylib::Image image = {};
   image.width = 16 * tilesize_;
@@ -429,15 +429,17 @@ void Tilemap::CreateShadowSet() {
   for (int32_t i = 0; i < 16; ++i) {
     int32_t offset = i * tilesize_;
     if (i & 0x1)  // Left Top
-      rects.push_back({offset, 0, tilesize_ / 2, tilesize_ / 2});
-    if (i & 0x2)  // Right Top
       rects.push_back(
-          {offset + tilesize_ / 2, 0, tilesize_ / 2, tilesize_ / 2});
+          raylib::Rectangle(offset, 0, tilesize_ / 2, tilesize_ / 2));
+    if (i & 0x2)  // Right Top
+      rects.push_back(raylib::Rectangle(offset + tilesize_ / 2, 0,
+                                        tilesize_ / 2, tilesize_ / 2));
     if (i & 0x4)  // Left Bottom
-      rects.push_back({offset, tilesize_ / 2, tilesize_ / 2, tilesize_ / 2});
+      rects.push_back(raylib::Rectangle(offset, tilesize_ / 2, tilesize_ / 2,
+                                        tilesize_ / 2));
     if (i & 0x8)  // Right Bottom
-      rects.push_back({offset + tilesize_ / 2, tilesize_ / 2, tilesize_ / 2,
-                       tilesize_ / 2});
+      rects.push_back(raylib::Rectangle(offset + tilesize_ / 2, tilesize_ / 2,
+                                        tilesize_ / 2, tilesize_ / 2));
   }
 
   for (auto& it : rects) {
@@ -460,14 +462,14 @@ void Tilemap::UpdateViewport(DrawParam param) {
             viewport_height = param.scissor.height;
 
   // Quad parsing viewport
-  RectRegion new_viewport;
+  raylib::Rectangle new_viewport = {};
   new_viewport.x = tilemap_real_ox / tilesize_;
   new_viewport.y = tilemap_real_oy / tilesize_ - 1;
   new_viewport.width =
       (viewport_width / tilesize_) + !!(viewport_width % tilesize_) + 1;
   new_viewport.height =
       (viewport_height / tilesize_) + !!(viewport_height % tilesize_) + 2;
-  render_viewport_ = new_viewport.As();
+  render_viewport_ = new_viewport;
 
   // Rendering offset
   const int display_offset_x = tilemap_real_ox % tilesize_,

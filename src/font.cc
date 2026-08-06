@@ -168,6 +168,10 @@ Font::Font(std::vector<std::string> names, int size)
   }
 }
 
+Font::Font(RefPtr<Font> other) {
+  
+}
+
 Font::~Font() {}
 
 void Font::ResetFontSystem() {

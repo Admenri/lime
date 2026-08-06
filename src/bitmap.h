@@ -12,6 +12,7 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
  public:
   Bitmap(std::string filename);
   Bitmap(int width, int height);
+  Bitmap(RefPtr<Bitmap> other);
   ~Bitmap();
 
   /*-export.begin-*/

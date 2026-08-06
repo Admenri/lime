@@ -181,7 +181,7 @@ void Viewport::DisposeObject() {
 
 void Viewport::Draw(DrawParam param) {
   // Scissor region compute
-  RectRegion viewport_region = {};
+  raylib::Rectangle viewport_region = {};
   viewport_region.x = param.ox + rect_->x;
   viewport_region.y = param.oy + rect_->y;
   viewport_region.width = rect_->width;
@@ -189,9 +189,9 @@ void Viewport::Draw(DrawParam param) {
 
   // Set as viewport range
   raylib::rlDrawRenderBatchActive();
-  RectRegion scissor_rect = param.scissor;
+  raylib::Rectangle scissor_rect = param.scissor;
   if (clip_) {
-    scissor_rect = RectRegion::MakeIntersect(param.scissor, viewport_region);
+    scissor_rect = raylib::GetCollisionRec(param.scissor, viewport_region);
     raylib::rlScissor(scissor_rect.x, scissor_rect.y, scissor_rect.width,
                       scissor_rect.height);
   }
@@ -239,7 +239,7 @@ void Viewport::Draw(DrawParam param) {
       raylib::rlLoadIdentity();
       {
         // Copy back buffer to current cache
-        raylib::DrawTextureRec(param.target.texture, viewport_region.As(), {},
+        raylib::DrawTextureRec(param.target.texture, viewport_region, {},
                                raylib::RAYWHITE);
       }
       raylib::rlPopMatrix();

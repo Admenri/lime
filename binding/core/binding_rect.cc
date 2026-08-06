@@ -25,7 +25,23 @@ MRB_FUNC(Rect_initialize) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
+
+  SetupSelfData(self, obj.get(), kRectDataType);
+  return self;
+}
+
+MRB_FUNC(Rect_initialize_copy) {
+  mrb_value other;
+  mrb_get_args(mrb, "o", &other);
+
+  rgssx::RefPtr<rgssx::Rect> obj = nullptr;
+  EXC_BEGIN {
+    auto other_obj = GetObject<rgssx::Rect>(mrb, other, kRectDataType);
+    obj = rgssx::MakeRefCounted<rgssx::Rect>(other_obj);
+  }
+  EXC_END(mrb);
 
   SetupSelfData(self, obj.get(), kRectDataType);
   return self;
@@ -48,7 +64,8 @@ MRB_FUNC(Rect_Set) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -56,21 +73,22 @@ MRB_FUNC(Rect_Empty) {
   auto* self_obj = GetSelfData<rgssx::Rect>(self);
   EXC_BEGIN {
     self_obj->Empty();
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define RECT_PROP_INT(cap)                                             \
-  MRB_FUNC(Rect_##cap) {                                               \
-    auto* self_obj = GetSelfData<rgssx::Rect>(self);                   \
-    return mrb_fixnum_value(self_obj->cap);                            \
-  }                                                                    \
-  MRB_FUNC(Rect_##cap##Equal) {                                        \
-    auto* self_obj = GetSelfData<rgssx::Rect>(self);                   \
-    mrb_int value;                                                     \
-    mrb_get_args(mrb, "i", &value);                                    \
-    self_obj->cap = static_cast<int>(value);                           \
-    return mrb_nil_value();                                            \
+#define RECT_PROP_INT(cap)                           \
+  MRB_FUNC(Rect_##cap) {                             \
+    auto* self_obj = GetSelfData<rgssx::Rect>(self); \
+    return mrb_fixnum_value(self_obj->cap);          \
+  }                                                  \
+  MRB_FUNC(Rect_##cap##Equal) {                      \
+    auto* self_obj = GetSelfData<rgssx::Rect>(self); \
+    mrb_int value;                                   \
+    mrb_get_args(mrb, "i", &value);                  \
+    self_obj->cap = static_cast<int>(value);         \
+    return mrb_nil_value();                          \
   }
 
 RECT_PROP_INT(x);
@@ -91,9 +109,9 @@ MRB_FUNC(Rect__dump) {
   EXC_BEGIN {
     auto result =
         rgssx::Rect::MarshalDump(rgssx::RefPtr<rgssx::Rect>(self_obj));
-    return mrb_str_new(mrb, result.data(),
-                       static_cast<mrb_int>(result.size()));
-  } EXC_END(mrb);
+    return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -104,7 +122,8 @@ MRB_FUNC(Rect__load) {
   rgssx::RefPtr<rgssx::Rect> obj = nullptr;
   EXC_BEGIN {
     obj = rgssx::Rect::MarshalLoad(MRBStringValue(data));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
 
   return WrapObject(mrb, obj.get(), kRectDataType);
 }
@@ -113,6 +132,8 @@ void InitRectBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Rect");
 
   mrb_define_method(mrb, klass, "initialize", Rect_initialize, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "initialize_copy", Rect_initialize_copy,
+                    MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set", Rect_Set, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "empty", Rect_Empty, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "x", Rect_x, MRB_ARGS_NONE());

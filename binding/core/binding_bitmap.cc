@@ -38,6 +38,21 @@ MRB_FUNC(Bitmap_initialize) {
   return self;
 }
 
+MRB_FUNC(Bitmap_initialize_copy) {
+  mrb_value other;
+  mrb_get_args(mrb, "o", &other);
+
+  rgssx::RefPtr<rgssx::Bitmap> obj = nullptr;
+  EXC_BEGIN {
+    auto other_obj = GetObject<rgssx::Bitmap>(mrb, other, kBitmapDataType);
+    obj = rgssx::MakeRefCounted<rgssx::Bitmap>(other_obj);
+  }
+  EXC_END(mrb);
+
+  SetupSelfData(self, obj.get(), kBitmapDataType);
+  return self;
+}
+
 MRB_FUNC(Bitmap_Width) {
   auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
   EXC_BEGIN {
@@ -333,6 +348,8 @@ void InitBitmapBinding(mrb_state* mrb) {
 
   mrb_define_method(mrb, klass, "initialize", Bitmap_initialize,
                     MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "initialize_copy", Bitmap_initialize_copy,
+                    MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "width", Bitmap_Width, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "height", Bitmap_Height, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "rect", Bitmap_GetRect, MRB_ARGS_NONE());

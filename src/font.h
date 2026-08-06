@@ -13,6 +13,7 @@ class FontSystem;
 class Font : public RefCounted<Font> {
  public:
   Font(std::vector<std::string> names = {}, int size = 24);
+  Font(RefPtr<Font> other);
   ~Font();
 
   /*-export.begin-*/

@@ -33,7 +33,23 @@ MRB_FUNC(Color_initialize) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
+
+  SetupSelfData(self, obj.get(), kColorDataType);
+  return self;
+}
+
+MRB_FUNC(Color_initialize_copy) {
+  mrb_value other;
+  mrb_get_args(mrb, "o", &other);
+
+  rgssx::RefPtr<rgssx::Color> obj = nullptr;
+  EXC_BEGIN {
+    auto other_obj = GetObject<rgssx::Color>(mrb, other, kColorDataType);
+    obj = rgssx::MakeRefCounted<rgssx::Color>(other_obj);
+  }
+  EXC_END(mrb);
 
   SetupSelfData(self, obj.get(), kColorDataType);
   return self;
@@ -63,21 +79,22 @@ MRB_FUNC(Color_Set) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define COLOR_PROP_FLOAT(cap)                                            \
-  MRB_FUNC(Color_##cap) {                                                \
-    auto* self_obj = GetSelfData<rgssx::Color>(self);                    \
-    return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->cap));  \
-  }                                                                      \
-  MRB_FUNC(Color_##cap##Equal) {                                         \
-    auto* self_obj = GetSelfData<rgssx::Color>(self);                    \
-    mrb_float value;                                                     \
-    mrb_get_args(mrb, "f", &value);                                      \
-    self_obj->cap = static_cast<float>(value);                           \
-    return mrb_nil_value();                                              \
+#define COLOR_PROP_FLOAT(cap)                                           \
+  MRB_FUNC(Color_##cap) {                                               \
+    auto* self_obj = GetSelfData<rgssx::Color>(self);                   \
+    return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->cap)); \
+  }                                                                     \
+  MRB_FUNC(Color_##cap##Equal) {                                        \
+    auto* self_obj = GetSelfData<rgssx::Color>(self);                   \
+    mrb_float value;                                                    \
+    mrb_get_args(mrb, "f", &value);                                     \
+    self_obj->cap = static_cast<float>(value);                          \
+    return mrb_nil_value();                                             \
   }
 
 COLOR_PROP_FLOAT(red);
@@ -98,9 +115,9 @@ MRB_FUNC(Color__dump) {
   EXC_BEGIN {
     auto result =
         rgssx::Color::MarshalDump(rgssx::RefPtr<rgssx::Color>(self_obj));
-    return mrb_str_new(mrb, result.data(),
-                       static_cast<mrb_int>(result.size()));
-  } EXC_END(mrb);
+    return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -111,7 +128,8 @@ MRB_FUNC(Color__load) {
   rgssx::RefPtr<rgssx::Color> obj = nullptr;
   EXC_BEGIN {
     obj = rgssx::Color::MarshalLoad(MRBStringValue(data));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
 
   return WrapObject(mrb, obj.get(), kColorDataType);
 }
@@ -120,6 +138,8 @@ void InitColorBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Color");
 
   mrb_define_method(mrb, klass, "initialize", Color_initialize, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "initialize_copy", Color_initialize_copy,
+                    MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set", Color_Set, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "red", Color_red, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "red=", Color_redEqual, MRB_ARGS_REQ(1));

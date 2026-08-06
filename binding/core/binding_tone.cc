@@ -33,7 +33,23 @@ MRB_FUNC(Tone_initialize) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
+
+  SetupSelfData(self, obj.get(), kToneDataType);
+  return self;
+}
+
+MRB_FUNC(Tone_initialize_copy) {
+  mrb_value other;
+  mrb_get_args(mrb, "o", &other);
+
+  rgssx::RefPtr<rgssx::Tone> obj = nullptr;
+  EXC_BEGIN {
+    auto other_obj = GetObject<rgssx::Tone>(mrb, other, kToneDataType);
+    obj = rgssx::MakeRefCounted<rgssx::Tone>(other_obj);
+  }
+  EXC_END(mrb);
 
   SetupSelfData(self, obj.get(), kToneDataType);
   return self;
@@ -63,21 +79,22 @@ MRB_FUNC(Tone_Set) {
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define TONE_PROP_FLOAT(cap)                                             \
-  MRB_FUNC(Tone_##cap) {                                                 \
-    auto* self_obj = GetSelfData<rgssx::Tone>(self);                     \
-    return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->cap));  \
-  }                                                                      \
-  MRB_FUNC(Tone_##cap##Equal) {                                          \
-    auto* self_obj = GetSelfData<rgssx::Tone>(self);                     \
-    mrb_float value;                                                     \
-    mrb_get_args(mrb, "f", &value);                                      \
-    self_obj->cap = static_cast<float>(value);                           \
-    return mrb_nil_value();                                              \
+#define TONE_PROP_FLOAT(cap)                                            \
+  MRB_FUNC(Tone_##cap) {                                                \
+    auto* self_obj = GetSelfData<rgssx::Tone>(self);                    \
+    return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->cap)); \
+  }                                                                     \
+  MRB_FUNC(Tone_##cap##Equal) {                                         \
+    auto* self_obj = GetSelfData<rgssx::Tone>(self);                    \
+    mrb_float value;                                                    \
+    mrb_get_args(mrb, "f", &value);                                     \
+    self_obj->cap = static_cast<float>(value);                          \
+    return mrb_nil_value();                                             \
   }
 
 TONE_PROP_FLOAT(red);
@@ -98,9 +115,9 @@ MRB_FUNC(Tone__dump) {
   EXC_BEGIN {
     auto result =
         rgssx::Tone::MarshalDump(rgssx::RefPtr<rgssx::Tone>(self_obj));
-    return mrb_str_new(mrb, result.data(),
-                       static_cast<mrb_int>(result.size()));
-  } EXC_END(mrb);
+    return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
+  }
+  EXC_END(mrb);
   return mrb_nil_value();
 }
 
@@ -111,7 +128,8 @@ MRB_FUNC(Tone__load) {
   rgssx::RefPtr<rgssx::Tone> obj = nullptr;
   EXC_BEGIN {
     obj = rgssx::Tone::MarshalLoad(MRBStringValue(data));
-  } EXC_END(mrb);
+  }
+  EXC_END(mrb);
 
   return WrapObject(mrb, obj.get(), kToneDataType);
 }
@@ -120,6 +138,8 @@ void InitToneBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Tone");
 
   mrb_define_method(mrb, klass, "initialize", Tone_initialize, MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "initialize_copy", Tone_initialize_copy,
+                    MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set", Tone_Set, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "red", Tone_red, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "red=", Tone_redEqual, MRB_ARGS_REQ(1));
