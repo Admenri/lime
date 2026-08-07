@@ -54,8 +54,7 @@ MRB_FUNC(Tilemap_initialize) {
     obj = rgssx::MakeRefCounted<rgssx::Tilemap>(viewport);
   } EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kTilemapDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kTilemapDataType);
 }
 
 MRB_FUNC(Tilemap_Update) {

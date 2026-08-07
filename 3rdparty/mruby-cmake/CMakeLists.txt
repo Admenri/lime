@@ -17,6 +17,10 @@ file(GLOB MRUBY_CORE_SOURCES "mruby/src/*.c")
 target_sources(mruby PUBLIC ${MRUBY_CORE_SOURCES})
 target_include_directories(mruby PUBLIC "mruby/include" ${PRESYM_INCLUDE_DIR})
 target_link_libraries(mruby PUBLIC prism onig)
+if(WIN32)
+  # mruby-io uses Winsock APIs (closesocket/getsockopt/WSAGetLastError)
+  target_link_libraries(mruby PUBLIC ws2_32)
+endif()
 target_compile_definitions(mruby
  PUBLIC
   MRC_TARGET_MRUBY=1
@@ -74,6 +78,8 @@ set(MRUBY_GEMS
   mruby-rational
   mruby-complex
   mruby-bigint
+  # platform
+  mruby-io
 )
 
 set(EXTERNAL_MRUBY_GEMS
@@ -150,6 +156,27 @@ foreach(gem ${MRUBY_GEMS})
       set(gem_has_src TRUE)
       list(APPEND MRUBY_GEMS_SOURCES ${gem_core_files})
       list(APPEND MRUBY_GEM_C_SOURCES ${gem_core_files})
+    endif()
+  endif()
+
+  # ── Collect C source files from ports/ ────────────────────────────────────
+  if(WIN32)
+    # Windows port
+    file(GLOB gem_src_files "${gem_dir}/ports/win/*.c")
+    list(LENGTH gem_src_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_src_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_src_files})
+    endif()
+  else()
+    # Posix port
+    file(GLOB gem_src_files "${gem_dir}/ports/posix/*.c")
+    list(LENGTH gem_src_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_src_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_src_files})
     endif()
   endif()
 
@@ -249,6 +276,27 @@ foreach(gem ${EXTERNAL_MRUBY_GEMS})
       set(gem_has_src TRUE)
       list(APPEND MRUBY_GEMS_SOURCES ${gem_core_files})
       list(APPEND MRUBY_GEM_C_SOURCES ${gem_core_files})
+    endif()
+  endif()
+
+  # ── Collect C source files from ports/ ──────────────────────────
+  if(WIN32)
+    # Windows port
+    file(GLOB gem_src_files "${gem_dir}/ports/win/*.c")
+    list(LENGTH gem_src_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_src_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_src_files})
+    endif()
+  else()
+    # Posix port
+    file(GLOB gem_src_files "${gem_dir}/ports/posix/*.c")
+    list(LENGTH gem_src_files _n)
+    if(_n GREATER 0)
+      set(gem_has_src TRUE)
+      list(APPEND MRUBY_GEMS_SOURCES ${gem_src_files})
+      list(APPEND MRUBY_GEM_C_SOURCES ${gem_src_files})
     endif()
   endif()
 

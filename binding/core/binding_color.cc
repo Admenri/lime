@@ -8,9 +8,7 @@ namespace binding {
 MRB_DATATYPE_DEFINE(Color);
 
 MRB_FUNC(Color_initialize) {
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+  mrb_int argc = mrb_get_argc(mrb);
 
   rgssx::RefPtr<rgssx::Color> obj = nullptr;
   EXC_BEGIN {
@@ -19,25 +17,25 @@ MRB_FUNC(Color_initialize) {
       obj = rgssx::MakeRefCounted<rgssx::Color>();
     } else if (argc == 3) {
       // Color.new(red, green, blue)  (alpha = 255)
+      mrb_float r, g, b;
+      mrb_get_args(mrb, "fff", &r, &g, &b);
       obj = rgssx::MakeRefCounted<rgssx::Color>(
-          static_cast<float>(mrb_as_float(mrb, args[0])),
-          static_cast<float>(mrb_as_float(mrb, args[1])),
-          static_cast<float>(mrb_as_float(mrb, args[2])));
+          static_cast<float>(r), static_cast<float>(g),
+          static_cast<float>(b));
     } else if (argc == 4) {
       // Color.new(red, green, blue, alpha)
+      mrb_float r, g, b, a;
+      mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
       obj = rgssx::MakeRefCounted<rgssx::Color>(
-          static_cast<float>(mrb_as_float(mrb, args[0])),
-          static_cast<float>(mrb_as_float(mrb, args[1])),
-          static_cast<float>(mrb_as_float(mrb, args[2])),
-          static_cast<float>(mrb_as_float(mrb, args[3])));
+          static_cast<float>(r), static_cast<float>(g),
+          static_cast<float>(b), static_cast<float>(a));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kColorDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kColorDataType);
 }
 
 MRB_FUNC(Color_initialize_copy) {
@@ -51,31 +49,32 @@ MRB_FUNC(Color_initialize_copy) {
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kColorDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kColorDataType);
 }
 
 MRB_FUNC(Color_Set) {
   auto* self_obj = GetSelfData<rgssx::Color>(self);
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // set(color)
-      self_obj->Set(GetObject<rgssx::Color>(mrb, args[0], kColorDataType));
+      mrb_value color_val;
+      mrb_get_args(mrb, "o", &color_val);
+      self_obj->Set(GetObject<rgssx::Color>(mrb, color_val, kColorDataType));
     } else if (argc == 3) {
       // set(red, green, blue)  (alpha = 255)
-      self_obj->Set(static_cast<float>(mrb_as_float(mrb, args[0])),
-                    static_cast<float>(mrb_as_float(mrb, args[1])),
-                    static_cast<float>(mrb_as_float(mrb, args[2])));
+      mrb_float r, g, b;
+      mrb_get_args(mrb, "fff", &r, &g, &b);
+      self_obj->Set(static_cast<float>(r), static_cast<float>(g),
+                    static_cast<float>(b));
     } else if (argc == 4) {
       // set(red, green, blue, alpha)
-      self_obj->Set(static_cast<float>(mrb_as_float(mrb, args[0])),
-                    static_cast<float>(mrb_as_float(mrb, args[1])),
-                    static_cast<float>(mrb_as_float(mrb, args[2])),
-                    static_cast<float>(mrb_as_float(mrb, args[3])));
+      mrb_float r, g, b, a;
+      mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
+      self_obj->Set(static_cast<float>(r), static_cast<float>(g),
+                    static_cast<float>(b), static_cast<float>(a));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }

@@ -17,8 +17,7 @@ MRB_FUNC(Table_initialize) {
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kTableDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kTableDataType);
 }
 
 MRB_FUNC(Table_Resize) {
@@ -80,39 +79,27 @@ MRB_FUNC(Table_Get) {
 MRB_FUNC(Table_Set) {
   auto* self_obj = GetSelfData<rgssx::Table>(self);
 
-  mrb_value* argv;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &argv, &argc);
-
-  mrb_int x, y, z, value;
-  if (argc < 2)
-    mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
-
-  switch (argc) {
-    default:
-    case 2:
-      x = mrb_fixnum(argv[0]);
-      value = mrb_fixnum(argv[1]);
-      break;
-    case 3:
-      x = mrb_fixnum(argv[0]);
-      y = mrb_fixnum(argv[1]);
-      value = mrb_fixnum(argv[2]);
-      break;
-    case 4:
-      x = mrb_fixnum(argv[0]);
-      y = mrb_fixnum(argv[1]);
-      z = mrb_fixnum(argv[2]);
-      value = mrb_fixnum(argv[3]);
-      break;
-  }
-
-  if (x < 0 || x >= self_obj->XSize() || y < 0 || y >= self_obj->YSize() ||
-      z < 0 || z >= self_obj->ZSize()) {
-    return mrb_nil_value();
-  }
-
+  mrb_int x, y = 0, z = 0, value;
+  mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
+    if (argc == 2) {
+      // set(x, value)
+      mrb_get_args(mrb, "ii", &x, &value);
+    } else if (argc == 3) {
+      // set(x, y, value)
+      mrb_get_args(mrb, "iii", &x, &y, &value);
+    } else if (argc == 4) {
+      // set(x, y, z, value)
+      mrb_get_args(mrb, "iiii", &x, &y, &z, &value);
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
+    }
+
+    if (x < 0 || x >= self_obj->XSize() || y < 0 || y >= self_obj->YSize() ||
+        z < 0 || z >= self_obj->ZSize()) {
+      return mrb_nil_value();
+    }
+
     self_obj->Set(static_cast<int16_t>(value), x, y, z);
   }
   EXC_END(mrb);

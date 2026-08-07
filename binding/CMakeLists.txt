@@ -11,6 +11,7 @@ target_include_directories(binding_mruby
 target_sources(binding_mruby
  PUBLIC
   mruby_main.cc
+  stdlib/dir.cc
   core/binding_init.cc
   core/binding_audio.cc
   core/binding_bitmap.cc

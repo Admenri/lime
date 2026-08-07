@@ -8,9 +8,7 @@ namespace binding {
 MRB_DATATYPE_DEFINE(Tone);
 
 MRB_FUNC(Tone_initialize) {
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+  mrb_int argc = mrb_get_argc(mrb);
 
   rgssx::RefPtr<rgssx::Tone> obj = nullptr;
   EXC_BEGIN {
@@ -19,25 +17,21 @@ MRB_FUNC(Tone_initialize) {
       obj = rgssx::MakeRefCounted<rgssx::Tone>();
     } else if (argc == 3) {
       // Tone.new(red, green, blue)  (gray = 0)
-      obj = rgssx::MakeRefCounted<rgssx::Tone>(
-          static_cast<float>(mrb_as_float(mrb, args[0])),
-          static_cast<float>(mrb_as_float(mrb, args[1])),
-          static_cast<float>(mrb_as_float(mrb, args[2])));
+      mrb_float r, g, b;
+      mrb_get_args(mrb, "fff", &r, &g, &b);
+      obj = rgssx::MakeRefCounted<rgssx::Tone>(r, g, b);
     } else if (argc == 4) {
       // Tone.new(red, green, blue, gray)
-      obj = rgssx::MakeRefCounted<rgssx::Tone>(
-          static_cast<float>(mrb_as_float(mrb, args[0])),
-          static_cast<float>(mrb_as_float(mrb, args[1])),
-          static_cast<float>(mrb_as_float(mrb, args[2])),
-          static_cast<float>(mrb_as_float(mrb, args[3])));
+      mrb_float r, g, b, a;
+      mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
+      obj = rgssx::MakeRefCounted<rgssx::Tone>(r, g, b, a);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kToneDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kToneDataType);
 }
 
 MRB_FUNC(Tone_initialize_copy) {
@@ -51,31 +45,32 @@ MRB_FUNC(Tone_initialize_copy) {
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kToneDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kToneDataType);
 }
 
 MRB_FUNC(Tone_Set) {
   auto* self_obj = GetSelfData<rgssx::Tone>(self);
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // set(tone)
-      self_obj->Set(GetObject<rgssx::Tone>(mrb, args[0], kToneDataType));
+      mrb_value tone_val;
+      mrb_get_args(mrb, "o", &tone_val);
+      self_obj->Set(GetObject<rgssx::Tone>(mrb, tone_val, kToneDataType));
     } else if (argc == 3) {
       // set(red, green, blue)  (gray = 0)
-      self_obj->Set(static_cast<float>(mrb_as_float(mrb, args[0])),
-                    static_cast<float>(mrb_as_float(mrb, args[1])),
-                    static_cast<float>(mrb_as_float(mrb, args[2])));
+      mrb_float r, g, b;
+      mrb_get_args(mrb, "fff", &r, &g, &b);
+      self_obj->Set(static_cast<float>(r), static_cast<float>(g),
+                    static_cast<float>(b));
     } else if (argc == 4) {
       // set(red, green, blue, gray)
-      self_obj->Set(static_cast<float>(mrb_as_float(mrb, args[0])),
-                    static_cast<float>(mrb_as_float(mrb, args[1])),
-                    static_cast<float>(mrb_as_float(mrb, args[2])),
-                    static_cast<float>(mrb_as_float(mrb, args[3])));
+      mrb_float r, g, b, a;
+      mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
+      self_obj->Set(static_cast<float>(r), static_cast<float>(g),
+                    static_cast<float>(b), static_cast<float>(a));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }

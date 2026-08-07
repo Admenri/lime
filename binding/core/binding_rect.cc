@@ -8,17 +8,15 @@ namespace binding {
 MRB_DATATYPE_DEFINE(Rect);
 
 MRB_FUNC(Rect_initialize) {
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+  mrb_int argc = mrb_get_argc(mrb);
 
   rgssx::RefPtr<rgssx::Rect> obj = nullptr;
   EXC_BEGIN {
     if (argc == 4) {
       // Rect.new(x, y, width, height)
-      obj = rgssx::MakeRefCounted<rgssx::Rect>(
-          mrb_integer(args[0]), mrb_integer(args[1]), mrb_integer(args[2]),
-          mrb_integer(args[3]));
+      mrb_int x, y, width, height;
+      mrb_get_args(mrb, "iiii", &x, &y, &width, &height);
+      obj = rgssx::MakeRefCounted<rgssx::Rect>(x, y, width, height);
     } else if (argc == 0) {
       // Rect.new
       obj = rgssx::MakeRefCounted<rgssx::Rect>();
@@ -28,8 +26,7 @@ MRB_FUNC(Rect_initialize) {
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kRectDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kRectDataType);
 }
 
 MRB_FUNC(Rect_initialize_copy) {
@@ -43,24 +40,25 @@ MRB_FUNC(Rect_initialize_copy) {
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kRectDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kRectDataType);
 }
 
 MRB_FUNC(Rect_Set) {
   auto* self_obj = GetSelfData<rgssx::Rect>(self);
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 4) {
       // set(x, y, width, height)
-      self_obj->Set(mrb_integer(args[0]), mrb_integer(args[1]),
-                    mrb_integer(args[2]), mrb_integer(args[3]));
+      mrb_int x, y, width, height;
+      mrb_get_args(mrb, "iiii", &x, &y, &width, &height);
+      self_obj->Set(x, y, width, height);
     } else if (argc == 1) {
       // set(rect)
-      self_obj->Set(GetObject<rgssx::Rect>(mrb, args[0], kRectDataType));
+      mrb_value rect_val;
+      mrb_get_args(mrb, "o", &rect_val);
+      self_obj->Set(GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }

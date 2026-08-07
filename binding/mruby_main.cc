@@ -13,6 +13,8 @@
 
 #include "core/binding_init.h"
 
+#include "stdlib/dir.h"
+
 #include "rpg/rpg_rgss1.h"
 #include "rpg/rpg_rgss2.h"
 #include "rpg/rpg_rgss3.h"
@@ -95,63 +97,6 @@ MRB_FUNC(save_data) {
   return mrb_nil_value();
 }
 
-// Case-insensitive glob match: '*' matches any (possibly empty) sequence and
-// '?' matches exactly one character. Used by Dir.glob for filename filtering.
-static bool GlobMatch(const char* pattern, const char* name) {
-  while (*pattern) {
-    if (*pattern == '*') {
-      // Collapse consecutive stars, then try to match the remainder at each
-      // position of the name.
-      while (*pattern == '*')
-        ++pattern;
-      if (*pattern == '\0')
-        return true;
-      while (*name) {
-        if (GlobMatch(pattern, name))
-          return true;
-        ++name;
-      }
-      return false;
-    }
-    if (*name == '\0')
-      return false;
-    if (*pattern != '?' && std::tolower(static_cast<unsigned char>(*pattern)) !=
-                               std::tolower(static_cast<unsigned char>(*name)))
-      return false;
-    ++pattern;
-    ++name;
-  }
-  return *name == '\0';
-}
-
-MRB_FUNC(dir_glob) {
-  const char* pattern;
-  mrb_get_args(mrb, "z", &pattern);
-
-  // Split the directory prefix from the filename pattern at the last '/', e.g.
-  // "Save*.rvdata2" -> dir="", file="Save*.rvdata2".
-  std::string pat(pattern);
-  std::string dir, file_pat = pat;
-  const size_t slash = pat.find_last_of('/');
-  if (slash != std::string::npos) {
-    dir = pat.substr(0, slash);
-    file_pat = pat.substr(slash + 1);
-  }
-
-  // Enumerate the directory and keep the entries matching the pattern.
-  std::vector<std::string> matches;
-  for (const auto& name : rgssx::IOService::Instance()->EnumDir(dir)) {
-    if (GlobMatch(file_pat.c_str(), name.c_str()))
-      matches.push_back(dir.empty() ? name : dir + "/" + name);
-  }
-  std::sort(matches.begin(), matches.end());
-
-  auto result = mrb_ary_new(mrb);
-  for (const auto& match : matches)
-    mrb_ary_push(mrb, result, mrb_str_new_cstr(mrb, match.c_str()));
-  return result;
-}
-
 extern "C" void rgssx_main() {
   auto* config = rgssx::Config::Instance();
   auto* io_service = rgssx::IOService::Instance();
@@ -181,10 +126,8 @@ extern "C" void rgssx_main() {
   mrb_define_module_function(mrb, mrb->kernel_module, "save_data", save_data,
                              MRB_ARGS_REQ(2));
 
-  // Dir
-  auto module_dir = mrb_define_module(mrb, "Dir");
-  mrb_define_module_function(mrb, module_dir, "glob", dir_glob,
-                             MRB_ARGS_REQ(1));
+  // Dir (CRuby-compatible, backed by the engine's virtual filesystem)
+  InitStdlibDir(mrb);
 
   // RPG Database
   auto rpg_ctx = mrb_ccontext_new(mrb);

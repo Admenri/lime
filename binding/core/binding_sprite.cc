@@ -24,8 +24,7 @@ MRB_FUNC(Sprite_initialize) {
     obj = rgssx::MakeRefCounted<rgssx::Sprite>(viewport);
   } EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kSpriteDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kSpriteDataType);
 }
 
 MRB_FUNC(Sprite_Flash) {

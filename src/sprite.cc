@@ -42,7 +42,7 @@ int Sprite::Height() {
 ATTR_DEF(RefPtr<Bitmap>, Bitmap, Sprite) {
   if (value.has_value()) {
     bitmap_ = *value;
-    if (src_rect_)
+    if (src_rect_ && bitmap_)
       src_rect_->Set(0, 0, bitmap_->Width(), bitmap_->Height());
     return std::nullopt;
   } else {

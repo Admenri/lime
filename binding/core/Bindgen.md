@@ -182,48 +182,65 @@ BINDING_ATTR_OBJECT_REF(Window, rgssx::Window, Tone, rgssx::Tone, kToneDataType)
 
 所有构造函数均需要导出为 Ruby 的 `initialize`。
 
-模板如下：
+模板如下（使用 `mrb_get_argc` 判断参数个数，按重载分支，每个分支内使用带具体类型的
+`mrb_get_args` 获取参数；函数最后**直接 `return SetupSelfData(...)`**，不要再写
+`SetupSelfData(...); return self;`）：
 
 ```cpp
 MRB_FUNC(Class_initialize) {
+  mrb_int argc = mrb_get_argc(mrb);
+
   rgssx::RefPtr<Class> obj = nullptr;
 
   EXC_BEGIN {
-    obj = rgssx::MakeRefCounted<Class>(...);
+    if (argc == N) {
+      // 重载 A
+      mrb_int x, y, w, h;
+      mrb_get_args(mrb, "iiii", &x, &y, &w, &h);
+      obj = rgssx::MakeRefCounted<Class>(x, y, w, h);
+    } else if (argc == M) {
+      // 重载 B
+      ...
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
+    }
   } EXC_END;
 
-  SetupSelfData(
-      self,
-      obj.get(),
-      kClassDataType);
-
-  return self;
+  return SetupSelfData(self, obj.get(), kClassDataType);
 }
 ```
 
-生成时需要根据构造函数参数选择对应的重载。
+生成时需要根据构造函数参数选择对应的重载。`initialize_copy` 等其它以 `SetupSelfData`
+结尾的函数同样统一写成 `return SetupSelfData(...);`。
 
 ---
 
 # 参数数量校验
 
-当使用 `mrb_get_args(mrb, "*", &args, &argc)` 解析不定参数，并按 `argc` 选择重载时，**必须**在访问 `args[i]` 之前校验 `argc` 是否匹配某个合法的重载，否则在参数数量不合法时（例如用户没有传任何参数）访问 `args[i]` 会越界。
+**不再使用 `mrb_get_args(mrb, "*", &args, &argc)` 解析不定参数。** 应先用
+`mrb_get_argc(mrb)` 获取实际参数个数，再按重载分支，并在每个分支内使用**带具体类型**的
+`mrb_get_args(mrb, "iii...", ...)` 获取参数，由 MRuby 负责参数的类型检查/转换，避免手写
+`mrb_integer(args[i])` / `mrb_as_float(args[i])` 等手工类型提取，也避免越界访问
+`args[i]`。
 
 推荐使用 `if / else if / else` 分支进行校验，最后一个 `else` 分支抛出 `ArgumentError`：
 
 ```cpp
 MRB_FUNC(Class_Method) {
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+  auto* self_obj = GetSelfData<Class>(self);
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 5) {
       // 重载 A
-      self_obj->Method(args[0], args[1], args[2], args[3], args[4]);
+      mrb_int x, y, w, h;
+      mrb_value color;
+      mrb_get_args(mrb, "iiiio", &x, &y, &w, &h, &color);
+      self_obj->Method(x, y, w, h,
+                       GetObject<...>(mrb, color, ...));
     } else if (argc == 2) {
       // 重载 B
-      self_obj->Method(args[0], args[1]);
+      ...
     } else {
       // 非法参数数量
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
@@ -235,9 +252,10 @@ MRB_FUNC(Class_Method) {
 
 注意：
 
-- 每个合法的重载对应一个 `if / else if` 分支，其条件必须**精确匹配**该重载的参数数量（如 `argc == 4`），不能出现访问 `args[i]` 而 `i >= argc` 的分支。
-- 最后一个 `else` 分支必须抛出 `ArgumentError`，保证任何非法参数数量在访问 `args[]` 之前被拦截。
+- 每个合法的重载对应一个 `if / else if` 分支，其条件必须**精确匹配**该重载的参数数量（如 `argc == 4`）；每个分支内再调用带具体类型的 `mrb_get_args`，由 MRuby 完成参数类型校验与转换。
+- 最后一个 `else` 分支必须抛出 `ArgumentError`，保证任何非法参数数量在调用 `mrb_get_args` 之前被拦截。
 - 构造函数、`set` 等方法的重载选择一律遵循本规则。
+- 固定参数个数的函数（无重载）不需要 `mrb_get_argc`，直接使用带具体类型的 `mrb_get_args` 即可。
 
 ### 带默认参数的函数
 
@@ -247,21 +265,26 @@ MRB_FUNC(Class_Method) {
 Color(float red, float green, float blue, float alpha = 255)
 ```
 
-则每个可能的参数个数都必须单独生成一个分支，分支内只传递实际传入的参数，默认值由 C++ 侧负责：
+则每个可能的参数个数都必须单独生成一个分支，分支内使用带具体类型的 `mrb_get_args`
+只获取实际传入的参数，默认值由 C++ 侧负责：
 
 ```cpp
 if (argc == 3) {
   // Color.new(red, green, blue)      // alpha 使用默认值 255
+  mrb_float r, g, b;
+  mrb_get_args(mrb, "fff", &r, &g, &b);
   obj = rgssx::MakeRefCounted<Color>(r, g, b);
 } else if (argc == 4) {
   // Color.new(red, green, blue, alpha)
+  mrb_float r, g, b, a;
+  mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
   obj = rgssx::MakeRefCounted<Color>(r, g, b, a);
 } else {
   mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
 }
 ```
 
-**禁止**把多个参数个数合并到一个分支，再在分支内部用 `argc == N ? args[N] : 默认值` 的方式补默认值；也禁止用 `argc >= N` 忽略多余参数。构造函数、`set` 等方法的重载选择一律遵循本规则。
+**禁止**把多个参数个数合并到一个分支，再在分支内部用 `argc == N ? ... : 默认值` 的方式补默认值；也禁止用 `argc >= N` 忽略多余参数。每个参数个数单独生成一个分支，分支内只获取实际传入的参数，默认值由 C++ 侧负责。构造函数、`set` 等方法的重载选择一律遵循本规则。
 
 ---
 

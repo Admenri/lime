@@ -11,36 +11,33 @@ namespace binding {
 MRB_DATATYPE_DEFINE(Font);
 
 MRB_FUNC(Font_initialize) {
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
-
-  std::vector<std::string> names;
-  int size = 0;
+  mrb_int argc = mrb_get_argc(mrb);
 
   rgssx::RefPtr<rgssx::Font> obj = nullptr;
   EXC_BEGIN {
-    if (argc >= 1) {
-      mrb_value name_val = args[0];
-      if (mrb_array_p(name_val)) {
-        mrb_int len = RARRAY_LEN(name_val);
-        mrb_value* ptr = RARRAY_PTR(name_val);
-        for (mrb_int i = 0; i < len; ++i)
-          names.emplace_back(mrb_str_to_cstr(mrb, ptr[i]));
-      }
+    if (argc == 0) {
+      // Font.new
+      obj = rgssx::MakeRefCounted<rgssx::Font>();
+    } else if (argc == 1) {
+      // Font.new(name)
+      mrb_value name_val;
+      mrb_get_args(mrb, "o", &name_val);
+      obj = rgssx::MakeRefCounted<rgssx::Font>(
+          GetStringVector(mrb, name_val));
+    } else if (argc == 2) {
+      // Font.new(name, size)
+      mrb_value name_val;
+      mrb_int size;
+      mrb_get_args(mrb, "oi", &name_val, &size);
+      obj = rgssx::MakeRefCounted<rgssx::Font>(
+          GetStringVector(mrb, name_val), static_cast<int>(size));
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
-    if (argc >= 2)
-      size = mrb_fixnum(args[1]);
-
-    if (argc == 1)
-      obj = rgssx::MakeRefCounted<rgssx::Font>(names);
-    else if (argc == 2)
-      obj = rgssx::MakeRefCounted<rgssx::Font>(names, size);
   }
   EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kFontDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kFontDataType);
 }
 
 MRB_FUNC(Font_Exist) {

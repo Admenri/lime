@@ -198,16 +198,18 @@ int Graphics::Height() {
 }
 
 void Graphics::ResizeScreen(int width, int height) {
-  raylib::UnloadRenderTexture(screen_buffer_);
-  screen_buffer_ = raylib::LoadRenderTexture(width, height);
+  if (Width() != width || Height() != height) {
+    raylib::UnloadRenderTexture(screen_buffer_);
+    screen_buffer_ = raylib::LoadRenderTexture(width, height);
 
-  // Set size and position
-  int monitor = raylib::GetCurrentMonitor();
-  int monitor_width = raylib::GetMonitorWidth(monitor);
-  int monitor_height = raylib::GetMonitorHeight(monitor);
-  raylib::SetWindowSize(width, height);
-  raylib::SetWindowPosition((monitor_width - width) / 2,
-                            (monitor_height - height) / 2);
+    // Set size and position
+    int monitor = raylib::GetCurrentMonitor();
+    int monitor_width = raylib::GetMonitorWidth(monitor);
+    int monitor_height = raylib::GetMonitorHeight(monitor);
+    raylib::SetWindowSize(width, height);
+    raylib::SetWindowPosition((monitor_width - width) / 2,
+                              (monitor_height - height) / 2);
+  }
 }
 
 void Graphics::PlayMovie(std::string filename) {
@@ -267,10 +269,10 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
 
     if (brightness_ < 255) {
       raylib::rlEnableColorBlend();
-      raylib::rlSetBlendMode(raylib::BLEND_ALPHA);
+      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
       {
-        raylib::Color brightness_norm = {
-            0, 0, 0, static_cast<uint8_t>(255 - brightness_)};
+        raylib::Color brightness_norm = {};
+        brightness_norm.a = 255 - brightness_;
         raylib::DrawRectangle(0, 0, target.texture.width, target.texture.height,
                               brightness_norm);
       }

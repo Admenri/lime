@@ -14,26 +14,34 @@ MRB_FUNC(Audio_SetupMIDI) {
 
 MRB_FUNC(Audio_BGMPlay) {
   auto* self_obj = rgssx::Audio::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // bgm_play(filename)
-      self_obj->BGMPlay(mrb_str_to_cstr(mrb, args[0]));
+      const char* filename;
+      mrb_get_args(mrb, "z", &filename);
+      self_obj->BGMPlay(filename);
     } else if (argc == 2) {
       // bgm_play(filename, volume)
-      self_obj->BGMPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]));
+      const char* filename;
+      mrb_int volume;
+      mrb_get_args(mrb, "zi", &filename, &volume);
+      self_obj->BGMPlay(filename, volume);
     } else if (argc == 3) {
       // bgm_play(filename, volume, pitch)
-      self_obj->BGMPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                        mrb_integer(args[2]));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_get_args(mrb, "zii", &filename, &volume, &pitch);
+      self_obj->BGMPlay(filename, volume, pitch);
     } else if (argc == 4) {
       // bgm_play(filename, volume, pitch, pos)
-      self_obj->BGMPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                        mrb_integer(args[2]),
-                        static_cast<float>(mrb_as_float(mrb, args[3])));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_float pos;
+      mrb_get_args(mrb, "ziif", &filename, &volume, &pitch, &pos);
+      self_obj->BGMPlay(filename, volume, pitch, static_cast<float>(pos));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -70,26 +78,34 @@ MRB_FUNC(Audio_BGMPos) {
 
 MRB_FUNC(Audio_BGSPlay) {
   auto* self_obj = rgssx::Audio::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // bgs_play(filename)
-      self_obj->BGSPlay(mrb_str_to_cstr(mrb, args[0]));
+      const char* filename;
+      mrb_get_args(mrb, "z", &filename);
+      self_obj->BGSPlay(filename);
     } else if (argc == 2) {
       // bgs_play(filename, volume)
-      self_obj->BGSPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]));
+      const char* filename;
+      mrb_int volume;
+      mrb_get_args(mrb, "zi", &filename, &volume);
+      self_obj->BGSPlay(filename, volume);
     } else if (argc == 3) {
       // bgs_play(filename, volume, pitch)
-      self_obj->BGSPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                        mrb_integer(args[2]));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_get_args(mrb, "zii", &filename, &volume, &pitch);
+      self_obj->BGSPlay(filename, volume, pitch);
     } else if (argc == 4) {
       // bgs_play(filename, volume, pitch, pos)
-      self_obj->BGSPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                        mrb_integer(args[2]),
-                        static_cast<float>(mrb_as_float(mrb, args[3])));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_float pos;
+      mrb_get_args(mrb, "ziif", &filename, &volume, &pitch, &pos);
+      self_obj->BGSPlay(filename, volume, pitch, static_cast<float>(pos));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -126,21 +142,27 @@ MRB_FUNC(Audio_BGSPos) {
 
 MRB_FUNC(Audio_MEPlay) {
   auto* self_obj = rgssx::Audio::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // me_play(filename)
-      self_obj->MEPlay(mrb_str_to_cstr(mrb, args[0]));
+      const char* filename;
+      mrb_get_args(mrb, "z", &filename);
+      self_obj->MEPlay(filename);
     } else if (argc == 2) {
       // me_play(filename, volume)
-      self_obj->MEPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]));
+      const char* filename;
+      mrb_int volume;
+      mrb_get_args(mrb, "zi", &filename, &volume);
+      self_obj->MEPlay(filename, volume);
     } else if (argc == 3) {
       // me_play(filename, volume, pitch)
-      self_obj->MEPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                       mrb_integer(args[2]));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_get_args(mrb, "zii", &filename, &volume, &pitch);
+      self_obj->MEPlay(filename, volume, pitch);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -169,21 +191,27 @@ MRB_FUNC(Audio_MEFade) {
 
 MRB_FUNC(Audio_SEPlay) {
   auto* self_obj = rgssx::Audio::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
+
+  mrb_int argc = mrb_get_argc(mrb);
 
   EXC_BEGIN {
     if (argc == 1) {
       // se_play(filename)
-      self_obj->SEPlay(mrb_str_to_cstr(mrb, args[0]));
+      const char* filename;
+      mrb_get_args(mrb, "z", &filename);
+      self_obj->SEPlay(filename);
     } else if (argc == 2) {
       // se_play(filename, volume)
-      self_obj->SEPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]));
+      const char* filename;
+      mrb_int volume;
+      mrb_get_args(mrb, "zi", &filename, &volume);
+      self_obj->SEPlay(filename, volume);
     } else if (argc == 3) {
       // se_play(filename, volume, pitch)
-      self_obj->SEPlay(mrb_str_to_cstr(mrb, args[0]), mrb_integer(args[1]),
-                       mrb_integer(args[2]));
+      const char* filename;
+      mrb_int volume, pitch;
+      mrb_get_args(mrb, "zii", &filename, &volume, &pitch);
+      self_obj->SEPlay(filename, volume, pitch);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }

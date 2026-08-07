@@ -62,21 +62,41 @@ MRB_FUNC(Graphics_Freeze) {
 
 MRB_FUNC(Graphics_Transition) {
   auto* self_obj = rgssx::Graphics::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
 
   mrb_int duration = 10;
   std::string filename;
   mrb_int vague = 40;
-  if (argc >= 1)
-    duration = mrb_integer(args[0]);
-  if (argc >= 2 && !mrb_nil_p(args[1]))
-    filename = mrb_str_to_cstr(mrb, args[1]);
-  if (argc >= 3)
-    vague = mrb_integer(args[2]);
 
+  mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
+    if (argc == 0) {
+      // transition()
+    } else if (argc == 1) {
+      // transition(duration)
+      mrb_int d;
+      mrb_get_args(mrb, "i", &d);
+      duration = d;
+    } else if (argc == 2) {
+      // transition(duration, filename)
+      mrb_int d;
+      mrb_value name_val;
+      mrb_get_args(mrb, "io", &d, &name_val);
+      duration = d;
+      if (!mrb_nil_p(name_val))
+        filename = mrb_str_to_cstr(mrb, name_val);
+    } else if (argc == 3) {
+      // transition(duration, filename, vague)
+      mrb_int d, v;
+      mrb_value name_val;
+      mrb_get_args(mrb, "ioi", &d, &name_val, &v);
+      duration = d;
+      if (!mrb_nil_p(name_val))
+        filename = mrb_str_to_cstr(mrb, name_val);
+      vague = v;
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
+    }
+
     self_obj->Transition(duration, filename, vague);
   }
   EXC_END(mrb);
@@ -85,23 +105,39 @@ MRB_FUNC(Graphics_Transition) {
 
 MRB_FUNC(Graphics_TransitionBitmap) {
   auto* self_obj = rgssx::Graphics::Instance();
-  const mrb_value* args;
-  mrb_int argc;
-  mrb_get_args(mrb, "*", &args, &argc);
 
   mrb_int duration = 10;
-  mrb_value bitmap_val = mrb_nil_value();
+  rgssx::RefPtr<rgssx::Bitmap> bitmap = nullptr;
   mrb_int vague = 40;
-  if (argc >= 1)
-    duration = mrb_integer(args[0]);
-  if (argc >= 2)
-    bitmap_val = args[1];
-  if (argc >= 3)
-    vague = mrb_integer(args[2]);
 
-  auto bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
-
+  mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
+    if (argc == 0) {
+      // transition_bitmap()
+    } else if (argc == 1) {
+      // transition_bitmap(duration)
+      mrb_int d;
+      mrb_get_args(mrb, "i", &d);
+      duration = d;
+    } else if (argc == 2) {
+      // transition_bitmap(duration, bitmap)
+      mrb_int d;
+      mrb_value bitmap_val;
+      mrb_get_args(mrb, "io", &d, &bitmap_val);
+      duration = d;
+      bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+    } else if (argc == 3) {
+      // transition_bitmap(duration, bitmap, vague)
+      mrb_int d, v;
+      mrb_value bitmap_val;
+      mrb_get_args(mrb, "ioi", &d, &bitmap_val, &v);
+      duration = d;
+      vague = v;
+      bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
+    }
+
     self_obj->TransitionBitmap(duration, bitmap, vague);
   }
   EXC_END(mrb);

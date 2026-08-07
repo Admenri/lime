@@ -175,6 +175,21 @@ std::vector<std::string> IOService::EnumDir(const std::string& dir) {
   return files;
 }
 
+bool IOService::IsDirectory(const std::string& path) {
+  PHYSFS_Stat stat;
+  if (!PHYSFS_stat(path.c_str(), &stat))
+    return false;
+  return stat.filetype == PHYSFS_FILETYPE_DIRECTORY;
+}
+
+bool IOService::Mkdir(const std::string& path) {
+  return PHYSFS_mkdir(path.c_str()) != 0;
+}
+
+bool IOService::Rmdir(const std::string& path) {
+  return PHYSFS_delete(path.c_str()) != 0;
+}
+
 std::string IOService::GetLastError() {
   return PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
 }

@@ -23,8 +23,7 @@ MRB_FUNC(Plane_initialize) {
     obj = rgssx::MakeRefCounted<rgssx::Plane>(viewport);
   } EXC_END(mrb);
 
-  SetupSelfData(self, obj.get(), kPlaneDataType);
-  return self;
+  return SetupSelfData(self, obj.get(), kPlaneDataType);
 }
 
 BINDING_ATTR_OBJECT_REF(Plane, rgssx::Plane, Bitmap, rgssx::Bitmap, kBitmapDataType);

@@ -32,11 +32,15 @@ inline RClass* DefineClass(mrb_state* mrb, const char* name) {
 
 // Data helper functions.
 template <typename Ty>
-inline void SetupSelfData(mrb_value self, Ty* data, const mrb_data_type& type) {
+inline mrb_value SetupSelfData(mrb_value self,
+                               Ty* data,
+                               const mrb_data_type& type) {
   DATA_PTR(self) = data;
   DATA_TYPE(self) = &type;
 
   data->AddRef();
+
+  return self;
 }
 
 template <typename Ty>

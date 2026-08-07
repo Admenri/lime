@@ -47,6 +47,14 @@ class IOService : public Singleton<IOService> {
   bool Exists(const std::string& filename);
   std::vector<std::string> EnumDir(const std::string& dir);
 
+  // Returns true if the given path exists and is a directory.
+  bool IsDirectory(const std::string& path);
+  // Creates a new directory (including any missing parent directories).
+  // Returns true on success, false on failure.
+  bool Mkdir(const std::string& path);
+  // Removes an empty directory. Returns true on success, false on failure.
+  bool Rmdir(const std::string& path);
+
   std::string GetLastError();
 
   // std::stream output
