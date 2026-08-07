@@ -16,6 +16,7 @@ class Config : public Singleton<Config> {
   std::string scripts = "Data/Scripts.rvdata2";
   std::string title = "RGSSX";
   std::string rtp;
+  std::string soundfont;
 
   int width = 544;
   int height = 416;

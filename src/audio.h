@@ -85,6 +85,11 @@ class Audio : public Singleton<Audio> {
   // The BGM is suspended while an ME is playing and resumes when it ends.
   bool bgm_paused_for_me_ = false;
 
+  // MIDI support (tinysf). The soundfont is loaded once by SetupMIDI().
+  // Stored as void* so tinysf's types stay out of the public header.
+  void* midi_font_ = nullptr;
+  bool midi_ready_ = false;  // SetupMIDI() was already attempted
+
   std::vector<SoundTrack> se_tracks_;
   std::vector<std::pair<std::string, raylib::Wave>> se_waves_;
 
@@ -95,6 +100,10 @@ class Audio : public Singleton<Audio> {
   bool LoadMusic(MusicChannel* channel, const std::string& filename);
   bool LoadWave(raylib::Wave* wave, const std::string& filename);
   void UnloadMusicChannel(MusicChannel* channel);
+
+  // Decode a MIDI stream with tinysf and wrap the rendered PCM in a WAV
+  // buffer so it can be played through the regular raylib music path.
+  bool RenderMidiToWav(const std::string& midi_data, std::string* out_wav);
 
   void StartMusic(MusicChannel* channel,
                   FadeState* fade,

@@ -26,6 +26,7 @@ Config::Config(std::string inifile) {
   ReplaceStringWidth(scripts, '\\', '/');
   title = parser_.Get("Game", "Title", title);
   rtp = parser_.Get("Game", "RTP", rtp);
+  soundfont = parser_.Get("Game", "Soundfont", soundfont);
 
   // Auto-detect the RGSS version from the scripts file extension when
   // it is not explicitly configured (rgss_version == 0).
