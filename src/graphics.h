@@ -40,6 +40,7 @@ class Graphics : public Singleton<Graphics> {
 
  private:
   void RenderFrame(raylib::RenderTexture2D target);
+  void UpdatePerFrame();
 
   DrawableSet drawables_;
   raylib::RenderTexture2D screen_buffer_;

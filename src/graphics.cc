@@ -1,5 +1,7 @@
 #include "src/graphics.h"
 
+#include "src/audio.h"
+
 namespace rgssx {
 
 Graphics::Graphics(int w,
@@ -73,6 +75,8 @@ void Graphics::Update() {
     raylib::DrawText(fps_text, 20, 20, 24, raylib::DARKGRAY);
   }
   raylib::EndDrawing();
+
+  UpdatePerFrame();
 
   if (raylib::WindowShouldClose())
     throw Exception("exit");
@@ -279,6 +283,11 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
     }
   }
   raylib::EndTextureMode();
+}
+
+void Graphics::UpdatePerFrame() {
+  // Audio imexplicit update
+  Audio::Instance()->Update();
 }
 
 }  // namespace rgssx

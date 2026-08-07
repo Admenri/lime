@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "src/common.h"
 #include "src/raywarp.h"
 
@@ -37,7 +41,74 @@ class Audio : public Singleton<Audio> {
   void SEStop();
   /*-export.end-*/
 
+ public:
+  // Called once per frame by the application. Drives streaming, fades and the
+  // ME -> BGM handoff. Never spawns threads, so it is emscripten-safe.
+  void Update();
+
  private:
+  // A streamed music track together with the raw file data it references.
+  // raylib decodes the stream lazily from that buffer, so the buffer must
+  // outlive the Music object.
+  struct MusicChannel {
+    raylib::Music music = {};
+    std::string data;     // backing file data (must outlive music)
+    std::string name;     // normalized name used for same-track detection
+    float volume = 1.0f;  // normalized 0..1
+    float pitch = 1.0f;   // normalized (100 = 1.0)
+    bool loaded = false;  // a valid Music object is held
+    bool active = false;  // this is the currently selected track (not stopped)
+  };
+
+  // A playing sound effect; every SEPlay() creates a new instance.
+  struct SoundTrack {
+    raylib::Sound sound = {};
+    float age = 0.0f;  // seconds since it was started
+  };
+
+  // A volume fade-out state.
+  struct FadeState {
+    float start_volume = 1.0f;
+    float elapsed = 0.0f;
+    float duration = 0.0f;  // seconds
+    bool active = false;
+  };
+
+  MusicChannel bgm_;
+  MusicChannel bgs_;
+  MusicChannel me_;
+
+  FadeState bgm_fade_;
+  FadeState bgs_fade_;
+  FadeState me_fade_;
+
+  // The BGM is suspended while an ME is playing and resumes when it ends.
+  bool bgm_paused_for_me_ = false;
+
+  std::vector<SoundTrack> se_tracks_;
+  std::vector<std::pair<std::string, raylib::Wave>> se_waves_;
+
+  static std::string NormalizeName(const std::string& filename);
+  static float VolumeToFloat(int volume);
+  static float PitchToFloat(int pitch);
+
+  bool LoadMusic(MusicChannel* channel, const std::string& filename);
+  bool LoadWave(raylib::Wave* wave, const std::string& filename);
+  void UnloadMusicChannel(MusicChannel* channel);
+
+  void StartMusic(MusicChannel* channel,
+                  FadeState* fade,
+                  const std::string& filename,
+                  int volume,
+                  int pitch,
+                  float pos,
+                  bool looping,
+                  bool suspend_for_me);
+  void StartME(const std::string& filename, int volume, int pitch);
+  void StopMEChannel();
+
+  void ResumeBGM();
+  bool UpdateFade(MusicChannel* channel, FadeState* fade, float dt);
 };
 
 }  // namespace rgssx
