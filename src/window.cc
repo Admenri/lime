@@ -1,5 +1,6 @@
 #include "src/window.h"
 
+#include "src/profile.h"
 #include "src/shader.h"
 
 namespace raylib {
@@ -140,7 +141,10 @@ static const int kCursorAlphaTable[] = {
 };
 
 Window::Window(int x, int y, int width, int height)
-    : ViewportChild(nullptr, ZValue(100, std::numeric_limits<int>::max())),
+    : rgss3_style_(Config::Instance()->rgss_version >= 3),
+      ViewportChild(nullptr,
+                    rgss3_style_ ? ZValue(100, std::numeric_limits<int>::max())
+                                 : ZValue(0, 0)),
       window_skin_(nullptr),
       contents_(MakeRefCounted<Bitmap>(1, 1)),
       cursor_rect_(MakeRefCounted<Rect>()),
@@ -148,6 +152,9 @@ Window::Window(int x, int y, int width, int height)
       y_(y),
       width_(width),
       height_(height),
+      padding_(rgss3_style_ ? 12 : 16),
+      padding_bottom_(padding_),
+      back_opacity_(rgss3_style_ ? 192 : 255),
       tone_(MakeRefCounted<Tone>()) {}
 
 Window::Window() : Window(0, 0, 0, 0) {}
@@ -389,51 +396,51 @@ void Window::Draw(DrawParam param) {
       auto& skin_texture = window_skin_->render_texture().texture;
 
       // Source
-      const raylib::Rectangle background1_src(0.0f, 0.0f, 32.0f * fscale,
-                                              32.0f * fscale);
-      const raylib::Rectangle background2_src(0.0f, 32.0f * fscale,
-                                              32.0f * fscale, 32.0f * fscale);
+      const raylib::Rectangle background1_src =
+          raylib::IntRect(0.0f, 0.0f, 32.0f * fscale, 32.0f * fscale);
+      const raylib::Rectangle background2_src =
+          raylib::IntRect(0.0f, 32.0f * fscale, 32.0f * fscale, 32.0f * fscale);
 
-      const raylib::Rectangle corner_left_top_src(32.0f * fscale, 0.0f,
-                                                  8.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle corner_right_top_src(
-          56.0f * fscale, 0.0f, 8.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle corner_left_bottom_src(
+      const raylib::Rectangle corner_left_top_src =
+          raylib::IntRect(32.0f * fscale, 0.0f, 8.0f * fscale, 8.0f * fscale);
+      const raylib::Rectangle corner_right_top_src =
+          raylib::IntRect(56.0f * fscale, 0.0f, 8.0f * fscale, 8.0f * fscale);
+      const raylib::Rectangle corner_left_bottom_src = raylib::IntRect(
           32.0f * fscale, 24.0f * fscale, 8.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle corner_right_bottom_src(
+      const raylib::Rectangle corner_right_bottom_src = raylib::IntRect(
           56.0f * fscale, 24.0f * fscale, 8.0f * fscale, 8.0f * fscale);
 
-      const raylib::Rectangle frame_up_src(40.0f * fscale, 0.0f, 16.0f * fscale,
-                                           8.0f * fscale);
-      const raylib::Rectangle frame_down_src(40.0f * fscale, 24.0f * fscale,
-                                             16.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle frame_left_src(32.0f * fscale, 8.0f * fscale,
-                                             8.0f * fscale, 16.0f * fscale);
-      const raylib::Rectangle frame_right_src(56.0f * fscale, 8.0f * fscale,
-                                              8.0f * fscale, 16.0f * fscale);
+      const raylib::Rectangle frame_up_src =
+          raylib::IntRect(40.0f * fscale, 0.0f, 16.0f * fscale, 8.0f * fscale);
+      const raylib::Rectangle frame_down_src = raylib::IntRect(
+          40.0f * fscale, 24.0f * fscale, 16.0f * fscale, 8.0f * fscale);
+      const raylib::Rectangle frame_left_src = raylib::IntRect(
+          32.0f * fscale, 8.0f * fscale, 8.0f * fscale, 16.0f * fscale);
+      const raylib::Rectangle frame_right_src = raylib::IntRect(
+          56.0f * fscale, 8.0f * fscale, 8.0f * fscale, 16.0f * fscale);
 
       // Destination
-      const raylib::Rectangle background_dest(
+      const raylib::Rectangle background_dest = raylib::IntRect(
           fx + fscale, fy + fscale, fw - 2.0f * fscale, fh - 2.0f * fscale);
 
-      const raylib::Rectangle corner_left_top_dest(fx, fy, 8.0f * fscale,
-                                                   8.0f * fscale);
-      const raylib::Rectangle corner_right_top_dest(
+      const raylib::Rectangle corner_left_top_dest =
+          raylib::IntRect(fx, fy, 8.0f * fscale, 8.0f * fscale);
+      const raylib::Rectangle corner_right_top_dest = raylib::IntRect(
           fx + fw - 8.0f * fscale, fy, 8.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle corner_left_bottom_dest(
+      const raylib::Rectangle corner_left_bottom_dest = raylib::IntRect(
           fx, fy + fh - 8.0f * fscale, 8.0f * fscale, 8.0f * fscale);
-      const raylib::Rectangle corner_right_bottom_dest(
-          fx + fw - 8.0f * fscale, fy + fh - 8.0f * fscale, 8.0f * fscale,
-          8.0f * fscale);
+      const raylib::Rectangle corner_right_bottom_dest =
+          raylib::IntRect(fx + fw - 8.0f * fscale, fy + fh - 8.0f * fscale,
+                          8.0f * fscale, 8.0f * fscale);
 
-      const raylib::Rectangle frame_up_dest{fx + 8.0f * fscale, fy,
-                                            fw - 16.0f * fscale, 8.0f * fscale};
-      const raylib::Rectangle frame_down_dest{
+      const raylib::Rectangle frame_up_dest = {
+          fx + 8.0f * fscale, fy, fw - 16.0f * fscale, 8.0f * fscale};
+      const raylib::Rectangle frame_down_dest = {
           fx + 8.0f * fscale, fy + fh - 8.0f * fscale, fw - 16.0f * fscale,
           8.0f * fscale};
-      const raylib::Rectangle frame_left_dest{
+      const raylib::Rectangle frame_left_dest = {
           fx, fy + 8.0f * fscale, 8.0f * fscale, fh - 16.0f * fscale};
-      const raylib::Rectangle frame_right_dest{
+      const raylib::Rectangle frame_right_dest = {
           fx + fw - 8.0f * fscale, fy + 8.0f * fscale, 8.0f * fscale,
           fh - 16.0f * fscale};
 
@@ -500,26 +507,26 @@ void Window::Draw(DrawParam param) {
             fx + (fw - 8.0f * fscale) / 2.0f, fy + (fh - 8.0f * fscale) / 2.0f};
 
         if (arrows_visible_) {
-          const raylib::Rectangle arrow_up_dest(arrow_display_offset.x,
-                                                fy + 2.0f * fscale,
-                                                8.0f * fscale, 4.0f * fscale);
-          const raylib::Rectangle arrow_down_dest(arrow_display_offset.x,
-                                                  fy + fh - 6.0f * fscale,
-                                                  8.0f * fscale, 4.0f * fscale);
-          const raylib::Rectangle arrow_left_dest(fx + 2.0f * fscale,
-                                                  arrow_display_offset.y,
-                                                  4.0f * fscale, 8.0f * fscale);
-          const raylib::Rectangle arrow_right_dest(
-              fx + fw - 6.0f * fscale, arrow_display_offset.y, 4.0f * fscale,
-              8.0f * fscale);
+          const raylib::Rectangle arrow_up_dest =
+              raylib::IntRect(arrow_display_offset.x, fy + 2.0f * fscale,
+                              8.0f * fscale, 4.0f * fscale);
+          const raylib::Rectangle arrow_down_dest =
+              raylib::IntRect(arrow_display_offset.x, fy + fh - 6.0f * fscale,
+                              8.0f * fscale, 4.0f * fscale);
+          const raylib::Rectangle arrow_left_dest =
+              raylib::IntRect(fx + 2.0f * fscale, arrow_display_offset.y,
+                              4.0f * fscale, 8.0f * fscale);
+          const raylib::Rectangle arrow_right_dest =
+              raylib::IntRect(fx + fw - 6.0f * fscale, arrow_display_offset.y,
+                              4.0f * fscale, 8.0f * fscale);
 
-          const raylib::Rectangle arrow_up_src(44.0f * fscale, 8.0f * fscale,
-                                               8.0f * fscale, 4.0f * fscale);
-          const raylib::Rectangle arrow_down_src(44.0f * fscale, 20.0f * fscale,
-                                                 8.0f * fscale, 4.0f * fscale);
-          const raylib::Rectangle arrow_left_src(40.0f * fscale, 12.0f * fscale,
-                                                 4.0f * fscale, 8.0f * fscale);
-          const raylib::Rectangle arrow_right_src(
+          const raylib::Rectangle arrow_up_src = raylib::IntRect(
+              44.0f * fscale, 8.0f * fscale, 8.0f * fscale, 4.0f * fscale);
+          const raylib::Rectangle arrow_down_src = raylib::IntRect(
+              44.0f * fscale, 20.0f * fscale, 8.0f * fscale, 4.0f * fscale);
+          const raylib::Rectangle arrow_left_src = raylib::IntRect(
+              40.0f * fscale, 12.0f * fscale, 4.0f * fscale, 8.0f * fscale);
+          const raylib::Rectangle arrow_right_src = raylib::IntRect(
               52.0f * fscale, 12.0f * fscale, 4.0f * fscale, 8.0f * fscale);
 
           if (contents_) {
@@ -552,9 +559,9 @@ void Window::Draw(DrawParam param) {
               {56.0f * fscale, 40.0f * fscale, 8.0f * fscale, 8.0f * fscale},
           };
 
-          const raylib::Rectangle pause_dest(arrow_display_offset.x,
-                                             fy + fh - 8.0f * fscale,
-                                             8.0f * fscale, 8.0f * fscale);
+          const raylib::Rectangle pause_dest =
+              raylib::IntRect(arrow_display_offset.x, fy + fh - 8.0f * fscale,
+                              8.0f * fscale, 8.0f * fscale);
 
           raylib::DrawTexturePro(skin_texture,
                                  pause_src[kPauseIndexTable[pause_index_]],
@@ -584,29 +591,27 @@ void Window::Draw(DrawParam param) {
 
             int32_t i = 0;
             // Left-Top
-            quad_rects[i++] = raylib::Rectangle(l, t, unit, unit);
+            quad_rects[i++] = raylib::IntRect(l, t, unit, unit);
             // Right-Top
-            quad_rects[i++] = raylib::Rectangle(r - unit, t, unit, unit);
+            quad_rects[i++] = raylib::IntRect(r - unit, t, unit, unit);
             // Right-Bottom
-            quad_rects[i++] = raylib::Rectangle(r - unit, b - unit, unit, unit);
+            quad_rects[i++] = raylib::IntRect(r - unit, b - unit, unit, unit);
             // Left-Bottom
-            quad_rects[i++] = raylib::Rectangle(l, b - unit, unit, unit);
+            quad_rects[i++] = raylib::IntRect(l, b - unit, unit, unit);
 
             // Left
-            quad_rects[i++] =
-                raylib::Rectangle(l, t + unit, unit, h - unit * 2);
+            quad_rects[i++] = raylib::IntRect(l, t + unit, unit, h - unit * 2);
             // Right
             quad_rects[i++] =
-                raylib::Rectangle(r - unit, t + unit, unit, h - unit * 2);
+                raylib::IntRect(r - unit, t + unit, unit, h - unit * 2);
             // Top
-            quad_rects[i++] =
-                raylib::Rectangle(l + unit, t, w - unit * 2, unit);
+            quad_rects[i++] = raylib::IntRect(l + unit, t, w - unit * 2, unit);
             // Bottom
             quad_rects[i++] =
-                raylib::Rectangle(l + unit, b - unit, w - unit * 2, unit);
+                raylib::IntRect(l + unit, b - unit, w - unit * 2, unit);
             // Center
-            quad_rects[i++] = raylib::Rectangle(l + unit, t + unit,
-                                                w - unit * 2, h - unit * 2);
+            quad_rects[i++] =
+                raylib::IntRect(l + unit, t + unit, w - unit * 2, h - unit * 2);
           };
 
           // Manual glScissor: clip the 9-slice cursor to the window content
@@ -615,9 +620,9 @@ void Window::Draw(DrawParam param) {
           // back to the source. In a 9-slice each source rect maps to its dest
           // by an independent per-axis scale (the four corners are 1:1, the
           // borders and the center stretch), so the inverse mapping is linear.
-          const raylib::Rectangle clip_rect(
-              x_ + padding_rect.x, y_ + padding_rect.y, padding_rect.width,
-              padding_rect.height);
+          const raylib::Rectangle clip_rect =
+              raylib::IntRect(x_ + padding_rect.x, y_ + padding_rect.y,
+                              padding_rect.width, padding_rect.height);
 
           auto build_cursor_quads = [&](const raylib::Rectangle& src,
                                         const raylib::Rectangle& dst) {
@@ -653,10 +658,10 @@ void Window::Draw(DrawParam param) {
                                          ? src_rect.height / dst_rect.height
                                          : 0.0f;
 
-              const raylib::Rectangle clipped_src(
+              const raylib::Rectangle clipped_src = {
                   src_rect.x + (clip_left - dst_rect.x) * sx_scale,
                   src_rect.y + (clip_top - dst_rect.y) * sy_scale,
-                  clip_width * sx_scale, clip_height * sy_scale);
+                  clip_width * sx_scale, clip_height * sy_scale};
 
               raylib::DrawTexturePro(
                   skin_texture, clipped_src,
@@ -665,13 +670,13 @@ void Window::Draw(DrawParam param) {
             }
           };
 
-          const raylib::Rectangle cursor_src(32 * scale_, 32 * scale_,
-                                             16 * scale_, 16 * scale_);
+          const raylib::Rectangle cursor_src = raylib::IntRect(
+              32 * scale_, 32 * scale_, 16 * scale_, 16 * scale_);
           if (cursor_rect.width > 0 && cursor_rect.height > 0) {
-            raylib::Rectangle cursor_dest(x_ + padding_rect.x + cursor_rect.x,
-                                          y_ + padding_rect.y + cursor_rect.y,
-                                          cursor_rect.width,
-                                          cursor_rect.height);
+            raylib::Rectangle cursor_dest =
+                raylib::IntRect(x_ + padding_rect.x + cursor_rect.x,
+                                y_ + padding_rect.y + cursor_rect.y,
+                                cursor_rect.width, cursor_rect.height);
 
             if (rgss3_style_) {
               cursor_dest.x -= ox_;
@@ -703,9 +708,9 @@ void Window::Draw(DrawParam param) {
         // (no stretch: source size == dest size == texture size), so the
         // inverse mapping from dest to source is a plain offset:
         //   src = s + (clip - d)
-        const raylib::Rectangle clip_rect(
-            x_ + padding_rect.x, y_ + padding_rect.y, padding_rect.width,
-            padding_rect.height);
+        const raylib::Rectangle clip_rect =
+            raylib::IntRect(x_ + padding_rect.x, y_ + padding_rect.y,
+                            padding_rect.width, padding_rect.height);
 
         const float clip_left = std::max(d.x, clip_rect.x);
         const float clip_top = std::max(d.y, clip_rect.y);
@@ -716,9 +721,9 @@ void Window::Draw(DrawParam param) {
         const float clip_width = clip_right - clip_left;
         const float clip_height = clip_bottom - clip_top;
         if (clip_width > 0.0f && clip_height > 0.0f) {
-          const raylib::Rectangle clipped_src(s.x + (clip_left - d.x),
-                                              s.y + (clip_top - d.y),
-                                              clip_width, clip_height);
+          const raylib::Rectangle clipped_src = {s.x + (clip_left - d.x),
+                                                 s.y + (clip_top - d.y),
+                                                 clip_width, clip_height};
           raylib::DrawTexturePro(contents_texture, clipped_src,
                                  {clip_left, clip_top, clip_width, clip_height},
                                  {}, 0, raylib::MakeColor(contents_opacity_));

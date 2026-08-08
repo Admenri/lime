@@ -1,5 +1,6 @@
 #include "src/tilemap.h"
 
+#include "src/profile.h"
 #include "src/shader.h"
 
 namespace rgssx {
@@ -307,7 +308,8 @@ void TilemapAbove::Draw(DrawParam param) {
 
 Tilemap::Tilemap(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
-      above_(std::make_unique<TilemapAbove>(this, viewport)) {
+      above_(std::make_unique<TilemapAbove>(this, viewport)),
+      rgss3_style_(Config::Instance()->rgss_version >= 3) {
   CreateShadowSet();
 }
 
@@ -429,17 +431,16 @@ void Tilemap::CreateShadowSet() {
   for (int32_t i = 0; i < 16; ++i) {
     int32_t offset = i * tilesize_;
     if (i & 0x1)  // Left Top
-      rects.push_back(
-          raylib::Rectangle(offset, 0, tilesize_ / 2, tilesize_ / 2));
+      rects.push_back(raylib::IntRect(offset, 0, tilesize_ / 2, tilesize_ / 2));
     if (i & 0x2)  // Right Top
-      rects.push_back(raylib::Rectangle(offset + tilesize_ / 2, 0,
-                                        tilesize_ / 2, tilesize_ / 2));
+      rects.push_back(raylib::IntRect(offset + tilesize_ / 2, 0, tilesize_ / 2,
+                                      tilesize_ / 2));
     if (i & 0x4)  // Left Bottom
-      rects.push_back(raylib::Rectangle(offset, tilesize_ / 2, tilesize_ / 2,
-                                        tilesize_ / 2));
+      rects.push_back(
+          raylib::IntRect(offset, tilesize_ / 2, tilesize_ / 2, tilesize_ / 2));
     if (i & 0x8)  // Right Bottom
-      rects.push_back(raylib::Rectangle(offset + tilesize_ / 2, tilesize_ / 2,
-                                        tilesize_ / 2, tilesize_ / 2));
+      rects.push_back(raylib::IntRect(offset + tilesize_ / 2, tilesize_ / 2,
+                                      tilesize_ / 2, tilesize_ / 2));
   }
 
   for (auto& it : rects) {
@@ -560,7 +561,7 @@ void Tilemap::DrawMapData(bool above) {
 
         for (int32_t i = 0; i < 4; ++i) {
           auto tex_rect_raw = rect_src[pattern_id * 4 + i];
-          raylib::Rectangle tex_rect = raylib::Rectangle(
+          raylib::Rectangle tex_rect = raylib::IntRect(
               tex_rect_raw.x * tilesize_, tex_rect_raw.y * tilesize_,
               tex_rect_raw.width * tilesize_, tex_rect_raw.height * tilesize_);
           tex_rect.x += offset.x * tilesize_ + 0.5f;
@@ -568,8 +569,8 @@ void Tilemap::DrawMapData(bool above) {
           tex_rect.width -= 1.0f;
           tex_rect.height -= 1.0f;
 
-          raylib::Rectangle pos_rect(x * tilesize_, y * tilesize_,
-                                     tilesize_ / 2.0f, tilesize_ / 2.0f);
+          raylib::Rectangle pos_rect = raylib::IntRect(
+              x * tilesize_, y * tilesize_, tilesize_ / 2.0f, tilesize_ / 2.0f);
           autotile_set_pos(pos_rect, i);
 
           quads[i].source = tex_rect;
@@ -587,7 +588,7 @@ void Tilemap::DrawMapData(bool above) {
 
     for (int32_t i = 0; i < 6; ++i) {
       const raylib::Rectangle tile_src = kAutotileSrcTable[pattern_id * 6 + i];
-      raylib::Rectangle tex_rect = raylib::Rectangle(
+      raylib::Rectangle tex_rect = raylib::IntRect(
           tile_src.x * tilesize_, tile_src.y * tilesize_,
           tile_src.width * tilesize_, tile_src.height * tilesize_);
       tex_rect.x += offset.x * tilesize_ + 0.5f;
@@ -595,9 +596,9 @@ void Tilemap::DrawMapData(bool above) {
       tex_rect.width = std::max(0.0f, tex_rect.width - 1.0f);
       tex_rect.height = std::max(0.0f, tex_rect.height - 1.0f);
 
-      raylib::Rectangle pos_rect(x * tilesize_, y * tilesize_,
-                                 tile_src.width * tilesize_,
-                                 tile_src.height * tilesize_);
+      raylib::Rectangle pos_rect = raylib::IntRect(x * tilesize_, y * tilesize_,
+                                                   tile_src.width * tilesize_,
+                                                   tile_src.height * tilesize_);
       autotile_set_pos(pos_rect, i);
 
       if (occlusion && i >= 4) {
@@ -613,34 +614,34 @@ void Tilemap::DrawMapData(bool above) {
     process_quads(texture, quads, 6);
   };
 
-  auto read_autotile_waterfall = [&](int32_t pattern_id,
-                                     const raylib::Texture& texture,
-                                     const raylib::Vector2& offset, int32_t x,
-                                     int32_t y) {
-    if (pattern_id > 0x3)
-      return;
+  auto read_autotile_waterfall =
+      [&](int32_t pattern_id, const raylib::Texture& texture,
+          const raylib::Vector2& offset, int32_t x, int32_t y) {
+        if (pattern_id > 0x3)
+          return;
 
-    TileQuad quads[2];
+        TileQuad quads[2];
 
-    for (size_t i = 0; i < 2; ++i) {
-      auto tex_rect_raw = kAutotileSrcWaterfall[pattern_id * 2 + i];
-      raylib::Rectangle tex_rect = raylib::Rectangle(
-          tex_rect_raw.x * tilesize_, tex_rect_raw.y * tilesize_,
-          tex_rect_raw.width * tilesize_, tex_rect_raw.height * tilesize_);
-      tex_rect.x += offset.x * tilesize_ + 0.5f;
-      tex_rect.y += offset.y * tilesize_ + 0.5f;
-      tex_rect.width -= 1;
-      tex_rect.height -= 1;
+        for (size_t i = 0; i < 2; ++i) {
+          auto tex_rect_raw = kAutotileSrcWaterfall[pattern_id * 2 + i];
+          raylib::Rectangle tex_rect = raylib::IntRect(
+              tex_rect_raw.x * tilesize_, tex_rect_raw.y * tilesize_,
+              tex_rect_raw.width * tilesize_, tex_rect_raw.height * tilesize_);
+          tex_rect.x += offset.x * tilesize_ + 0.5f;
+          tex_rect.y += offset.y * tilesize_ + 0.5f;
+          tex_rect.width -= 1;
+          tex_rect.height -= 1;
 
-      raylib::Rectangle pos_rect(x * tilesize_ + i * (tilesize_ / 2.0f),
-                                 y * tilesize_, tilesize_ / 2.0f, tilesize_);
+          raylib::Rectangle pos_rect =
+              raylib::IntRect(x * tilesize_ + i * (tilesize_ / 2.0f),
+                              y * tilesize_, tilesize_ / 2.0f, tilesize_);
 
-      quads[i].source = tex_rect;
-      quads[i].destination = pos_rect;
-    }
+          quads[i].source = tex_rect;
+          quads[i].destination = pos_rect;
+        }
 
-    process_quads(texture, quads, 2);
-  };
+        process_quads(texture, quads, 2);
+      };
 
   auto process_tile_A1 = [&](int16_t tile_id, int32_t x, int32_t y) {
     auto& bitmap = bitmaps_[TILE_A1];
@@ -765,9 +766,11 @@ void Tilemap::DrawMapData(bool above) {
       const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
                                            oy * tilesize_ + 0.5f);
 
-      raylib::Rectangle tex(atlas_position.x, atlas_position.y,
-                            tilesize_ - 1.0f, tilesize_ - 1.0f);
-      raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+      raylib::Rectangle tex =
+          raylib::IntRect(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
+                          tilesize_ - 1.0f);
+      raylib::Rectangle pos =
+          raylib::IntRect(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
 
       TileQuad quad;
       quad.source = tex;
@@ -795,9 +798,11 @@ void Tilemap::DrawMapData(bool above) {
       const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
                                            oy * tilesize_ + 0.5f);
 
-      raylib::Rectangle tex(atlas_position.x, atlas_position.y,
-                            tilesize_ - 1.0f, tilesize_ - 1.0f);
-      raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+      raylib::Rectangle tex =
+          raylib::IntRect(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
+                          tilesize_ - 1.0f);
+      raylib::Rectangle pos =
+          raylib::IntRect(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
 
       TileQuad quad;
       quad.source = tex;
@@ -813,9 +818,10 @@ void Tilemap::DrawMapData(bool above) {
     const raylib::Vector2 atlas_position(ox * tilesize_ + 0.5f,
                                          tilesize_ + 0.5f);
 
-    raylib::Rectangle tex(atlas_position.x, atlas_position.y, tilesize_ - 1.0f,
-                          tilesize_ - 1.0f);
-    raylib::Rectangle pos(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
+    raylib::Rectangle tex = raylib::IntRect(atlas_position.x, atlas_position.y,
+                                            tilesize_ - 1.0f, tilesize_ - 1.0f);
+    raylib::Rectangle pos =
+        raylib::IntRect(x * tilesize_, y * tilesize_, tilesize_, tilesize_);
 
     TileQuad quad;
     quad.source = tex;

@@ -29,6 +29,15 @@ Color MakeColor(Ty value) {
   return result;
 }
 
+inline Rectangle IntRect(int x, int y, int w, int h) {
+  Rectangle rect = {};
+  rect.x = static_cast<float>(x);
+  rect.y = static_cast<float>(y);
+  rect.width = static_cast<float>(w);
+  rect.height = static_cast<float>(h);
+  return rect;
+}
+
 inline BlendMode GetBlendID(int type) {
   switch (type) {
     default:

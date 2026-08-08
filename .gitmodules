@@ -18,7 +18,7 @@
 	url = https://github.com/harfbuzz/harfbuzz.git
 [submodule "3rdparty/mruby-cmake/mruby"]
 	path = 3rdparty/mruby-cmake/mruby
-	url = https://github.com/mruby/mruby.git
+	url = https://github.com/Admenri/mruby.git
 [submodule "3rdparty/mruby-cmake/oniguruma"]
 	path = 3rdparty/mruby-cmake/oniguruma
 	url = https://github.com/kkos/oniguruma.git
