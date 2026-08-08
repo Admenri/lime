@@ -14,12 +14,14 @@
 #include "mruby/variable.h"
 #include "mruby/version.h"
 
+#include "src/common.h"
 #include "src/refptr.h"
 
 namespace binding {
 
 extern RClass* g_reset_exception;
 extern RClass* g_rgss_exception;
+extern RClass* g_exit_exception;
 
 // Klass define helper function.
 inline RClass* DefineClass(mrb_state* mrb, const char* name) {
@@ -84,11 +86,25 @@ inline void ReleaseDataType(mrb_state* mrb, void* ptr) {
   static_cast<Ty*>(ptr)->Release();
 }
 
+inline void ProcessException(mrb_state* mrb, const rgssx::Exception& e) {
+  RClass* exc = mrb->eStandardError_class;
+  if (e.type() == rgssx::Exception::ExitError)
+    exc = g_exit_exception;
+  if (e.type() == rgssx::Exception::ResetError)
+    exc = g_reset_exception;
+  if (e.type() == rgssx::Exception::RGSSError)
+    exc = g_rgss_exception;
+  if (e.type() == rgssx::Exception::IOError)
+    exc = g_rgss_exception;
+
+  mrb_raise(mrb, exc, e.message().c_str());
+}
+
 // Exception helper function.
 #define EXC_BEGIN try
-#define EXC_END(mrb)                            \
-  catch (const std::exception& e) {             \
-    mrb_raise(mrb, g_rgss_exception, e.what()); \
+#define EXC_END(mrb)                  \
+  catch (const rgssx::Exception& e) { \
+    ProcessException(mrb, e);         \
   }
 
 // Converts a CamelCase identifier to snake_case (e.g. "GetRect" -> "get_rect",

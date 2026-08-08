@@ -41,7 +41,7 @@ MARSHAL_LOAD_DEF(Table) {
 
   RefPtr<Table> obj = MakeRefCounted<Table>(xsize, ysize, zsize);
   if (data_size != obj->xsize_ * obj->ysize_ * obj->zsize_)
-    throw Exception("invalid table serialize data");
+    throw Exception(Exception::RGSSError, "invalid table serialize data");
 
   if (data_size)
     std::memcpy(obj->data_.data(), raw_ptr + 5, data_size * sizeof(int16_t));

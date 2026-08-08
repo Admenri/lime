@@ -1,6 +1,5 @@
 #pragma once
 
-#include <exception>
 #include <format>
 #include <memory>
 #include <optional>
@@ -21,18 +20,26 @@ class Singleton {
   inline static std::unique_ptr<Ty> instance_;
 };
 
-class Exception : public std::exception {
+class Exception final {
  public:
+  enum Type {
+    ExitError = 0,
+    ResetError,
+    RGSSError,
+    IOError,
+  };
+
   template <typename... Args>
-  explicit Exception(std::string_view format, Args&&... args) {
+  explicit Exception(Type type, std::string_view format, Args&&... args) {
     message_ = std::vformat(format,
                             std::make_format_args(std::forward<Args>(args)...));
   }
 
-  // std::exception::what
-  const char* what() const override { return message_.c_str(); }
+  Type type() const noexcept { return type_; }
+  std::string message() const noexcept { return message_; }
 
  private:
+  Type type_ = {};
   std::string message_;
 };
 
@@ -54,7 +61,7 @@ class Dispoable {
       return;
 
     // disposed error
-    throw Exception("disposed object");
+    throw Exception(Exception::RGSSError, "disposed object");
   }
 
   virtual void DisposeObject() = 0;

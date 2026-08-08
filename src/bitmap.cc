@@ -23,7 +23,7 @@ Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
       });
 
   if (!image.data)
-    throw Exception("failed to load image: {}", filename);
+    throw Exception(Exception::RGSSError, "failed to load image: {}", filename);
 
   raylib::ImageFormat(&image, raylib::PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
   raylib::ImageAlphaPremultiply(&image);

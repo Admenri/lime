@@ -70,16 +70,15 @@ void Graphics::Update() {
 
     raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
                            raylib::RAYWHITE);
-
-    auto fps_text = raylib::TextFormat("FPS: %i", raylib::GetFPS());
-    raylib::DrawText(fps_text, 20, 20, 24, raylib::DARKGRAY);
   }
   raylib::EndDrawing();
 
   UpdatePerFrame();
 
   if (raylib::WindowShouldClose())
-    throw Exception("exit");
+    throw Exception(Exception::ExitError, "exit");
+  if (raylib::IsKeyReleased(raylib::KEY_F12))
+    throw Exception(Exception::ResetError, "reset");
 }
 
 void Graphics::Wait(int duration) {

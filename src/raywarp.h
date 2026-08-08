@@ -6,6 +6,8 @@ namespace raylib {
 #include "raylib.h"
 #include "rlgl.h"
 
+#include "3rdparty/raygui/src/raygui.h"
+
 inline void BeginDrawTexture(RenderTexture2D target) {
   raylib::BeginTextureMode(target);
 

@@ -216,10 +216,10 @@ void IOService::OpenRead(const std::string& file_path, OpenCallback callback) {
   PHYSFS_enumerate(dir.c_str(), OpenReadEnumCallback, &data);
 
   if (!data.physfs_error.empty())
-    throw Exception("{}: {}", data.physfs_error, file_path);
+    throw Exception(Exception::IOError, "{}: {}", data.physfs_error, file_path);
 
   if (data.match_count <= 0)
-    throw Exception("No file match: {}", file_path);
+    throw Exception(Exception::IOError, "No file match: {}", file_path);
 }
 
 std::unique_ptr<IOStream> IOService::OpenReadRaw(const std::string& filename) {
@@ -227,7 +227,7 @@ std::unique_ptr<IOStream> IOService::OpenReadRaw(const std::string& filename) {
   if (!file) {
     std::string error_message =
         PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
-    throw Exception("{}: {}", error_message, filename);
+    throw Exception(Exception::IOError, "{}: {}", error_message, filename);
   }
 
   return std::make_unique<IOStream>(file);
@@ -238,7 +238,7 @@ std::unique_ptr<IOStream> IOService::OpenWrite(const std::string& filename) {
   if (!file) {
     std::string error_message =
         PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
-    throw Exception("{}: {}", error_message, filename);
+    throw Exception(Exception::IOError, "{}: {}", error_message, filename);
   }
 
   return std::make_unique<IOStream>(file);
