@@ -9,7 +9,7 @@
 #include "src/font/text_shaper.h"
 #include "src/raywarp.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 class FontManager;
 
@@ -48,4 +48,4 @@ class TextRenderer {
   FontAtlas& atlas_;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

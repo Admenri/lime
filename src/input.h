@@ -2,7 +2,7 @@
 
 #include "src/common.h"
 
-namespace rgssx {
+namespace lime {
 
 inline const struct {
   std::string name;
@@ -60,4 +60,4 @@ class Input : public Singleton<Input> {
   std::vector<KeySym> bindings_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

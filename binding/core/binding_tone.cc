@@ -10,21 +10,21 @@ MRB_DATATYPE_DEFINE(Tone);
 MRB_FUNC(Tone_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Tone> obj = nullptr;
+  lime::RefPtr<lime::Tone> obj = nullptr;
   EXC_BEGIN {
     if (argc == 0) {
       // Tone.new
-      obj = rgssx::MakeRefCounted<rgssx::Tone>();
+      obj = lime::MakeRefCounted<lime::Tone>();
     } else if (argc == 3) {
       // Tone.new(red, green, blue)  (gray = 0)
       mrb_float r, g, b;
       mrb_get_args(mrb, "fff", &r, &g, &b);
-      obj = rgssx::MakeRefCounted<rgssx::Tone>(r, g, b);
+      obj = lime::MakeRefCounted<lime::Tone>(r, g, b);
     } else if (argc == 4) {
       // Tone.new(red, green, blue, gray)
       mrb_float r, g, b, a;
       mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
-      obj = rgssx::MakeRefCounted<rgssx::Tone>(r, g, b, a);
+      obj = lime::MakeRefCounted<lime::Tone>(r, g, b, a);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -38,10 +38,10 @@ MRB_FUNC(Tone_initialize_copy) {
   mrb_value other;
   mrb_get_args(mrb, "o", &other);
 
-  rgssx::RefPtr<rgssx::Tone> obj = nullptr;
+  lime::RefPtr<lime::Tone> obj = nullptr;
   EXC_BEGIN {
-    auto other_obj = GetObject<rgssx::Tone>(mrb, other, kToneDataType);
-    obj = rgssx::MakeRefCounted<rgssx::Tone>(other_obj);
+    auto other_obj = GetObject<lime::Tone>(mrb, other, kToneDataType);
+    obj = lime::MakeRefCounted<lime::Tone>(other_obj);
   }
   EXC_END(mrb);
 
@@ -49,7 +49,7 @@ MRB_FUNC(Tone_initialize_copy) {
 }
 
 MRB_FUNC(Tone_Set) {
-  auto* self_obj = GetSelfData<rgssx::Tone>(self);
+  auto* self_obj = GetSelfData<lime::Tone>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
 
@@ -58,7 +58,7 @@ MRB_FUNC(Tone_Set) {
       // set(tone)
       mrb_value tone_val;
       mrb_get_args(mrb, "o", &tone_val);
-      self_obj->Set(GetObject<rgssx::Tone>(mrb, tone_val, kToneDataType));
+      self_obj->Set(GetObject<lime::Tone>(mrb, tone_val, kToneDataType));
     } else if (argc == 3) {
       // set(red, green, blue)  (gray = 0)
       mrb_float r, g, b;
@@ -81,11 +81,11 @@ MRB_FUNC(Tone_Set) {
 
 #define TONE_PROP_FLOAT(cap)                                            \
   MRB_FUNC(Tone_##cap) {                                                \
-    auto* self_obj = GetSelfData<rgssx::Tone>(self);                    \
+    auto* self_obj = GetSelfData<lime::Tone>(self);                     \
     return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->cap)); \
   }                                                                     \
   MRB_FUNC(Tone_##cap##Equal) {                                         \
-    auto* self_obj = GetSelfData<rgssx::Tone>(self);                    \
+    auto* self_obj = GetSelfData<lime::Tone>(self);                     \
     mrb_float value;                                                    \
     mrb_get_args(mrb, "f", &value);                                     \
     self_obj->cap = static_cast<float>(value);                          \
@@ -103,13 +103,12 @@ TONE_PROP_FLOAT(gray);
 // method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
 // _dump (method) and _load (class method).
 MRB_FUNC(Tone__dump) {
-  auto* self_obj = GetSelfData<rgssx::Tone>(self);
+  auto* self_obj = GetSelfData<lime::Tone>(self);
   mrb_int limit;
   mrb_get_args(mrb, "i", &limit);
 
   EXC_BEGIN {
-    auto result =
-        rgssx::Tone::MarshalDump(rgssx::RefPtr<rgssx::Tone>(self_obj));
+    auto result = lime::Tone::MarshalDump(lime::RefPtr<lime::Tone>(self_obj));
     return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
   }
   EXC_END(mrb);
@@ -120,9 +119,9 @@ MRB_FUNC(Tone__load) {
   mrb_value data;
   mrb_get_args(mrb, "o", &data);
 
-  rgssx::RefPtr<rgssx::Tone> obj = nullptr;
+  lime::RefPtr<lime::Tone> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::Tone::MarshalLoad(MRBStringValue(data));
+    obj = lime::Tone::MarshalLoad(MRBStringValue(data));
   }
   EXC_END(mrb);
 

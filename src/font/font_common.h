@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace rgssx::font {
+namespace lime::font {
 
 class FontFace;
 
@@ -84,4 +84,4 @@ inline uint32_t DecodeUTF8(const char*& s) {
   return cp;
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

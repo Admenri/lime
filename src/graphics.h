@@ -5,7 +5,7 @@
 #include "src/drawable.h"
 #include "src/shader.h"
 
-namespace rgssx {
+namespace lime {
 
 class Graphics : public Singleton<Graphics> {
  public:
@@ -51,4 +51,4 @@ class Graphics : public Singleton<Graphics> {
   int frame_rate_ = 60;
 };
 
-}  // namespace rgssx
+}  // namespace lime

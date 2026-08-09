@@ -165,7 +165,7 @@ width=
 例如 Tone 具有 `MARSHAL_DUMP` / `MARSHAL_LOAD`，因此在 Window 中：
 
 ```cpp
-BINDING_ATTR_OBJECT_REF(Window, rgssx::Window, Tone, rgssx::Tone, kToneDataType);
+BINDING_ATTR_OBJECT_REF(Window, lime::Window, Tone, lime::Tone, kToneDataType);
 ```
 
 `BINDING_ATTR_OBJECT_REF` 与 `BINDING_ATTR_OBJECT` 的区别：前者会把包装后的 Ruby 对象
@@ -190,14 +190,14 @@ BINDING_ATTR_OBJECT_REF(Window, rgssx::Window, Tone, rgssx::Tone, kToneDataType)
 MRB_FUNC(Class_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<Class> obj = nullptr;
+  lime::RefPtr<Class> obj = nullptr;
 
   EXC_BEGIN {
     if (argc == N) {
       // 重载 A
       mrb_int x, y, w, h;
       mrb_get_args(mrb, "iiii", &x, &y, &w, &h);
-      obj = rgssx::MakeRefCounted<Class>(x, y, w, h);
+      obj = lime::MakeRefCounted<Class>(x, y, w, h);
     } else if (argc == M) {
       // 重载 B
       ...
@@ -273,12 +273,12 @@ if (argc == 3) {
   // Color.new(red, green, blue)      // alpha 使用默认值 255
   mrb_float r, g, b;
   mrb_get_args(mrb, "fff", &r, &g, &b);
-  obj = rgssx::MakeRefCounted<Color>(r, g, b);
+  obj = lime::MakeRefCounted<Color>(r, g, b);
 } else if (argc == 4) {
   // Color.new(red, green, blue, alpha)
   mrb_float r, g, b, a;
   mrb_get_args(mrb, "ffff", &r, &g, &b, &a);
-  obj = rgssx::MakeRefCounted<Color>(r, g, b, a);
+  obj = lime::MakeRefCounted<Color>(r, g, b, a);
 } else {
   mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
 }
@@ -393,7 +393,7 @@ MRB_FUNC(Class__load) {
   mrb_value data;
   mrb_get_args(mrb, "o", &data);
 
-  rgssx::RefPtr<Class> obj = nullptr;
+  lime::RefPtr<Class> obj = nullptr;
   EXC_BEGIN {
     obj = Class::MarshalLoad(MRBStringValue(data));
   } EXC_END(mrb);

@@ -4,7 +4,7 @@
 #include "src/refptr.h"
 #include "src/utility.h"
 
-namespace rgssx {
+namespace lime {
 
 namespace font {
 class FontSystem;
@@ -55,4 +55,4 @@ class Font : public RefCounted<Font> {
   RefPtr<Color> color_, out_color_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

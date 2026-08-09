@@ -2,7 +2,7 @@
 
 #include "src/audio.h"
 
-namespace rgssx {
+namespace lime {
 
 Graphics::Graphics(int w,
                    int h,
@@ -289,4 +289,4 @@ void Graphics::UpdatePerFrame() {
   Audio::Instance()->Update();
 }
 
-}  // namespace rgssx
+}  // namespace lime

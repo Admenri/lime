@@ -10,7 +10,7 @@
 
 #include "src/font/font_manager.h"
 
-namespace rgssx::font {
+namespace lime::font {
 namespace {
 
 // Split a UTF-8 string into lines at '\n'. Returns (start, byte length)
@@ -147,4 +147,4 @@ raylib::Vector2 TextRenderer::MeasureText(const char* utf8) {
   return size;
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

@@ -12,7 +12,7 @@ namespace binding {
 const mrb_data_type kTilemapBitmapsDataType = {"TilemapBitmapArray", nullptr};
 
 MRB_FUNC(TilemapBitmaps_Get) {
-  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  auto* self_obj = GetSelfData<lime::Tilemap>(self);
   mrb_int index;
   mrb_get_args(mrb, "i", &index);
 
@@ -27,12 +27,12 @@ MRB_FUNC(TilemapBitmaps_Get) {
 }
 
 MRB_FUNC(TilemapBitmaps_Set) {
-  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  auto* self_obj = GetSelfData<lime::Tilemap>(self);
   mrb_int index;
   mrb_value bitmap_val;
   mrb_get_args(mrb, "io", &index, &bitmap_val);
 
-  auto bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+  auto bitmap = GetObject<lime::Bitmap>(mrb, bitmap_val, kBitmapDataType);
 
   EXC_BEGIN {
     self_obj->SetBitmap(index, bitmap);
@@ -51,11 +51,11 @@ MRB_FUNC(Tilemap_initialize) {
   mrb_get_args(mrb, "|o", &viewport_val);
 
   auto viewport =
-      GetObject<rgssx::Viewport>(mrb, viewport_val, kViewportDataType);
+      GetObject<lime::Viewport>(mrb, viewport_val, kViewportDataType);
 
-  rgssx::RefPtr<rgssx::Tilemap> obj = nullptr;
+  lime::RefPtr<lime::Tilemap> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::MakeRefCounted<rgssx::Tilemap>(viewport);
+    obj = lime::MakeRefCounted<lime::Tilemap>(viewport);
   }
   EXC_END(mrb);
 
@@ -63,7 +63,7 @@ MRB_FUNC(Tilemap_initialize) {
 }
 
 MRB_FUNC(Tilemap_Update) {
-  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  auto* self_obj = GetSelfData<lime::Tilemap>(self);
   EXC_BEGIN {
     self_obj->Update();
   }
@@ -72,7 +72,7 @@ MRB_FUNC(Tilemap_Update) {
 }
 
 MRB_FUNC(Tilemap_GetBitmaps) {
-  auto* self_obj = GetSelfData<rgssx::Tilemap>(self);
+  auto* self_obj = GetSelfData<lime::Tilemap>(self);
 
   RClass* klass = mrb_class_get(mrb, kTilemapBitmapsDataType.struct_name);
   RData* data =
@@ -84,32 +84,32 @@ MRB_FUNC(Tilemap_GetBitmaps) {
 }
 
 BINDING_ATTR_OBJECT_REF(Tilemap,
-                        rgssx::Tilemap,
+                        lime::Tilemap,
                         Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         kViewportDataType);
-BINDING_ATTR_BOOL(Tilemap, rgssx::Tilemap, Visible);
-BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, Z);
+BINDING_ATTR_BOOL(Tilemap, lime::Tilemap, Visible);
+BINDING_ATTR_INT(Tilemap, lime::Tilemap, Z);
 BINDING_ATTR_OBJECT_REF(Tilemap,
-                        rgssx::Tilemap,
+                        lime::Tilemap,
                         MapData,
-                        rgssx::Table,
+                        lime::Table,
                         kTableDataType);
 BINDING_ATTR_OBJECT_REF(Tilemap,
-                        rgssx::Tilemap,
+                        lime::Tilemap,
                         FlashData,
-                        rgssx::Table,
+                        lime::Table,
                         kTableDataType);
 BINDING_ATTR_OBJECT_REF(Tilemap,
-                        rgssx::Tilemap,
+                        lime::Tilemap,
                         Flags,
-                        rgssx::Table,
+                        lime::Table,
                         kTableDataType);
-BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OX);
-BINDING_ATTR_INT(Tilemap, rgssx::Tilemap, OY);
+BINDING_ATTR_INT(Tilemap, lime::Tilemap, OX);
+BINDING_ATTR_INT(Tilemap, lime::Tilemap, OY);
 
 // Inherited from Dispoable
-BINDING_INHERITED_DISPOABLE(Tilemap, rgssx::Tilemap);
+BINDING_INHERITED_DISPOABLE(Tilemap, lime::Tilemap);
 
 void InitTilemapBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Tilemap");
@@ -133,7 +133,7 @@ void InitTilemapBinding(mrb_state* mrb) {
                     MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "flash_data=", Tilemap_FlashDataEqual,
                     MRB_ARGS_REQ(1));
-  if (rgssx::Config::Instance()->rgss_version >= 3) {
+  if (lime::Config::Instance()->rgss_version >= 3) {
     mrb_define_method(mrb, klass, "flags", Tilemap_Flags, MRB_ARGS_NONE());
     mrb_define_method(mrb, klass, "flags=", Tilemap_FlagsEqual,
                       MRB_ARGS_REQ(1));

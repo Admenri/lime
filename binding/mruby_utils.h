@@ -78,7 +78,7 @@ inline mrb_value WrapObject(mrb_state* mrb,
 #define MRB_DATATYPE_DEFINE(type)           \
   const mrb_data_type k##type##DataType = { \
       #type,                                \
-      ReleaseDataType<rgssx::type>,         \
+      ReleaseDataType<lime::type>,          \
   };
 
 template <typename Ty>
@@ -86,15 +86,15 @@ inline void ReleaseDataType(mrb_state* mrb, void* ptr) {
   static_cast<Ty*>(ptr)->Release();
 }
 
-inline void ProcessException(mrb_state* mrb, const rgssx::Exception& e) {
+inline void ProcessException(mrb_state* mrb, const lime::Exception& e) {
   RClass* exc = mrb->eStandardError_class;
-  if (e.type() == rgssx::Exception::ExitError)
+  if (e.type() == lime::Exception::ExitError)
     exc = g_exit_exception;
-  if (e.type() == rgssx::Exception::ResetError)
+  if (e.type() == lime::Exception::ResetError)
     exc = g_reset_exception;
-  if (e.type() == rgssx::Exception::RGSSError)
+  if (e.type() == lime::Exception::RGSSError)
     exc = g_rgss_exception;
-  if (e.type() == rgssx::Exception::IOError)
+  if (e.type() == lime::Exception::IOError)
     exc = g_rgss_exception;
 
   mrb_raise(mrb, exc, e.message().c_str());
@@ -102,9 +102,9 @@ inline void ProcessException(mrb_state* mrb, const rgssx::Exception& e) {
 
 // Exception helper function.
 #define EXC_BEGIN try
-#define EXC_END(mrb)                  \
-  catch (const rgssx::Exception& e) { \
-    ProcessException(mrb, e);         \
+#define EXC_END(mrb)                 \
+  catch (const lime::Exception& e) { \
+    ProcessException(mrb, e);        \
   }
 
 // Converts a CamelCase identifier to snake_case (e.g. "GetRect" -> "get_rect",
@@ -131,13 +131,13 @@ inline std::string ToSnake(const std::string& name) {
 // Unwraps a wrapped ref-counted object from an mrb_value. Passing nil yields a
 // null RefPtr; passing an object of the wrong type raises TypeError.
 template <typename Ty>
-inline rgssx::RefPtr<Ty> GetObject(mrb_state* mrb,
-                                   mrb_value val,
-                                   const mrb_data_type& type) {
+inline lime::RefPtr<Ty> GetObject(mrb_state* mrb,
+                                  mrb_value val,
+                                  const mrb_data_type& type) {
   if (mrb_nil_p(val))
     return nullptr;
   auto* ptr = static_cast<Ty*>(mrb_data_get_ptr(mrb, val, &type));
-  return rgssx::RefPtr<Ty>(ptr);
+  return lime::RefPtr<Ty>(ptr);
 }
 
 // Ruby Array of Strings (or a single String, or nil) <->
@@ -179,7 +179,7 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
 
 // Generic ATTR binding helpers: generate a getter and a setter for an
 // attribute. "prefix" is the binding function prefix (e.g. Plane), "ty" the
-// C++ class (e.g. rgssx::Plane), "cap" the attribute name (e.g. ZoomX).
+// C++ class (e.g. lime::Plane), "cap" the attribute name (e.g. ZoomX).
 #define BINDING_ATTR_INT(prefix, ty, cap)            \
   MRB_FUNC(prefix##_##cap) {                         \
     auto* self_obj = GetSelfData<ty>(self);          \
@@ -243,7 +243,7 @@ inline mrb_value WrapStringVector(mrb_state* mrb,
     return mrb_nil_value();                 \
   }
 
-// Object attribute. objty is the object type (e.g. rgssx::Bitmap), dataty is
+// Object attribute. objty is the object type (e.g. lime::Bitmap), dataty is
 // the mrb data type constant (e.g. kBitmapDataType).
 #define BINDING_ATTR_OBJECT(prefix, ty, cap, objty, dataty) \
   MRB_FUNC(prefix##_##cap) {                                \

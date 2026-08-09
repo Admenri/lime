@@ -6,7 +6,7 @@
 
 #include <cstring>
 
-namespace rgssx::font {
+namespace lime::font {
 
 GlyphRun TextShaper::Shape(FontFace& font, const char* utf8) const {
   return Shape(font, utf8, std::strlen(utf8));
@@ -51,4 +51,4 @@ GlyphRun TextShaper::Shape(FontFace& font, const char* utf8, size_t length,
   return run;
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

@@ -15,16 +15,16 @@ MRB_DATATYPE_DEFINE(Window);
 MRB_FUNC(Window_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Window> obj = nullptr;
+  lime::RefPtr<lime::Window> obj = nullptr;
   EXC_BEGIN {
     if (argc == 4) {
       // Window.new(x, y, width, height)
       mrb_int x, y, w, h;
       mrb_get_args(mrb, "iiii", &x, &y, &w, &h);
-      obj = rgssx::MakeRefCounted<rgssx::Window>(x, y, w, h);
+      obj = lime::MakeRefCounted<lime::Window>(x, y, w, h);
     } else if (argc == 0) {
       // Window.new
-      obj = rgssx::MakeRefCounted<rgssx::Window>();
+      obj = lime::MakeRefCounted<lime::Window>();
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -35,7 +35,7 @@ MRB_FUNC(Window_initialize) {
 }
 
 MRB_FUNC(Window_Update) {
-  auto* self_obj = GetSelfData<rgssx::Window>(self);
+  auto* self_obj = GetSelfData<lime::Window>(self);
   EXC_BEGIN {
     self_obj->Update();
   }
@@ -44,7 +44,7 @@ MRB_FUNC(Window_Update) {
 }
 
 MRB_FUNC(Window_Move) {
-  auto* self_obj = GetSelfData<rgssx::Window>(self);
+  auto* self_obj = GetSelfData<lime::Window>(self);
   mrb_int x, y, width, height;
   mrb_get_args(mrb, "iiii", &x, &y, &width, &height);
 
@@ -56,7 +56,7 @@ MRB_FUNC(Window_Move) {
 }
 
 MRB_FUNC(Window_Opened) {
-  auto* self_obj = GetSelfData<rgssx::Window>(self);
+  auto* self_obj = GetSelfData<lime::Window>(self);
   EXC_BEGIN {
     return mrb_bool_value(self_obj->Opened());
   }
@@ -65,7 +65,7 @@ MRB_FUNC(Window_Opened) {
 }
 
 MRB_FUNC(Window_Closed) {
-  auto* self_obj = GetSelfData<rgssx::Window>(self);
+  auto* self_obj = GetSelfData<lime::Window>(self);
   EXC_BEGIN {
     return mrb_bool_value(self_obj->Closed());
   }
@@ -74,51 +74,47 @@ MRB_FUNC(Window_Closed) {
 }
 
 BINDING_ATTR_OBJECT_REF(Window,
-                        rgssx::Window,
+                        lime::Window,
                         WindowSkin,
-                        rgssx::Bitmap,
+                        lime::Bitmap,
                         kBitmapDataType);
 BINDING_ATTR_OBJECT_REF(Window,
-                        rgssx::Window,
+                        lime::Window,
                         Contents,
-                        rgssx::Bitmap,
+                        lime::Bitmap,
                         kBitmapDataType);
 BINDING_ATTR_OBJECT_REF(Window,
-                        rgssx::Window,
+                        lime::Window,
                         CursorRect,
-                        rgssx::Rect,
+                        lime::Rect,
                         kRectDataType);
-BINDING_ATTR_BOOL(Window, rgssx::Window, Active);
-BINDING_ATTR_BOOL(Window, rgssx::Window, ArrowsVisible);
-BINDING_ATTR_BOOL(Window, rgssx::Window, Pause);
-BINDING_ATTR_INT(Window, rgssx::Window, X);
-BINDING_ATTR_INT(Window, rgssx::Window, Y);
-BINDING_ATTR_INT(Window, rgssx::Window, Width);
-BINDING_ATTR_INT(Window, rgssx::Window, Height);
-BINDING_ATTR_INT(Window, rgssx::Window, OX);
-BINDING_ATTR_INT(Window, rgssx::Window, OY);
-BINDING_ATTR_INT(Window, rgssx::Window, Padding);
-BINDING_ATTR_INT(Window, rgssx::Window, PaddingBottom);
-BINDING_ATTR_INT(Window, rgssx::Window, Opacity);
-BINDING_ATTR_INT(Window, rgssx::Window, BackOpacity);
-BINDING_ATTR_INT(Window, rgssx::Window, ContentsOpacity);
-BINDING_ATTR_INT(Window, rgssx::Window, Openness);
-BINDING_ATTR_OBJECT_REF(Window,
-                        rgssx::Window,
-                        Tone,
-                        rgssx::Tone,
-                        kToneDataType);
-BINDING_ATTR_INT(Window, rgssx::Window, Scale);
+BINDING_ATTR_BOOL(Window, lime::Window, Active);
+BINDING_ATTR_BOOL(Window, lime::Window, ArrowsVisible);
+BINDING_ATTR_BOOL(Window, lime::Window, Pause);
+BINDING_ATTR_INT(Window, lime::Window, X);
+BINDING_ATTR_INT(Window, lime::Window, Y);
+BINDING_ATTR_INT(Window, lime::Window, Width);
+BINDING_ATTR_INT(Window, lime::Window, Height);
+BINDING_ATTR_INT(Window, lime::Window, OX);
+BINDING_ATTR_INT(Window, lime::Window, OY);
+BINDING_ATTR_INT(Window, lime::Window, Padding);
+BINDING_ATTR_INT(Window, lime::Window, PaddingBottom);
+BINDING_ATTR_INT(Window, lime::Window, Opacity);
+BINDING_ATTR_INT(Window, lime::Window, BackOpacity);
+BINDING_ATTR_INT(Window, lime::Window, ContentsOpacity);
+BINDING_ATTR_INT(Window, lime::Window, Openness);
+BINDING_ATTR_OBJECT_REF(Window, lime::Window, Tone, lime::Tone, kToneDataType);
+BINDING_ATTR_INT(Window, lime::Window, Scale);
 
 // Inherited from Dispoable / ViewportChild / Drawable
-BINDING_INHERITED_DISPOABLE(Window, rgssx::Window);
+BINDING_INHERITED_DISPOABLE(Window, lime::Window);
 BINDING_ATTR_OBJECT_REF(Window,
-                        rgssx::Window,
+                        lime::Window,
                         Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         kViewportDataType);
-BINDING_ATTR_BOOL(Window, rgssx::Window, Visible);
-BINDING_ATTR_INT(Window, rgssx::Window, Z);
+BINDING_ATTR_BOOL(Window, lime::Window, Visible);
+BINDING_ATTR_INT(Window, lime::Window, Z);
 
 void InitWindowBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Window");

@@ -12,7 +12,7 @@
 #include "src/filesystem.h"
 #include "src/font/font_system.h"
 
-namespace rgssx {
+namespace lime {
 namespace {
 
 using font::FontSystem;
@@ -168,9 +168,7 @@ Font::Font(std::vector<std::string> names, int size)
   }
 }
 
-Font::Font(RefPtr<Font> other) {
-  
-}
+Font::Font(RefPtr<Font> other) {}
 
 Font::~Font() {}
 
@@ -411,4 +409,4 @@ ATTR_DEF(RefPtr<Color>, DefaultOutColor, Font) {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

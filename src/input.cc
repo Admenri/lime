@@ -2,7 +2,7 @@
 
 #include "src/raywarp.h"
 
-namespace rgssx {
+namespace lime {
 
 const Input::KeySym kDefaultKeyboardBindings[] = {
     {"DOWN", raylib::KEY_DOWN},
@@ -247,4 +247,4 @@ void Input::UpdateDir8() {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

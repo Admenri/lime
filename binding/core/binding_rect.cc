@@ -10,16 +10,16 @@ MRB_DATATYPE_DEFINE(Rect);
 MRB_FUNC(Rect_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Rect> obj = nullptr;
+  lime::RefPtr<lime::Rect> obj = nullptr;
   EXC_BEGIN {
     if (argc == 4) {
       // Rect.new(x, y, width, height)
       mrb_int x, y, width, height;
       mrb_get_args(mrb, "iiii", &x, &y, &width, &height);
-      obj = rgssx::MakeRefCounted<rgssx::Rect>(x, y, width, height);
+      obj = lime::MakeRefCounted<lime::Rect>(x, y, width, height);
     } else if (argc == 0) {
       // Rect.new
-      obj = rgssx::MakeRefCounted<rgssx::Rect>();
+      obj = lime::MakeRefCounted<lime::Rect>();
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -33,10 +33,10 @@ MRB_FUNC(Rect_initialize_copy) {
   mrb_value other;
   mrb_get_args(mrb, "o", &other);
 
-  rgssx::RefPtr<rgssx::Rect> obj = nullptr;
+  lime::RefPtr<lime::Rect> obj = nullptr;
   EXC_BEGIN {
-    auto other_obj = GetObject<rgssx::Rect>(mrb, other, kRectDataType);
-    obj = rgssx::MakeRefCounted<rgssx::Rect>(other_obj);
+    auto other_obj = GetObject<lime::Rect>(mrb, other, kRectDataType);
+    obj = lime::MakeRefCounted<lime::Rect>(other_obj);
   }
   EXC_END(mrb);
 
@@ -44,7 +44,7 @@ MRB_FUNC(Rect_initialize_copy) {
 }
 
 MRB_FUNC(Rect_Set) {
-  auto* self_obj = GetSelfData<rgssx::Rect>(self);
+  auto* self_obj = GetSelfData<lime::Rect>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
 
@@ -58,7 +58,7 @@ MRB_FUNC(Rect_Set) {
       // set(rect)
       mrb_value rect_val;
       mrb_get_args(mrb, "o", &rect_val);
-      self_obj->Set(GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType));
+      self_obj->Set(GetObject<lime::Rect>(mrb, rect_val, kRectDataType));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -68,7 +68,7 @@ MRB_FUNC(Rect_Set) {
 }
 
 MRB_FUNC(Rect_Empty) {
-  auto* self_obj = GetSelfData<rgssx::Rect>(self);
+  auto* self_obj = GetSelfData<lime::Rect>(self);
   EXC_BEGIN {
     self_obj->Empty();
   }
@@ -76,17 +76,17 @@ MRB_FUNC(Rect_Empty) {
   return mrb_nil_value();
 }
 
-#define RECT_PROP_INT(cap)                           \
-  MRB_FUNC(Rect_##cap) {                             \
-    auto* self_obj = GetSelfData<rgssx::Rect>(self); \
-    return mrb_fixnum_value(self_obj->cap);          \
-  }                                                  \
-  MRB_FUNC(Rect_##cap##Equal) {                      \
-    auto* self_obj = GetSelfData<rgssx::Rect>(self); \
-    mrb_int value;                                   \
-    mrb_get_args(mrb, "i", &value);                  \
-    self_obj->cap = static_cast<int>(value);         \
-    return mrb_nil_value();                          \
+#define RECT_PROP_INT(cap)                          \
+  MRB_FUNC(Rect_##cap) {                            \
+    auto* self_obj = GetSelfData<lime::Rect>(self); \
+    return mrb_fixnum_value(self_obj->cap);         \
+  }                                                 \
+  MRB_FUNC(Rect_##cap##Equal) {                     \
+    auto* self_obj = GetSelfData<lime::Rect>(self); \
+    mrb_int value;                                  \
+    mrb_get_args(mrb, "i", &value);                 \
+    self_obj->cap = static_cast<int>(value);        \
+    return mrb_nil_value();                         \
   }
 
 RECT_PROP_INT(x);
@@ -100,13 +100,12 @@ RECT_PROP_INT(height);
 // method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
 // _dump (method) and _load (class method).
 MRB_FUNC(Rect__dump) {
-  auto* self_obj = GetSelfData<rgssx::Rect>(self);
+  auto* self_obj = GetSelfData<lime::Rect>(self);
   mrb_int limit;
   mrb_get_args(mrb, "i", &limit);
 
   EXC_BEGIN {
-    auto result =
-        rgssx::Rect::MarshalDump(rgssx::RefPtr<rgssx::Rect>(self_obj));
+    auto result = lime::Rect::MarshalDump(lime::RefPtr<lime::Rect>(self_obj));
     return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
   }
   EXC_END(mrb);
@@ -117,9 +116,9 @@ MRB_FUNC(Rect__load) {
   mrb_value data;
   mrb_get_args(mrb, "o", &data);
 
-  rgssx::RefPtr<rgssx::Rect> obj = nullptr;
+  lime::RefPtr<lime::Rect> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::Rect::MarshalLoad(MRBStringValue(data));
+    obj = lime::Rect::MarshalLoad(MRBStringValue(data));
   }
   EXC_END(mrb);
 

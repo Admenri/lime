@@ -7,7 +7,7 @@
 #include "src/utility.h"
 #include "src/viewport.h"
 
-namespace rgssx {
+namespace lime {
 
 class Tilemap;
 
@@ -95,4 +95,4 @@ class Tilemap : public RefCounted<Tilemap>,
   int tilesize_ = 32;
 };
 
-}  // namespace rgssx
+}  // namespace lime

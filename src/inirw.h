@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace rgssx {
+namespace lime {
 
 class IniFile {
  public:
@@ -225,4 +225,4 @@ class IniFile {
   std::vector<std::string> sectionOrder_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

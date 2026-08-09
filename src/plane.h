@@ -6,7 +6,7 @@
 #include "src/refptr.h"
 #include "src/viewport.h"
 
-namespace rgssx {
+namespace lime {
 
 class Plane : public RefCounted<Plane>, public Dispoable, public ViewportChild {
  public:
@@ -37,4 +37,4 @@ class Plane : public RefCounted<Plane>, public Dispoable, public ViewportChild {
   RefPtr<Tone> tone_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

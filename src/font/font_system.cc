@@ -4,7 +4,7 @@
 
 #include "src/font/font_system.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 FontSystem::FontSystem()
     : glyph_cache_(atlas_),
@@ -41,4 +41,4 @@ void FontSystem::SetPremultipliedAlpha(bool value) {
   glyph_cache_.Clear();
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

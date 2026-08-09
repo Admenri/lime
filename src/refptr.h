@@ -10,7 +10,7 @@
 #include <iostream>
 #include <utility>
 
-namespace rgssx {
+namespace lime {
 
 template <typename T>
 struct DefaultRefCountedTraits {
@@ -226,4 +226,4 @@ RefPtr<T> MakeRefCounted(Args&&... args) {
   return RefPtr<T>(obj);
 }
 
-}  // namespace rgssx
+}  // namespace lime

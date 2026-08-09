@@ -10,7 +10,7 @@
 #include "src/platform/win32.h"
 #endif  // _WIN32
 
-extern "C" void rgssx_main();
+extern "C" void lime_main();
 
 int main(int argc, char** argv) {
   // App name
@@ -33,30 +33,30 @@ int main(int argc, char** argv) {
   std::string ini = app + ".ini";
 
   // File system
-  auto io_service = new rgssx::IOService(argv[0]);
-  rgssx::IOService::Instance(io_service);
+  auto io_service = new lime::IOService(argv[0]);
+  lime::IOService::Instance(io_service);
 
   // The game directory is both the search root and the write root
   io_service->SetWritePath(base_dir);
   io_service->AddLoadPath(base_dir, "/");
 
   // Global config
-  auto config = new rgssx::Config(ini);
-  rgssx::Config::Instance(config);
+  auto config = new lime::Config(ini);
+  lime::Config::Instance(config);
 
   // Global renderer
   auto graphics =
-      new rgssx::Graphics(config->width, config->height, config->title,
-                          config->vsync, config->fullscreen);
-  rgssx::Graphics::Instance(graphics);
+      new lime::Graphics(config->width, config->height, config->title,
+                         config->vsync, config->fullscreen);
+  lime::Graphics::Instance(graphics);
 
   // Input manager
-  auto input = new rgssx::Input(config->rgss_version);
-  rgssx::Input::Instance(input);
+  auto input = new lime::Input(config->rgss_version);
+  lime::Input::Instance(input);
 
   // Audio manager
-  auto audio = new rgssx::Audio();
-  rgssx::Audio::Instance(audio);
+  auto audio = new lime::Audio();
+  lime::Audio::Instance(audio);
 
 // RTP reading
 #if defined(_WIN32)
@@ -69,14 +69,14 @@ int main(int argc, char** argv) {
 #endif  // _WIN32
 
   // Main entry
-  rgssx_main();
+  lime_main();
 
   // Clean up
-  rgssx::Graphics::Instance(nullptr);
-  rgssx::Audio::Instance(nullptr);
-  rgssx::Input::Instance(nullptr);
-  rgssx::Config::Instance(nullptr);
-  rgssx::IOService::Instance(nullptr);
+  lime::Graphics::Instance(nullptr);
+  lime::Audio::Instance(nullptr);
+  lime::Input::Instance(nullptr);
+  lime::Config::Instance(nullptr);
+  lime::IOService::Instance(nullptr);
 
   return 0;
 }

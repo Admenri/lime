@@ -4,7 +4,7 @@
 #include "src/raywarp.h"
 #include "src/utility.h"
 
-namespace rgssx {
+namespace lime {
 
 class DrawableSet;
 
@@ -84,4 +84,4 @@ class DrawableSet {
   Drawable root_;  // sentinel node for doubly-linked list
 };
 
-}  // namespace rgssx
+}  // namespace lime

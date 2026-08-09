@@ -15,37 +15,37 @@ MRB_DATATYPE_DEFINE(Viewport);
 MRB_FUNC(Viewport_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Viewport> obj = nullptr;
+  lime::RefPtr<lime::Viewport> obj = nullptr;
   EXC_BEGIN {
     if (argc == 0) {
       // Viewport.new()
-      obj = rgssx::MakeRefCounted<rgssx::Viewport>();
+      obj = lime::MakeRefCounted<lime::Viewport>();
     } else if (argc == 1) {
       // Viewport.new(rect)
       mrb_value rect;
       mrb_get_args(mrb, "o", &rect);
-      obj = rgssx::MakeRefCounted<rgssx::Viewport>(
-          GetObject<rgssx::Rect>(mrb, rect, kRectDataType));
+      obj = lime::MakeRefCounted<lime::Viewport>(
+          GetObject<lime::Rect>(mrb, rect, kRectDataType));
     } else if (argc == 2) {
       // Viewport.new(viewport, rect)
       mrb_value viewport, rect;
       mrb_get_args(mrb, "oo", &viewport, &rect);
-      obj = rgssx::MakeRefCounted<rgssx::Viewport>(
-          GetObject<rgssx::Viewport>(mrb, viewport, kViewportDataType),
-          GetObject<rgssx::Rect>(mrb, rect, kRectDataType));
+      obj = lime::MakeRefCounted<lime::Viewport>(
+          GetObject<lime::Viewport>(mrb, viewport, kViewportDataType),
+          GetObject<lime::Rect>(mrb, rect, kRectDataType));
     } else if (argc == 4) {
       // Viewport.new(x, y, width, height)
       mrb_int x, y, w, h;
       mrb_get_args(mrb, "iiii", &x, &y, &w, &h);
-      obj = rgssx::MakeRefCounted<rgssx::Viewport>(x, y, w, h);
+      obj = lime::MakeRefCounted<lime::Viewport>(x, y, w, h);
     } else if (argc == 5) {
       // Viewport.new(viewport, x, y, width, height)
       mrb_value viewport;
       mrb_int x, y, w, h;
       mrb_get_args(mrb, "oiiii", &viewport, &x, &y, &w, &h);
-      obj = rgssx::MakeRefCounted<rgssx::Viewport>(
-          GetObject<rgssx::Viewport>(mrb, viewport, kViewportDataType), x, y,
-          w, h);
+      obj = lime::MakeRefCounted<lime::Viewport>(
+          GetObject<lime::Viewport>(mrb, viewport, kViewportDataType), x, y, w,
+          h);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -56,12 +56,12 @@ MRB_FUNC(Viewport_initialize) {
 }
 
 MRB_FUNC(Viewport_Flash) {
-  auto* self_obj = GetSelfData<rgssx::Viewport>(self);
+  auto* self_obj = GetSelfData<lime::Viewport>(self);
   mrb_value color_val;
   mrb_int duration;
   mrb_get_args(mrb, "oi", &color_val, &duration);
 
-  auto color = GetObject<rgssx::Color>(mrb, color_val, kColorDataType);
+  auto color = GetObject<lime::Color>(mrb, color_val, kColorDataType);
 
   EXC_BEGIN {
     self_obj->Flash(color, duration);
@@ -71,7 +71,7 @@ MRB_FUNC(Viewport_Flash) {
 }
 
 MRB_FUNC(Viewport_Update) {
-  auto* self_obj = GetSelfData<rgssx::Viewport>(self);
+  auto* self_obj = GetSelfData<lime::Viewport>(self);
   EXC_BEGIN {
     self_obj->Update();
   }
@@ -80,11 +80,11 @@ MRB_FUNC(Viewport_Update) {
 }
 
 MRB_FUNC(Viewport_Render) {
-  auto* self_obj = GetSelfData<rgssx::Viewport>(self);
+  auto* self_obj = GetSelfData<lime::Viewport>(self);
   mrb_value bitmap_val;
   mrb_get_args(mrb, "o", &bitmap_val);
 
-  auto bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+  auto bitmap = GetObject<lime::Bitmap>(mrb, bitmap_val, kBitmapDataType);
 
   EXC_BEGIN {
     self_obj->Render(bitmap);
@@ -94,36 +94,36 @@ MRB_FUNC(Viewport_Render) {
 }
 
 BINDING_ATTR_OBJECT_REF(Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         Rect,
-                        rgssx::Rect,
+                        lime::Rect,
                         kRectDataType);
-BINDING_ATTR_INT(Viewport, rgssx::Viewport, OX);
-BINDING_ATTR_INT(Viewport, rgssx::Viewport, OY);
-BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, Angle);
-BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, ZoomX);
-BINDING_ATTR_FLOAT(Viewport, rgssx::Viewport, ZoomY);
-BINDING_ATTR_BOOL(Viewport, rgssx::Viewport, Clip);
+BINDING_ATTR_INT(Viewport, lime::Viewport, OX);
+BINDING_ATTR_INT(Viewport, lime::Viewport, OY);
+BINDING_ATTR_FLOAT(Viewport, lime::Viewport, Angle);
+BINDING_ATTR_FLOAT(Viewport, lime::Viewport, ZoomX);
+BINDING_ATTR_FLOAT(Viewport, lime::Viewport, ZoomY);
+BINDING_ATTR_BOOL(Viewport, lime::Viewport, Clip);
 BINDING_ATTR_OBJECT_REF(Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         Color,
-                        rgssx::Color,
+                        lime::Color,
                         kColorDataType);
 BINDING_ATTR_OBJECT_REF(Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         Tone,
-                        rgssx::Tone,
+                        lime::Tone,
                         kToneDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
-BINDING_INHERITED_DISPOABLE(Viewport, rgssx::Viewport);
+BINDING_INHERITED_DISPOABLE(Viewport, lime::Viewport);
 BINDING_ATTR_OBJECT_REF(Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         Viewport,
-                        rgssx::Viewport,
+                        lime::Viewport,
                         kViewportDataType);
-BINDING_ATTR_BOOL(Viewport, rgssx::Viewport, Visible);
-BINDING_ATTR_INT(Viewport, rgssx::Viewport, Z);
+BINDING_ATTR_BOOL(Viewport, lime::Viewport, Visible);
+BINDING_ATTR_INT(Viewport, lime::Viewport, Z);
 
 void InitViewportBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Viewport");

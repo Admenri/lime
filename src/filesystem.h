@@ -12,7 +12,7 @@
 
 #include "src/common.h"
 
-namespace rgssx {
+namespace lime {
 
 class IOStream {
  public:
@@ -65,4 +65,4 @@ class IOService : public Singleton<IOService> {
   std::unique_ptr<IOStream> OpenWrite(const std::string& filename);
 };
 
-}  // namespace rgssx
+}  // namespace lime

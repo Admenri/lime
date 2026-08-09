@@ -2,7 +2,7 @@
 
 #include "src/graphics.h"
 
-namespace rgssx {
+namespace lime {
 
 ViewportChild::ViewportChild(RefPtr<Viewport> viewport, const ZValue& z)
     : Drawable(z), viewport_(viewport) {
@@ -281,4 +281,4 @@ void Viewport::Draw(DrawParam param) {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

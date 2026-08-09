@@ -11,7 +11,7 @@
 #include <ft2build.h>
 #include FT_SYNTHESIS_H
 
-namespace rgssx::font {
+namespace lime::font {
 
 GlyphCache::GlyphCache(FontAtlas& atlas) : atlas_(atlas) {}
 
@@ -169,4 +169,4 @@ void GlyphCache::Clear() {
   atlas_.Clear();
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

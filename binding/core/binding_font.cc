@@ -13,24 +13,23 @@ MRB_DATATYPE_DEFINE(Font);
 MRB_FUNC(Font_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Font> obj = nullptr;
+  lime::RefPtr<lime::Font> obj = nullptr;
   EXC_BEGIN {
     if (argc == 0) {
       // Font.new
-      obj = rgssx::MakeRefCounted<rgssx::Font>();
+      obj = lime::MakeRefCounted<lime::Font>();
     } else if (argc == 1) {
       // Font.new(name)
       mrb_value name_val;
       mrb_get_args(mrb, "o", &name_val);
-      obj = rgssx::MakeRefCounted<rgssx::Font>(
-          GetStringVector(mrb, name_val));
+      obj = lime::MakeRefCounted<lime::Font>(GetStringVector(mrb, name_val));
     } else if (argc == 2) {
       // Font.new(name, size)
       mrb_value name_val;
       mrb_int size;
       mrb_get_args(mrb, "oi", &name_val, &size);
-      obj = rgssx::MakeRefCounted<rgssx::Font>(
-          GetStringVector(mrb, name_val), static_cast<int>(size));
+      obj = lime::MakeRefCounted<lime::Font>(GetStringVector(mrb, name_val),
+                                             static_cast<int>(size));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -45,7 +44,7 @@ MRB_FUNC(Font_Exist) {
   mrb_get_args(mrb, "z", &name);
 
   EXC_BEGIN {
-    return mrb_bool_value(rgssx::Font::Exist(name));
+    return mrb_bool_value(lime::Font::Exist(name));
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -54,7 +53,7 @@ MRB_FUNC(Font_Exist) {
 // Instance attributes -------------------------------------------------------
 
 MRB_FUNC(Font_Name) {
-  auto* self_obj = GetSelfData<rgssx::Font>(self);
+  auto* self_obj = GetSelfData<lime::Font>(self);
   EXC_BEGIN {
     auto result = self_obj->Attr_Name();
     return WrapStringVector(mrb, *result);
@@ -64,7 +63,7 @@ MRB_FUNC(Font_Name) {
 }
 
 MRB_FUNC(Font_NameEqual) {
-  auto* self_obj = GetSelfData<rgssx::Font>(self);
+  auto* self_obj = GetSelfData<lime::Font>(self);
   mrb_value val;
   mrb_get_args(mrb, "o", &val);
 
@@ -77,7 +76,7 @@ MRB_FUNC(Font_NameEqual) {
 }
 
 MRB_FUNC(Font_Size) {
-  auto* self_obj = GetSelfData<rgssx::Font>(self);
+  auto* self_obj = GetSelfData<lime::Font>(self);
   EXC_BEGIN {
     auto result = self_obj->Attr_Size();
     return mrb_fixnum_value(*result);
@@ -87,7 +86,7 @@ MRB_FUNC(Font_Size) {
 }
 
 MRB_FUNC(Font_SizeEqual) {
-  auto* self_obj = GetSelfData<rgssx::Font>(self);
+  auto* self_obj = GetSelfData<lime::Font>(self);
   mrb_int size;
   mrb_get_args(mrb, "i", &size);
 
@@ -98,25 +97,25 @@ MRB_FUNC(Font_SizeEqual) {
   return mrb_nil_value();
 }
 
-#define FONT_BOOL_ATTR(name, cap)                    \
-  MRB_FUNC(Font_##cap) {                             \
-    auto* self_obj = GetSelfData<rgssx::Font>(self); \
-    EXC_BEGIN {                                      \
-      auto result = self_obj->Attr_##cap();          \
-      return mrb_bool_value(*result);                \
-    }                                                \
-    EXC_END(mrb);                                    \
-    return mrb_nil_value();                          \
-  }                                                  \
-  MRB_FUNC(Font_##cap##Equal) {                      \
-    auto* self_obj = GetSelfData<rgssx::Font>(self); \
-    mrb_bool value;                                  \
-    mrb_get_args(mrb, "b", &value);                  \
-    EXC_BEGIN {                                      \
-      self_obj->Attr_##cap(value);                   \
-    }                                                \
-    EXC_END(mrb);                                    \
-    return mrb_nil_value();                          \
+#define FONT_BOOL_ATTR(name, cap)                   \
+  MRB_FUNC(Font_##cap) {                            \
+    auto* self_obj = GetSelfData<lime::Font>(self); \
+    EXC_BEGIN {                                     \
+      auto result = self_obj->Attr_##cap();         \
+      return mrb_bool_value(*result);               \
+    }                                               \
+    EXC_END(mrb);                                   \
+    return mrb_nil_value();                         \
+  }                                                 \
+  MRB_FUNC(Font_##cap##Equal) {                     \
+    auto* self_obj = GetSelfData<lime::Font>(self); \
+    mrb_bool value;                                 \
+    mrb_get_args(mrb, "b", &value);                 \
+    EXC_BEGIN {                                     \
+      self_obj->Attr_##cap(value);                  \
+    }                                               \
+    EXC_END(mrb);                                   \
+    return mrb_nil_value();                         \
   }
 
 FONT_BOOL_ATTR(name, Bold);
@@ -126,26 +125,26 @@ FONT_BOOL_ATTR(name, Shadow);
 
 #undef FONT_BOOL_ATTR
 
-#define FONT_COLOR_ATTR(cap)                                        \
-  MRB_FUNC(Font_##cap) {                                            \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);                \
-    EXC_BEGIN {                                                     \
-      auto result = self_obj->Attr_##cap();                         \
-      return WrapObject(mrb, result->get(), kColorDataType);        \
-    }                                                               \
-    EXC_END(mrb);                                                   \
-    return mrb_nil_value();                                         \
-  }                                                                 \
-  MRB_FUNC(Font_##cap##Equal) {                                     \
-    auto* self_obj = GetSelfData<rgssx::Font>(self);                \
-    mrb_value val;                                                  \
-    mrb_get_args(mrb, "o", &val);                                   \
-    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType); \
-    EXC_BEGIN {                                                     \
-      self_obj->Attr_##cap(color);                                  \
-    }                                                               \
-    EXC_END(mrb);                                                   \
-    return mrb_nil_value();                                         \
+#define FONT_COLOR_ATTR(cap)                                       \
+  MRB_FUNC(Font_##cap) {                                           \
+    auto* self_obj = GetSelfData<lime::Font>(self);                \
+    EXC_BEGIN {                                                    \
+      auto result = self_obj->Attr_##cap();                        \
+      return WrapObject(mrb, result->get(), kColorDataType);       \
+    }                                                              \
+    EXC_END(mrb);                                                  \
+    return mrb_nil_value();                                        \
+  }                                                                \
+  MRB_FUNC(Font_##cap##Equal) {                                    \
+    auto* self_obj = GetSelfData<lime::Font>(self);                \
+    mrb_value val;                                                 \
+    mrb_get_args(mrb, "o", &val);                                  \
+    auto color = GetObject<lime::Color>(mrb, val, kColorDataType); \
+    EXC_BEGIN {                                                    \
+      self_obj->Attr_##cap(color);                                 \
+    }                                                              \
+    EXC_END(mrb);                                                  \
+    return mrb_nil_value();                                        \
   }
 
 FONT_COLOR_ATTR(Color);
@@ -157,7 +156,7 @@ FONT_COLOR_ATTR(OutColor);
 
 MRB_FUNC(Font_DefaultName) {
   EXC_BEGIN {
-    auto result = rgssx::Font::Attr_DefaultName();
+    auto result = lime::Font::Attr_DefaultName();
     return WrapStringVector(mrb, *result);
   }
   EXC_END(mrb);
@@ -170,7 +169,7 @@ MRB_FUNC(Font_DefaultNameEqual) {
 
   std::vector<std::string> names = GetStringVector(mrb, val);
   EXC_BEGIN {
-    rgssx::Font::Attr_DefaultName(names);
+    lime::Font::Attr_DefaultName(names);
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -178,7 +177,7 @@ MRB_FUNC(Font_DefaultNameEqual) {
 
 MRB_FUNC(Font_DefaultSize) {
   EXC_BEGIN {
-    auto result = rgssx::Font::Attr_DefaultSize();
+    auto result = lime::Font::Attr_DefaultSize();
     return mrb_fixnum_value(*result);
   }
   EXC_END(mrb);
@@ -190,29 +189,29 @@ MRB_FUNC(Font_DefaultSizeEqual) {
   mrb_get_args(mrb, "i", &size);
 
   EXC_BEGIN {
-    rgssx::Font::Attr_DefaultSize(static_cast<int>(size));
+    lime::Font::Attr_DefaultSize(static_cast<int>(size));
   }
   EXC_END(mrb);
   return mrb_nil_value();
 }
 
-#define FONT_STATIC_BOOL_ATTR(cap)                    \
-  MRB_FUNC(Font_Default##cap) {                       \
-    EXC_BEGIN {                                       \
-      auto result = rgssx::Font::Attr_Default##cap(); \
-      return mrb_bool_value(*result);                 \
-    }                                                 \
-    EXC_END(mrb);                                     \
-    return mrb_nil_value();                           \
-  }                                                   \
-  MRB_FUNC(Font_Default##cap##Equal) {                \
-    mrb_bool value;                                   \
-    mrb_get_args(mrb, "b", &value);                   \
-    EXC_BEGIN {                                       \
-      rgssx::Font::Attr_Default##cap(value);          \
-    }                                                 \
-    EXC_END(mrb);                                     \
-    return mrb_nil_value();                           \
+#define FONT_STATIC_BOOL_ATTR(cap)                   \
+  MRB_FUNC(Font_Default##cap) {                      \
+    EXC_BEGIN {                                      \
+      auto result = lime::Font::Attr_Default##cap(); \
+      return mrb_bool_value(*result);                \
+    }                                                \
+    EXC_END(mrb);                                    \
+    return mrb_nil_value();                          \
+  }                                                  \
+  MRB_FUNC(Font_Default##cap##Equal) {               \
+    mrb_bool value;                                  \
+    mrb_get_args(mrb, "b", &value);                  \
+    EXC_BEGIN {                                      \
+      lime::Font::Attr_Default##cap(value);          \
+    }                                                \
+    EXC_END(mrb);                                    \
+    return mrb_nil_value();                          \
   }
 
 FONT_STATIC_BOOL_ATTR(Bold);
@@ -222,24 +221,24 @@ FONT_STATIC_BOOL_ATTR(Shadow);
 
 #undef FONT_STATIC_BOOL_ATTR
 
-#define FONT_STATIC_COLOR_ATTR(cap)                                 \
-  MRB_FUNC(Font_Default##cap) {                                     \
-    EXC_BEGIN {                                                     \
-      auto result = rgssx::Font::Attr_Default##cap();               \
-      return WrapObject(mrb, result->get(), kColorDataType);        \
-    }                                                               \
-    EXC_END(mrb);                                                   \
-    return mrb_nil_value();                                         \
-  }                                                                 \
-  MRB_FUNC(Font_Default##cap##Equal) {                              \
-    mrb_value val;                                                  \
-    mrb_get_args(mrb, "o", &val);                                   \
-    auto color = GetObject<rgssx::Color>(mrb, val, kColorDataType); \
-    EXC_BEGIN {                                                     \
-      rgssx::Font::Attr_Default##cap(color);                        \
-    }                                                               \
-    EXC_END(mrb);                                                   \
-    return mrb_nil_value();                                         \
+#define FONT_STATIC_COLOR_ATTR(cap)                                \
+  MRB_FUNC(Font_Default##cap) {                                    \
+    EXC_BEGIN {                                                    \
+      auto result = lime::Font::Attr_Default##cap();               \
+      return WrapObject(mrb, result->get(), kColorDataType);       \
+    }                                                              \
+    EXC_END(mrb);                                                  \
+    return mrb_nil_value();                                        \
+  }                                                                \
+  MRB_FUNC(Font_Default##cap##Equal) {                             \
+    mrb_value val;                                                 \
+    mrb_get_args(mrb, "o", &val);                                  \
+    auto color = GetObject<lime::Color>(mrb, val, kColorDataType); \
+    EXC_BEGIN {                                                    \
+      lime::Font::Attr_Default##cap(color);                        \
+    }                                                              \
+    EXC_END(mrb);                                                  \
+    return mrb_nil_value();                                        \
   }
 
 FONT_STATIC_COLOR_ATTR(Color);

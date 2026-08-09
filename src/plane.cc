@@ -4,7 +4,7 @@
 
 #include "src/shader.h"
 
-namespace rgssx {
+namespace lime {
 
 Plane::Plane(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
@@ -165,4 +165,4 @@ void Plane::Draw(DrawParam param) {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

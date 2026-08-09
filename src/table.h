@@ -5,7 +5,7 @@
 #include "src/define.h"
 #include "src/refptr.h"
 
-namespace rgssx {
+namespace lime {
 
 class Table : public RefCounted<Table> {
  public:
@@ -29,4 +29,4 @@ class Table : public RefCounted<Table> {
   std::vector<int16_t> data_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

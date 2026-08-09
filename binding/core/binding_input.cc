@@ -10,9 +10,9 @@ std::string GetKeyBinding(mrb_state* mrb, mrb_value value) {
     return mrb_sym2name(mrb, sym);
   } else if (mrb_fixnum_p(value)) {
     auto key_id = mrb_fixnum(value);
-    for (size_t i = 0; i < std::size(rgssx::kKeyboardBindings); ++i) {
-      if (rgssx::kKeyboardBindings[i].key_id == key_id)
-        return rgssx::kKeyboardBindings[i].name;
+    for (size_t i = 0; i < std::size(lime::kKeyboardBindings); ++i) {
+      if (lime::kKeyboardBindings[i].key_id == key_id)
+        return lime::kKeyboardBindings[i].name;
     }
   }
 
@@ -20,7 +20,7 @@ std::string GetKeyBinding(mrb_state* mrb, mrb_value value) {
 }
 
 MRB_FUNC(Input_Update) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
   EXC_BEGIN {
     self_obj->Update();
   }
@@ -29,7 +29,7 @@ MRB_FUNC(Input_Update) {
 }
 
 MRB_FUNC(Input_Pressed) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
 
   mrb_value sym;
   mrb_get_args(mrb, "o", &sym);
@@ -43,7 +43,7 @@ MRB_FUNC(Input_Pressed) {
 }
 
 MRB_FUNC(Input_Triggered) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
 
   mrb_value sym;
   mrb_get_args(mrb, "o", &sym);
@@ -57,7 +57,7 @@ MRB_FUNC(Input_Triggered) {
 }
 
 MRB_FUNC(Input_Repeated) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
 
   mrb_value sym;
   mrb_get_args(mrb, "o", &sym);
@@ -71,7 +71,7 @@ MRB_FUNC(Input_Repeated) {
 }
 
 MRB_FUNC(Input_Dir4) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Dir4());
   }
@@ -80,7 +80,7 @@ MRB_FUNC(Input_Dir4) {
 }
 
 MRB_FUNC(Input_Dir8) {
-  auto* self_obj = rgssx::Input::Instance();
+  auto* self_obj = lime::Input::Instance();
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Dir8());
   }
@@ -101,8 +101,8 @@ void InitInputBinding(mrb_state* mrb) {
   mrb_define_module_function(mrb, mod, "dir4", Input_Dir4, MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "dir8", Input_Dir8, MRB_ARGS_NONE());
 
-  for (size_t i = 0; i < std::size(rgssx::kKeyboardBindings); ++i) {
-    auto& binding_set = rgssx::kKeyboardBindings[i];
+  for (size_t i = 0; i < std::size(lime::kKeyboardBindings); ++i) {
+    auto& binding_set = lime::kKeyboardBindings[i];
     mrb_sym key = mrb_intern_static(mrb, binding_set.name.data(),
                                     binding_set.name.size());
     mrb_value val = mrb_fixnum_value(binding_set.key_id);

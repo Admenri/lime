@@ -136,7 +136,7 @@ void main() {
 
 // -------------------------------------------------------------
 
-namespace rgssx {
+namespace lime {
 
 ShaderBase::~ShaderBase() {
   raylib::UnloadShader(shader);
@@ -180,4 +180,4 @@ ViewportShader::ViewportShader() {
   u_opacity = raylib::GetShaderLocation(shader, "opacity");
 }
 
-}  // namespace rgssx
+}  // namespace lime

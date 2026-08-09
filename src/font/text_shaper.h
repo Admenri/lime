@@ -11,7 +11,7 @@
 #include "src/font/font_common.h"
 #include "src/font/font_face.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // Shapes UTF-8 text into a GlyphRun using HarfBuzz.
@@ -33,4 +33,4 @@ class TextShaper {
   GlyphRun Shape(FontFace& font, const char* utf8) const;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

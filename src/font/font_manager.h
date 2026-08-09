@@ -12,7 +12,7 @@
 #include "src/font/font_common.h"
 #include "src/font/font_face.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // Owns the font list (primary + fallback chain) and resolves which face
@@ -51,4 +51,4 @@ class FontManager {
   std::vector<std::unique_ptr<FontFace>> fonts_;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

@@ -7,7 +7,7 @@
 #include "src/utility.h"
 #include "src/viewport.h"
 
-namespace rgssx {
+namespace lime {
 
 class Window : public RefCounted<Window>,
                public Dispoable,
@@ -66,4 +66,4 @@ class Window : public RefCounted<Window>,
   int cursor_index_ = 0;
 };
 
-}  // namespace rgssx
+}  // namespace lime

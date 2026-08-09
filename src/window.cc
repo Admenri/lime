@@ -126,7 +126,7 @@ void DrawTextureTiled(Texture2D texture,
 
 }  // namespace raylib
 
-namespace rgssx {
+namespace lime {
 
 static const int kPauseIndexTable[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
@@ -733,4 +733,4 @@ void Window::Draw(DrawParam param) {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

@@ -6,7 +6,7 @@
 #include "src/refptr.h"
 #include "src/utility.h"
 
-namespace rgssx {
+namespace lime {
 
 class Viewport;
 
@@ -74,4 +74,4 @@ class Viewport : public RefCounted<Viewport>,
   } flash_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

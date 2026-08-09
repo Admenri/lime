@@ -1,6 +1,6 @@
 <div align="center">
 
-# RGSSX
+# lime
 
 **轻量级 RGSS 运行时** · Lightweight RGSS Runtime
 
@@ -36,8 +36,8 @@
 
 ```bash
 # 1. 克隆仓库（含全部子模块）
-git clone --recursive https://github.com/Admenri/rgssx.git
-cd rgssx
+git clone --recursive https://github.com/Admenri/lime.git
+cd lime
 
 # 2. 配置
 cmake -S . -B build
@@ -46,11 +46,11 @@ cmake -S . -B build
 cmake --build build --config Release
 ```
 
-构建完成后，在 `build/Release/`（或 `build/Debug/`）下得到 `rgssx.exe`。
+构建完成后，在 `build/Release/`（或 `build/Debug/`）下得到 `lime.exe`。
 
 ### 运行游戏
 
-将 `rgssx.exe` 放到 RPG Maker 工程目录中（与 `Game.exe` 同级），运行即可加载并执行该工程的脚本。
+将 `lime.exe` 放到 RPG Maker 工程目录中（与 `Game.exe` 同级），运行即可加载并执行该工程的脚本。
 
 可通过与可执行文件同名的 `.ini` 配置文件调整运行参数：
 
@@ -58,7 +58,7 @@ cmake --build build --config Release
 [Game]
 RGSS=3               ; RGSS 版本：1 / 2 / 3（留空或为 0 时按脚本扩展名自动识别）
 Scripts=Data/Scripts.rvdata2
-Title=RGSSX
+Title=lime
 RTP=
 Soundfont=font.sf2    ; MIDI 播放用的 SoundFont
 
@@ -79,7 +79,7 @@ Fullscreen=false
 │  core/    -> Graphics/Input/Audio/Sprite/...         │  mruby 脚本解释器
 │  rpg/     -> RPG::* 数据结构 (RGSS1/2/3)             │
 ├─────────────────────────────────────────────────────┤
-│                 src/  (rgssx_core)                   │  核心引擎（C++20）
+│                 src/  (lime_core)                   │  核心引擎（C++20）
 │  graphics  drawable  viewport  sprite  window        │  渲染与绘制系统
 │  bitmap    font/     tilemap  plane   shader         │  字体系统 / 着色器
 │  audio     input     filesystem         profile      │  音频 / 输入 / 虚拟文件系统 / 配置
@@ -94,7 +94,7 @@ Fullscreen=false
 | --- | --- |
 | `app/` | 可执行入口，解析 ini 配置并初始化各全局单例 |
 | `binding/` | 将 C++ 核心以 Ruby 形式暴露给 mruby，并内嵌 `RPG::*` 数据结构 |
-| `src/` | 核心引擎 `rgssx_core`：渲染、绘制、字体、音频、输入、文件系统 |
+| `src/` | 核心引擎 `lime_core`：渲染、绘制、字体、音频、输入、文件系统 |
 | `3rdparty/` | 第三方依赖（git submodule） |
 
 ## 🛠 技术栈
@@ -112,7 +112,7 @@ Fullscreen=false
 ## 📄 项目结构
 
 ```
-rgssx/
+lime/
 ├── CMakeLists.txt
 ├── app/                  # 可执行入口
 │   └── main.cc
@@ -121,7 +121,7 @@ rgssx/
 │   ├── rpg/              #   RPG 数据结构（RGSS1/2/3）
 │   ├── stdlib/           #   标准库扩展（Dir 等）
 │   └── mruby_main.cc     #   脚本加载与执行
-├── src/                  # 核心引擎（rgssx_core）
+├── src/                  # 核心引擎（lime_core）
 │   ├── graphics.cc       #   渲染主循环、转场、截屏
 │   ├── drawable.cc       #   Z 排序绘制列表
 │   ├── viewport.cc       #   视口与缓存

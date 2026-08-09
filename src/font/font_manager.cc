@@ -7,7 +7,7 @@
 #include <cstring>
 #include <utility>
 
-namespace rgssx::font {
+namespace lime::font {
 
 int FontManager::LoadFont(const char* filename, float pixel_size) {
   auto face = std::make_unique<FontFace>();
@@ -71,4 +71,4 @@ std::vector<TextSegment> FontManager::Segment(const char* utf8,
   return out;
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

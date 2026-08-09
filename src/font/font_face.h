@@ -13,7 +13,7 @@
 #include <hb.h>
 #include <hb-ft.h>
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // One font file loaded at a fixed pixel size.
@@ -69,4 +69,4 @@ class FontFace {
   bool italic_ = false;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

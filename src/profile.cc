@@ -2,7 +2,7 @@
 
 #include "src/filesystem.h"
 
-namespace rgssx {
+namespace lime {
 
 static void ReplaceStringWidth(std::string& str, char before, char after) {
   for (size_t i = 0; i < str.size(); ++i)
@@ -16,7 +16,7 @@ Config::Config(std::string inifile) {
     auto stream = IOService::Instance()->OpenReadRaw(inifile);
     auto content = stream->ReadAll();
     parser_.LoadFromString(content);
-  } catch (const std::exception&) {
+  } catch (const Exception&) {
     // Missing or unreadable ini: fall back to defaults
   }
 
@@ -52,4 +52,4 @@ Config::Config(std::string inifile) {
   fullscreen = parser_.GetInt("Window", "Fullscreen", fullscreen);
 }
 
-}  // namespace rgssx
+}  // namespace lime

@@ -15,18 +15,18 @@ MRB_DATATYPE_DEFINE(Bitmap);
 MRB_FUNC(Bitmap_initialize) {
   mrb_int argc = mrb_get_argc(mrb);
 
-  rgssx::RefPtr<rgssx::Bitmap> obj = nullptr;
+  lime::RefPtr<lime::Bitmap> obj = nullptr;
   EXC_BEGIN {
     if (argc == 1) {
       // Bitmap.new(filename)
       const char* filename;
       mrb_get_args(mrb, "z", &filename);
-      obj = rgssx::MakeRefCounted<rgssx::Bitmap>(filename);
+      obj = lime::MakeRefCounted<lime::Bitmap>(filename);
     } else if (argc == 2) {
       // Bitmap.new(width, height)
       mrb_int width, height;
       mrb_get_args(mrb, "ii", &width, &height);
-      obj = rgssx::MakeRefCounted<rgssx::Bitmap>(width, height);
+      obj = lime::MakeRefCounted<lime::Bitmap>(width, height);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -40,10 +40,10 @@ MRB_FUNC(Bitmap_initialize_copy) {
   mrb_value other;
   mrb_get_args(mrb, "o", &other);
 
-  rgssx::RefPtr<rgssx::Bitmap> obj = nullptr;
+  lime::RefPtr<lime::Bitmap> obj = nullptr;
   EXC_BEGIN {
-    auto other_obj = GetObject<rgssx::Bitmap>(mrb, other, kBitmapDataType);
-    obj = rgssx::MakeRefCounted<rgssx::Bitmap>(other_obj);
+    auto other_obj = GetObject<lime::Bitmap>(mrb, other, kBitmapDataType);
+    obj = lime::MakeRefCounted<lime::Bitmap>(other_obj);
   }
   EXC_END(mrb);
 
@@ -51,7 +51,7 @@ MRB_FUNC(Bitmap_initialize_copy) {
 }
 
 MRB_FUNC(Bitmap_Width) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Width());
   }
@@ -60,7 +60,7 @@ MRB_FUNC(Bitmap_Width) {
 }
 
 MRB_FUNC(Bitmap_Height) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Height());
   }
@@ -69,7 +69,7 @@ MRB_FUNC(Bitmap_Height) {
 }
 
 MRB_FUNC(Bitmap_GetRect) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   EXC_BEGIN {
     auto result = self_obj->GetRect();
     return WrapObject(mrb, result.get(), kRectDataType);
@@ -79,14 +79,14 @@ MRB_FUNC(Bitmap_GetRect) {
 }
 
 MRB_FUNC(Bitmap_Blt) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_int x, y, opacity = 255;
   mrb_value src_bitmap_val, src_rect_val;
   mrb_get_args(mrb, "iioo|i", &x, &y, &src_bitmap_val, &src_rect_val, &opacity);
 
   auto src_bitmap =
-      GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
-  auto src_rect = GetObject<rgssx::Rect>(mrb, src_rect_val, kRectDataType);
+      GetObject<lime::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
+  auto src_rect = GetObject<lime::Rect>(mrb, src_rect_val, kRectDataType);
 
   EXC_BEGIN {
     self_obj->Blt(x, y, src_bitmap, src_rect, opacity);
@@ -96,16 +96,16 @@ MRB_FUNC(Bitmap_Blt) {
 }
 
 MRB_FUNC(Bitmap_StretchBlt) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_value dst_rect_val, src_bitmap_val, src_rect_val;
   mrb_int opacity = 255;
   mrb_get_args(mrb, "ooo|i", &dst_rect_val, &src_bitmap_val, &src_rect_val,
                &opacity);
 
-  auto dst_rect = GetObject<rgssx::Rect>(mrb, dst_rect_val, kRectDataType);
+  auto dst_rect = GetObject<lime::Rect>(mrb, dst_rect_val, kRectDataType);
   auto src_bitmap =
-      GetObject<rgssx::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
-  auto src_rect = GetObject<rgssx::Rect>(mrb, src_rect_val, kRectDataType);
+      GetObject<lime::Bitmap>(mrb, src_bitmap_val, kBitmapDataType);
+  auto src_rect = GetObject<lime::Rect>(mrb, src_rect_val, kRectDataType);
 
   EXC_BEGIN {
     self_obj->StretchBlt(dst_rect, src_bitmap, src_rect, opacity);
@@ -115,7 +115,7 @@ MRB_FUNC(Bitmap_StretchBlt) {
 }
 
 MRB_FUNC(Bitmap_FillRect) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
 
@@ -127,14 +127,14 @@ MRB_FUNC(Bitmap_FillRect) {
       mrb_get_args(mrb, "iiiio", &x, &y, &width, &height, &color_val);
       self_obj->FillRect(
           x, y, width, height,
-          GetObject<rgssx::Color>(mrb, color_val, kColorDataType));
+          GetObject<lime::Color>(mrb, color_val, kColorDataType));
     } else if (argc == 2) {
       // FillRect(rect, color)
       mrb_value rect_val, color_val;
       mrb_get_args(mrb, "oo", &rect_val, &color_val);
-      self_obj->FillRect(GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType),
-                         GetObject<rgssx::Color>(mrb, color_val,
-                                                 kColorDataType));
+      self_obj->FillRect(
+          GetObject<lime::Rect>(mrb, rect_val, kRectDataType),
+          GetObject<lime::Color>(mrb, color_val, kColorDataType));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -144,7 +144,7 @@ MRB_FUNC(Bitmap_FillRect) {
 }
 
 MRB_FUNC(Bitmap_GradientFillRect) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
 
@@ -154,20 +154,18 @@ MRB_FUNC(Bitmap_GradientFillRect) {
       mrb_value rect_val, color1_val, color2_val;
       mrb_get_args(mrb, "ooo", &rect_val, &color1_val, &color2_val);
       self_obj->GradientFillRect(
-          GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType),
-          GetObject<rgssx::Color>(mrb, color1_val, kColorDataType),
-          GetObject<rgssx::Color>(mrb, color2_val, kColorDataType));
+          GetObject<lime::Rect>(mrb, rect_val, kRectDataType),
+          GetObject<lime::Color>(mrb, color1_val, kColorDataType),
+          GetObject<lime::Color>(mrb, color2_val, kColorDataType));
     } else if (argc == 4) {
       // GradientFillRect(rect, color1, color2, vertical)
       mrb_value rect_val, color1_val, color2_val;
       mrb_bool vertical;
-      mrb_get_args(mrb, "ooob", &rect_val, &color1_val, &color2_val,
-                   &vertical);
+      mrb_get_args(mrb, "ooob", &rect_val, &color1_val, &color2_val, &vertical);
       self_obj->GradientFillRect(
-          GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType),
-          GetObject<rgssx::Color>(mrb, color1_val, kColorDataType),
-          GetObject<rgssx::Color>(mrb, color2_val, kColorDataType),
-          vertical);
+          GetObject<lime::Rect>(mrb, rect_val, kRectDataType),
+          GetObject<lime::Color>(mrb, color1_val, kColorDataType),
+          GetObject<lime::Color>(mrb, color2_val, kColorDataType), vertical);
     } else if (argc == 6) {
       // GradientFillRect(x, y, width, height, color1, color2)  (vertical =
       // false)
@@ -177,8 +175,8 @@ MRB_FUNC(Bitmap_GradientFillRect) {
                    &color2_val);
       self_obj->GradientFillRect(
           x, y, width, height,
-          GetObject<rgssx::Color>(mrb, color1_val, kColorDataType),
-          GetObject<rgssx::Color>(mrb, color2_val, kColorDataType));
+          GetObject<lime::Color>(mrb, color1_val, kColorDataType),
+          GetObject<lime::Color>(mrb, color2_val, kColorDataType));
     } else if (argc == 7) {
       // GradientFillRect(x, y, width, height, color1, color2, vertical)
       mrb_int x, y, width, height;
@@ -188,9 +186,8 @@ MRB_FUNC(Bitmap_GradientFillRect) {
                    &color2_val, &vertical);
       self_obj->GradientFillRect(
           x, y, width, height,
-          GetObject<rgssx::Color>(mrb, color1_val, kColorDataType),
-          GetObject<rgssx::Color>(mrb, color2_val, kColorDataType),
-          vertical);
+          GetObject<lime::Color>(mrb, color1_val, kColorDataType),
+          GetObject<lime::Color>(mrb, color2_val, kColorDataType), vertical);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -200,7 +197,7 @@ MRB_FUNC(Bitmap_GradientFillRect) {
 }
 
 MRB_FUNC(Bitmap_Clear) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   EXC_BEGIN {
     self_obj->Clear();
   }
@@ -209,7 +206,7 @@ MRB_FUNC(Bitmap_Clear) {
 }
 
 MRB_FUNC(Bitmap_ClearRect) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
 
@@ -223,8 +220,7 @@ MRB_FUNC(Bitmap_ClearRect) {
       // ClearRect(rect)
       mrb_value rect_val;
       mrb_get_args(mrb, "o", &rect_val);
-      self_obj->ClearRect(
-          GetObject<rgssx::Rect>(mrb, rect_val, kRectDataType));
+      self_obj->ClearRect(GetObject<lime::Rect>(mrb, rect_val, kRectDataType));
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -234,7 +230,7 @@ MRB_FUNC(Bitmap_ClearRect) {
 }
 
 MRB_FUNC(Bitmap_GetPixel) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_int x, y;
   mrb_get_args(mrb, "ii", &x, &y);
 
@@ -247,12 +243,12 @@ MRB_FUNC(Bitmap_GetPixel) {
 }
 
 MRB_FUNC(Bitmap_SetPixel) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_int x, y;
   mrb_value color_val;
   mrb_get_args(mrb, "iio", &x, &y, &color_val);
 
-  auto color = GetObject<rgssx::Color>(mrb, color_val, kColorDataType);
+  auto color = GetObject<lime::Color>(mrb, color_val, kColorDataType);
 
   EXC_BEGIN {
     self_obj->SetPixel(x, y, color);
@@ -262,7 +258,7 @@ MRB_FUNC(Bitmap_SetPixel) {
 }
 
 MRB_FUNC(Bitmap_HueChange) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_int hue;
   mrb_get_args(mrb, "i", &hue);
 
@@ -274,7 +270,7 @@ MRB_FUNC(Bitmap_HueChange) {
 }
 
 MRB_FUNC(Bitmap_Blur) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   EXC_BEGIN {
     self_obj->Blur();
   }
@@ -283,7 +279,7 @@ MRB_FUNC(Bitmap_Blur) {
 }
 
 MRB_FUNC(Bitmap_RadialBlur) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_int angle, division;
   mrb_get_args(mrb, "ii", &angle, &division);
 
@@ -295,7 +291,7 @@ MRB_FUNC(Bitmap_RadialBlur) {
 }
 
 MRB_FUNC(Bitmap_DrawText) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
 
   EXC_BEGIN {
     mrb_int argc = mrb_get_argc(mrb);
@@ -308,7 +304,7 @@ MRB_FUNC(Bitmap_DrawText) {
 
       mrb_value str_raw = mrb_obj_as_string(mrb, str);
       std::string str_std(RSTRING_PTR(str_raw), RSTRING_LEN(str_raw));
-      self_obj->DrawText(GetObject<rgssx::Rect>(mrb, rect_obj, kRectDataType),
+      self_obj->DrawText(GetObject<lime::Rect>(mrb, rect_obj, kRectDataType),
                          str_std, align);
     } else {
       mrb_int x, y, w, h;
@@ -326,7 +322,7 @@ MRB_FUNC(Bitmap_DrawText) {
 }
 
 MRB_FUNC(Bitmap_TextSize) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   const char* str;
   mrb_get_args(mrb, "z", &str);
 
@@ -339,7 +335,7 @@ MRB_FUNC(Bitmap_TextSize) {
 }
 
 MRB_FUNC(Bitmap_SaveFile) {
-  auto* self_obj = GetSelfData<rgssx::Bitmap>(self);
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
   const char* filename;
   mrb_get_args(mrb, "z", &filename);
 
@@ -351,14 +347,10 @@ MRB_FUNC(Bitmap_SaveFile) {
 }
 
 // Attribute: font (RefPtr<Font>)
-BINDING_ATTR_OBJECT_REF(Bitmap,
-                        rgssx::Bitmap,
-                        Font,
-                        rgssx::Font,
-                        kFontDataType);
+BINDING_ATTR_OBJECT_REF(Bitmap, lime::Bitmap, Font, lime::Font, kFontDataType);
 
 // Inherited from Dispoable
-BINDING_INHERITED_DISPOABLE(Bitmap, rgssx::Bitmap);
+BINDING_INHERITED_DISPOABLE(Bitmap, lime::Bitmap);
 
 void InitBitmapBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Bitmap");

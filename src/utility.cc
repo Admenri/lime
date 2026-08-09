@@ -1,6 +1,6 @@
 #include "src/utility.h"
 
-namespace rgssx {
+namespace lime {
 
 MARSHAL_DUMP_DEF(Rect) {
   std::string serial_data(sizeof(int) * 4, 0);
@@ -79,4 +79,4 @@ MARSHAL_LOAD_DEF(Tone) {
   return MakeRefCounted<Tone>(red, green, blue, gray);
 }
 
-}  // namespace rgssx
+}  // namespace lime

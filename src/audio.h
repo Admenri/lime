@@ -7,7 +7,7 @@
 #include "src/common.h"
 #include "src/raywarp.h"
 
-namespace rgssx {
+namespace lime {
 
 class Audio : public Singleton<Audio> {
  public:
@@ -120,4 +120,4 @@ class Audio : public Singleton<Audio> {
   bool UpdateFade(MusicChannel* channel, FadeState* fade, float dt);
 };
 
-}  // namespace rgssx
+}  // namespace lime

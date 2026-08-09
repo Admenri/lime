@@ -7,7 +7,7 @@
 namespace binding {
 
 MRB_FUNC(Graphics_Update) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     self_obj->Update();
   }
@@ -16,7 +16,7 @@ MRB_FUNC(Graphics_Update) {
 }
 
 MRB_FUNC(Graphics_Wait) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   mrb_int duration;
   mrb_get_args(mrb, "i", &duration);
 
@@ -28,7 +28,7 @@ MRB_FUNC(Graphics_Wait) {
 }
 
 MRB_FUNC(Graphics_FadeIn) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   mrb_int duration;
   mrb_get_args(mrb, "i", &duration);
 
@@ -40,7 +40,7 @@ MRB_FUNC(Graphics_FadeIn) {
 }
 
 MRB_FUNC(Graphics_FadeOut) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   mrb_int duration;
   mrb_get_args(mrb, "i", &duration);
 
@@ -52,7 +52,7 @@ MRB_FUNC(Graphics_FadeOut) {
 }
 
 MRB_FUNC(Graphics_Freeze) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     self_obj->Freeze();
   }
@@ -61,7 +61,7 @@ MRB_FUNC(Graphics_Freeze) {
 }
 
 MRB_FUNC(Graphics_Transition) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
 
   mrb_int duration = 10;
   std::string filename;
@@ -104,10 +104,10 @@ MRB_FUNC(Graphics_Transition) {
 }
 
 MRB_FUNC(Graphics_TransitionBitmap) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
 
   mrb_int duration = 10;
-  rgssx::RefPtr<rgssx::Bitmap> bitmap = nullptr;
+  lime::RefPtr<lime::Bitmap> bitmap = nullptr;
   mrb_int vague = 40;
 
   mrb_int argc = mrb_get_argc(mrb);
@@ -125,7 +125,7 @@ MRB_FUNC(Graphics_TransitionBitmap) {
       mrb_value bitmap_val;
       mrb_get_args(mrb, "io", &d, &bitmap_val);
       duration = d;
-      bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+      bitmap = GetObject<lime::Bitmap>(mrb, bitmap_val, kBitmapDataType);
     } else if (argc == 3) {
       // transition_bitmap(duration, bitmap, vague)
       mrb_int d, v;
@@ -133,7 +133,7 @@ MRB_FUNC(Graphics_TransitionBitmap) {
       mrb_get_args(mrb, "ioi", &d, &bitmap_val, &v);
       duration = d;
       vague = v;
-      bitmap = GetObject<rgssx::Bitmap>(mrb, bitmap_val, kBitmapDataType);
+      bitmap = GetObject<lime::Bitmap>(mrb, bitmap_val, kBitmapDataType);
     } else {
       mrb_raise(mrb, E_ARGUMENT_ERROR, "wrong number of arguments");
     }
@@ -145,7 +145,7 @@ MRB_FUNC(Graphics_TransitionBitmap) {
 }
 
 MRB_FUNC(Graphics_SnapToBitmap) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     auto result = self_obj->SnapToBitmap();
     return WrapObject(mrb, result.get(), kBitmapDataType);
@@ -155,7 +155,7 @@ MRB_FUNC(Graphics_SnapToBitmap) {
 }
 
 MRB_FUNC(Graphics_FrameReset) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     self_obj->FrameReset();
   }
@@ -164,7 +164,7 @@ MRB_FUNC(Graphics_FrameReset) {
 }
 
 MRB_FUNC(Graphics_Width) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Width());
   }
@@ -173,7 +173,7 @@ MRB_FUNC(Graphics_Width) {
 }
 
 MRB_FUNC(Graphics_Height) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->Height());
   }
@@ -182,7 +182,7 @@ MRB_FUNC(Graphics_Height) {
 }
 
 MRB_FUNC(Graphics_ResizeScreen) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   mrb_int width, height;
   mrb_get_args(mrb, "ii", &width, &height);
 
@@ -194,7 +194,7 @@ MRB_FUNC(Graphics_ResizeScreen) {
 }
 
 MRB_FUNC(Graphics_PlayMovie) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   const char* filename;
   mrb_get_args(mrb, "z", &filename);
 
@@ -206,7 +206,7 @@ MRB_FUNC(Graphics_PlayMovie) {
 }
 
 MRB_FUNC(Graphics_WindowHandle) {
-  auto* self_obj = rgssx::Graphics::Instance();
+  auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
     return mrb_cptr_value(mrb, self_obj->WindowHandle());
   }
@@ -216,7 +216,7 @@ MRB_FUNC(Graphics_WindowHandle) {
 
 #define GRAPHICS_INT_ATTR(cap)                       \
   MRB_FUNC(Graphics_##cap) {                         \
-    auto* self_obj = rgssx::Graphics::Instance();    \
+    auto* self_obj = lime::Graphics::Instance();     \
     EXC_BEGIN {                                      \
       auto result = self_obj->Attr_##cap();          \
       if (result.has_value())                        \
@@ -227,7 +227,7 @@ MRB_FUNC(Graphics_WindowHandle) {
     return mrb_nil_value();                          \
   }                                                  \
   MRB_FUNC(Graphics_##cap##Equal) {                  \
-    auto* self_obj = rgssx::Graphics::Instance();    \
+    auto* self_obj = lime::Graphics::Instance();     \
     mrb_int value;                                   \
     mrb_get_args(mrb, "i", &value);                  \
     EXC_BEGIN {                                      \

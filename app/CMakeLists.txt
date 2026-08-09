@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.30)
 
-add_executable(rgssx main.cc)
-target_link_libraries(rgssx PUBLIC rgssx_core binding_mruby)
+add_executable(lime main.cc resource.rc)
+target_link_libraries(lime PUBLIC lime_core binding_mruby)

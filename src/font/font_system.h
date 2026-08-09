@@ -13,7 +13,7 @@
 #include "src/font/text_shaper.h"
 #include "src/raywarp.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // Top-level font system: a drop-in replacement for raylib's static Font.
@@ -95,4 +95,4 @@ class FontSystem {
   TextRenderer renderer_;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

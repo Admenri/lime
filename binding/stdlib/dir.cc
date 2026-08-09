@@ -1,5 +1,5 @@
 // CRuby-compatible Dir implementation backed by the engine's virtual file
-// system (rgssx::IOService / PhysicsFS). Complements mruby, which ships no
+// system (lime::IOService / PhysicsFS). Complements mruby, which ships no
 // Dir class by default.
 //
 // See: https://ruby-doc.org/core-3.0.0/Dir.html
@@ -78,20 +78,22 @@ static std::string g_current_dir = "/";
 // ---------------------------------------------------------------------------
 
 static std::vector<std::string> ListEntries(const std::string& dir) {
-  return rgssx::IOService::Instance()->EnumDir(dir);
+  return lime::IOService::Instance()->EnumDir(dir);
 }
 
 static bool PathIsDirectory(const std::string& path) {
   // The virtual root is always a directory (PhysicsFS cannot stat ""/".").
   if (path.empty() || path == "/")
     return true;
-  return rgssx::IOService::Instance()->IsDirectory(path);
+  return lime::IOService::Instance()->IsDirectory(path);
 }
 
 // Joins two path components with a single '/' separator.
 static std::string JoinPath(const std::string& a, const std::string& b) {
-  if (a.empty()) return b;
-  if (b.empty()) return a;
+  if (a.empty())
+    return b;
+  if (b.empty())
+    return a;
   return a + "/" + b;
 }
 
@@ -282,13 +284,11 @@ static bool GlobSegmentMatch(const char* pat,
           char lo = q[0], hi = q[2];
           if (std::tolower((unsigned char)c) >=
                   std::tolower((unsigned char)lo) &&
-              std::tolower((unsigned char)c) <=
-                  std::tolower((unsigned char)hi))
+              std::tolower((unsigned char)c) <= std::tolower((unsigned char)hi))
             matched = true;
           q += 3;
         } else {
-          if (std::tolower((unsigned char)c) ==
-              std::tolower((unsigned char)*q))
+          if (std::tolower((unsigned char)c) == std::tolower((unsigned char)*q))
             matched = true;
           ++q;
         }
@@ -301,8 +301,7 @@ static bool GlobSegmentMatch(const char* pat,
     }
 
     // Literal character.
-    if (std::tolower((unsigned char)pc) !=
-        std::tolower((unsigned char)*name))
+    if (std::tolower((unsigned char)pc) != std::tolower((unsigned char)*name))
       return false;
     ++pat;
     ++name;
@@ -572,8 +571,8 @@ MRB_FUNC(dir_mkdir) {
   const char* path;
   mrb_int mode = 0777;
   mrb_get_args(mrb, "z|i", &path, &mode);
-  if (!rgssx::IOService::Instance()->Mkdir(NormalizePath(path))) {
-    std::string msg = "mkdir: " + rgssx::IOService::Instance()->GetLastError();
+  if (!lime::IOService::Instance()->Mkdir(NormalizePath(path))) {
+    std::string msg = "mkdir: " + lime::IOService::Instance()->GetLastError();
     RaiseIOError(mrb, msg);
   }
   return mrb_fixnum_value(0);
@@ -582,9 +581,8 @@ MRB_FUNC(dir_mkdir) {
 MRB_FUNC(dir_delete) {
   const char* path;
   mrb_get_args(mrb, "z", &path);
-  if (!rgssx::IOService::Instance()->Rmdir(NormalizePath(path))) {
-    std::string msg =
-        "rmdir: " + rgssx::IOService::Instance()->GetLastError();
+  if (!lime::IOService::Instance()->Rmdir(NormalizePath(path))) {
+    std::string msg = "rmdir: " + lime::IOService::Instance()->GetLastError();
     RaiseIOError(mrb, msg);
   }
   return mrb_fixnum_value(0);
@@ -712,9 +710,8 @@ MRB_FUNC(dir_open) {
   mrb_get_args(mrb, "z&", &path, &block);
 
   RClass* dir_class = mrb_class_get(mrb, "Dir");
-  mrb_value dir =
-      mrb_funcall(mrb, mrb_obj_value(dir_class), "new", 1,
-                  mrb_str_new_cstr(mrb, path));
+  mrb_value dir = mrb_funcall(mrb, mrb_obj_value(dir_class), "new", 1,
+                              mrb_str_new_cstr(mrb, path));
   if (mrb_nil_p(block))
     return dir;
 
@@ -895,15 +892,15 @@ MRB_FUNC(dir_fileno) {
 
 void InitStdlibDir(mrb_state* mrb) {
   // IOError is referenced by Dir but absent from the default mruby core.
-  g_io_error_class = mrb_define_class(mrb, "IOError", mrb->eStandardError_class);
+  g_io_error_class =
+      mrb_define_class(mrb, "IOError", mrb->eStandardError_class);
 
   RClass* dir_class = mrb_define_class(mrb, "Dir", mrb->object_class);
   MRB_SET_INSTANCE_TT(dir_class, MRB_TT_CDATA);
   mrb_include_module(mrb, dir_class, mrb_module_get(mrb, "Enumerable"));
 
   // Class methods
-  mrb_define_class_method(mrb, dir_class, "[]", dir_brackets,
-                          MRB_ARGS_REST());
+  mrb_define_class_method(mrb, dir_class, "[]", dir_brackets, MRB_ARGS_REST());
   mrb_define_class_method(mrb, dir_class, "chdir", dir_chdir,
                           MRB_ARGS_ARG(0, 1) | MRB_ARGS_BLOCK());
   mrb_define_class_method(mrb, dir_class, "chroot", dir_chroot,
@@ -933,8 +930,7 @@ void InitStdlibDir(mrb_state* mrb) {
   mrb_define_class_method(mrb, dir_class, "open", dir_open,
                           MRB_ARGS_REQ(1) | MRB_ARGS_BLOCK());
   mrb_define_class_method(mrb, dir_class, "pwd", dir_getwd, MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, dir_class, "rmdir", dir_delete,
-                          MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, dir_class, "rmdir", dir_delete, MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb, dir_class, "unlink", dir_delete,
                           MRB_ARGS_REQ(1));
 

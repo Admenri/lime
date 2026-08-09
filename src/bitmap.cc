@@ -3,7 +3,7 @@
 #include "src/filesystem.h"
 #include "src/font/font_system.h"
 
-namespace rgssx {
+namespace lime {
 
 Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
   raylib::Image image = {};
@@ -279,4 +279,4 @@ void Bitmap::DisposeObject() {
   texture_ = {};
 }
 
-}  // namespace rgssx
+}  // namespace lime

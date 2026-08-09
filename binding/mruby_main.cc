@@ -58,7 +58,7 @@ static int MarshalWriterString(mrb_state* mrb,
 }
 
 static mrb_value RGSSLoadData(mrb_state* mrb, const char* filename) {
-  auto* io_service = rgssx::IOService::Instance();
+  auto* io_service = lime::IOService::Instance();
   auto stream = io_service->OpenReadRaw(filename);
   auto raw_data = stream->ReadAll();
 
@@ -74,7 +74,7 @@ MRB_FUNC(rgss_main) {
 
 MRB_FUNC(rgss_stop) {
   for (;;)
-    rgssx::Graphics::Instance()->Update();
+    lime::Graphics::Instance()->Update();
   return mrb_nil_value();
 }
 
@@ -89,7 +89,7 @@ MRB_FUNC(save_data) {
   const char* filename;
   mrb_get_args(mrb, "oz", &data, &filename);
 
-  auto* io_service = rgssx::IOService::Instance();
+  auto* io_service = lime::IOService::Instance();
   auto stream = io_service->OpenWrite(filename);
 
   auto ai = mrb_gc_arena_save(mrb);
@@ -237,9 +237,9 @@ void ShowExceptionMessage(std::string message) {
   raylib::UnloadImage(screen_image);
 }
 
-extern "C" void rgssx_main() {
-  auto* config = rgssx::Config::Instance();
-  auto* io_service = rgssx::IOService::Instance();
+extern "C" void lime_main() {
+  auto* config = lime::Config::Instance();
+  auto* io_service = lime::IOService::Instance();
 
   // Global mruby state
   mrb_state* mrb = mrb_open();
@@ -291,8 +291,8 @@ extern "C" void rgssx_main() {
     // Load marshal data
     auto scripts = RGSSLoadData(mrb, config->scripts.c_str());
     if (mrb_type(scripts) != MRB_TT_ARRAY)
-      throw rgssx::Exception(rgssx::Exception::RGSSError,
-                             "scripts file is invalid.");
+      throw lime::Exception(lime::Exception::RGSSError,
+                            "scripts file is invalid.");
 
     // Decode scripts
     std::vector<uint8_t> scripts_buffer;
@@ -330,8 +330,8 @@ extern "C" void rgssx_main() {
 
       // Any other result is a real decode failure (corrupt data, OOM, ...).
       if (result != Z_OK)
-        throw rgssx::Exception(rgssx::Exception::RGSSError,
-                               "failed to decompress script");
+        throw lime::Exception(lime::Exception::RGSSError,
+                              "failed to decompress script");
 
       // Trim to the exact decompressed size and evaluate the script.
       std::string_view script_view(
@@ -368,11 +368,11 @@ extern "C" void rgssx_main() {
       CollectExceptionInfo(mrb, err_class, err_message, err_filename, err_line,
                            err_backtrace);
 
-      throw rgssx::Exception(
-          rgssx::Exception::RGSSError, "{}: {} ({} - line {})\n{}", err_class,
-          err_message, err_filename, err_line, err_backtrace);
+      throw lime::Exception(lime::Exception::RGSSError,
+                            "{}: {} ({} - line {})\n{}", err_class, err_message,
+                            err_filename, err_line, err_backtrace);
     }
-  } catch (const rgssx::Exception& e) {
+  } catch (const lime::Exception& e) {
     // Content exception
     ShowExceptionMessage(e.message());
   } catch (const std::exception& e) {

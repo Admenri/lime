@@ -9,7 +9,7 @@
 
 #include "src/filesystem.h"
 
-namespace rgssx::font {
+namespace lime::font {
 namespace {
 
 // ---------------------------------------------------------------------------
@@ -157,4 +157,4 @@ void FontFace::SetStyle(bool bold, bool italic) {
   italic_ = italic;
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

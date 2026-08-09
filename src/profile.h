@@ -5,7 +5,7 @@
 #include "src/common.h"
 #include "src/inirw.h"
 
-namespace rgssx {
+namespace lime {
 
 class Config : public Singleton<Config> {
  public:
@@ -14,7 +14,7 @@ class Config : public Singleton<Config> {
   int rgss_version = 0;
 
   std::string scripts = "Data/Scripts.rvdata2";
-  std::string title = "RGSSX";
+  std::string title = "lime";
   std::string rtp;
   std::string soundfont;
 
@@ -27,4 +27,4 @@ class Config : public Singleton<Config> {
   IniFile parser_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

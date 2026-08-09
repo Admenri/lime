@@ -12,7 +12,7 @@
 #include "src/font/font_face.h"
 #include "src/raywarp.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // Cached glyph: atlas location + raster metrics for one (face, glyph id).
@@ -81,4 +81,4 @@ class GlyphCache {
   static constexpr size_t kEvictBatch = 64;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

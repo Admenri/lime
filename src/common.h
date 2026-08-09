@@ -8,7 +8,7 @@
 
 #include "src/define.h"
 
-namespace rgssx {
+namespace lime {
 
 template <typename Ty>
 class Singleton {
@@ -70,4 +70,4 @@ class Dispoable {
   bool disposed_ = false;
 };
 
-}  // namespace rgssx
+}  // namespace lime

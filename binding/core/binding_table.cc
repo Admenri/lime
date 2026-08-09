@@ -11,9 +11,9 @@ MRB_FUNC(Table_initialize) {
   mrb_int xsize, ysize = 1, zsize = 1;
   mrb_get_args(mrb, "i|ii", &xsize, &ysize, &zsize);
 
-  rgssx::RefPtr<rgssx::Table> obj = nullptr;
+  lime::RefPtr<lime::Table> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::MakeRefCounted<rgssx::Table>(xsize, ysize, zsize);
+    obj = lime::MakeRefCounted<lime::Table>(xsize, ysize, zsize);
   }
   EXC_END(mrb);
 
@@ -21,7 +21,7 @@ MRB_FUNC(Table_initialize) {
 }
 
 MRB_FUNC(Table_Resize) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   mrb_int xsize, ysize = 1, zsize = 1;
   mrb_get_args(mrb, "i|ii", &xsize, &ysize, &zsize);
 
@@ -33,7 +33,7 @@ MRB_FUNC(Table_Resize) {
 }
 
 MRB_FUNC(Table_XSize) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->XSize());
   }
@@ -42,7 +42,7 @@ MRB_FUNC(Table_XSize) {
 }
 
 MRB_FUNC(Table_YSize) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->YSize());
   }
@@ -51,7 +51,7 @@ MRB_FUNC(Table_YSize) {
 }
 
 MRB_FUNC(Table_ZSize) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   EXC_BEGIN {
     return mrb_fixnum_value(self_obj->ZSize());
   }
@@ -60,7 +60,7 @@ MRB_FUNC(Table_ZSize) {
 }
 
 MRB_FUNC(Table_Get) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   mrb_int x, y = 0, z = 0;
   mrb_get_args(mrb, "i|ii", &x, &y, &z);
 
@@ -77,7 +77,7 @@ MRB_FUNC(Table_Get) {
 }
 
 MRB_FUNC(Table_Set) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
 
   mrb_int x, y = 0, z = 0, value;
   mrb_int argc = mrb_get_argc(mrb);
@@ -110,13 +110,12 @@ MRB_FUNC(Table_Set) {
 // method _load). Per bindgen.md: classes with MARSHAL_DUMP/MARSHAL_LOAD get
 // _dump (method) and _load (class method).
 MRB_FUNC(Table__dump) {
-  auto* self_obj = GetSelfData<rgssx::Table>(self);
+  auto* self_obj = GetSelfData<lime::Table>(self);
   mrb_int limit;
   mrb_get_args(mrb, "i", &limit);
 
   EXC_BEGIN {
-    auto result =
-        rgssx::Table::MarshalDump(rgssx::RefPtr<rgssx::Table>(self_obj));
+    auto result = lime::Table::MarshalDump(lime::RefPtr<lime::Table>(self_obj));
     return mrb_str_new(mrb, result.data(), static_cast<mrb_int>(result.size()));
   }
   EXC_END(mrb);
@@ -127,9 +126,9 @@ MRB_FUNC(Table__load) {
   mrb_value data;
   mrb_get_args(mrb, "o", &data);
 
-  rgssx::RefPtr<rgssx::Table> obj = nullptr;
+  lime::RefPtr<lime::Table> obj = nullptr;
   EXC_BEGIN {
-    obj = rgssx::Table::MarshalLoad(MRBStringValue(data));
+    obj = lime::Table::MarshalLoad(MRBStringValue(data));
   }
   EXC_END(mrb);
 

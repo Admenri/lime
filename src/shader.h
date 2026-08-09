@@ -3,7 +3,7 @@
 #include "src/common.h"
 #include "src/raywarp.h"
 
-namespace rgssx {
+namespace lime {
 
 struct ShaderBase {
   ShaderBase() = default;
@@ -60,4 +60,4 @@ struct ShaderSet : public Singleton<ShaderSet> {
   ViewportShader viewport;
 };
 
-}  // namespace rgssx
+}  // namespace lime

@@ -2,7 +2,7 @@
 
 #include "src/shader.h"
 
-namespace rgssx {
+namespace lime {
 
 Sprite::Sprite(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
@@ -308,4 +308,4 @@ void Sprite::Draw(DrawParam param) {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

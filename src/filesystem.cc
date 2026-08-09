@@ -12,7 +12,7 @@
 
 #include "physfs.h"
 
-namespace rgssx {
+namespace lime {
 
 namespace {
 
@@ -244,4 +244,4 @@ std::unique_ptr<IOStream> IOService::OpenWrite(const std::string& filename) {
   return std::make_unique<IOStream>(file);
 }
 
-}  // namespace rgssx
+}  // namespace lime

@@ -2,7 +2,7 @@
 
 #include "src/common.h"
 
-namespace rgssx {
+namespace lime {
 
 Table::Table(int xsize, int ysize, int zsize) {
   Resize(xsize, ysize, zsize);
@@ -80,4 +80,4 @@ void Table::Set(int16_t value, int x, int y, int z) {
   data_.at(index) = value;
 }
 
-}  // namespace rgssx
+}  // namespace lime

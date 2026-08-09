@@ -19,7 +19,7 @@
 #define TML_IMPLEMENTATION
 #include "3rdparty/tinysf/tml.h"
 
-namespace rgssx {
+namespace lime {
 
 namespace {
 
@@ -95,8 +95,8 @@ void Audio::SetupMIDI() {
   // buffer does not need to be kept alive afterwards.
   midi_font_ = tsf_load_memory(data.data(), (int)data.size());
   if (!midi_font_) {
-    raylib::TraceLog(raylib::LOG_WARNING, "AUDIO: Failed to parse soundfont: %s",
-                     path.c_str());
+    raylib::TraceLog(raylib::LOG_WARNING,
+                     "AUDIO: Failed to parse soundfont: %s", path.c_str());
     return;
   }
 
@@ -137,10 +137,10 @@ void EncodeWavToMemory(const std::vector<float>& pcm,
   AppendU32(*out, 36 + data_bytes);
   out->append("WAVE");
   out->append("fmt ");
-  AppendU32(*out, 16);             // fmt chunk size
-  AppendU16(*out, 1);              // PCM
-  AppendU16(*out, channels);       // stereo
-  AppendU32(*out, sample_rate);    // sample rate
+  AppendU32(*out, 16);                                        // fmt chunk size
+  AppendU16(*out, 1);                                         // PCM
+  AppendU16(*out, channels);                                  // stereo
+  AppendU32(*out, sample_rate);                               // sample rate
   AppendU32(*out, sample_rate * channels * sizeof(int16_t));  // byte rate
   AppendU16(*out, channels * sizeof(int16_t));                // block align
   AppendU16(*out, sizeof(int16_t) * 8);                       // bits/sample
@@ -286,8 +286,7 @@ bool Audio::LoadMusic(MusicChannel* channel, const std::string& filename) {
           // MIDI has no raylib decoder: synthesize it to PCM with tinysf and
           // hand the resulting WAV to the regular streaming path.
           bool is_midi = (ext == "mid" || ext == "midi") ||
-                         (data.size() >= 4 &&
-                          data.compare(0, 4, "MThd") == 0);
+                         (data.size() >= 4 && data.compare(0, 4, "MThd") == 0);
           if (is_midi) {
             std::string wav;
             if (RenderMidiToWav(data, &wav)) {
@@ -336,8 +335,7 @@ bool Audio::LoadWave(raylib::Wave* wave, const std::string& filename) {
           // Same MIDI handling as LoadMusic; the WAV is decoded fully into
           // the Wave, so the temporary buffer can be dropped afterwards.
           bool is_midi = (ext == "mid" || ext == "midi") ||
-                         (data.size() >= 4 &&
-                          data.compare(0, 4, "MThd") == 0);
+                         (data.size() >= 4 && data.compare(0, 4, "MThd") == 0);
           if (is_midi) {
             std::string wav;
             if (RenderMidiToWav(data, &wav)) {
@@ -673,4 +671,4 @@ void Audio::Update() {
   }
 }
 
-}  // namespace rgssx
+}  // namespace lime

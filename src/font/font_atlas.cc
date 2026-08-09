@@ -8,7 +8,7 @@
 #include <cstring>
 #include <unordered_map>
 
-namespace rgssx::font {
+namespace lime::font {
 namespace {
 
 // Pack (width, height) into a 64-bit key for the exact-size free list.
@@ -354,4 +354,4 @@ void FontAtlas::Clear() {
   }
 }
 
-}  // namespace rgssx::font
+}  // namespace lime::font

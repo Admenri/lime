@@ -10,7 +10,7 @@
 
 #include "src/raywarp.h"
 
-namespace rgssx::font {
+namespace lime::font {
 
 // ---------------------------------------------------------------------------
 // Dynamic GPU glyph atlas.
@@ -96,4 +96,4 @@ class FontAtlas {
   std::vector<std::unique_ptr<Page>> pages_;
 };
 
-}  // namespace rgssx::font
+}  // namespace lime::font

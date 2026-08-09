@@ -6,7 +6,7 @@
 #include "src/raywarp.h"
 #include "src/refptr.h"
 
-namespace rgssx {
+namespace lime {
 
 class Rect : public RefCounted<Rect> {
  public:
@@ -151,4 +151,4 @@ class Tone : public RefCounted<Tone> {
   bool HasEffect() { return red || green || blue || gray; }
 };
 
-}  // namespace rgssx
+}  // namespace lime

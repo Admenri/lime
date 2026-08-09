@@ -1,6 +1,6 @@
 #include "src/drawable.h"
 
-namespace rgssx {
+namespace lime {
 
 // ─── Drawable ────────────────────────────────────────────────────────────────
 
@@ -123,4 +123,4 @@ void DrawableSet::DispatchDraw(DrawParam param) {
       node->Draw(param);
 }
 
-}  // namespace rgssx
+}  // namespace lime

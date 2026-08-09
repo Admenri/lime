@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 add_library(binding_mruby STATIC)
-target_link_libraries(binding_mruby PUBLIC mruby rgssx_core zlibstatic)
+target_link_libraries(binding_mruby PUBLIC mruby lime_core zlibstatic)
 target_include_directories(binding_mruby
  PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

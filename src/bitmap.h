@@ -6,7 +6,7 @@
 #include "src/refptr.h"
 #include "src/utility.h"
 
-namespace rgssx {
+namespace lime {
 
 class Bitmap : public RefCounted<Bitmap>, public Dispoable {
  public:
@@ -73,4 +73,4 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   RefPtr<Font> font_;
 };
 
-}  // namespace rgssx
+}  // namespace lime

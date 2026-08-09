@@ -3,7 +3,7 @@
 #include "src/profile.h"
 #include "src/shader.h"
 
-namespace rgssx {
+namespace lime {
 
 namespace {
 
@@ -939,4 +939,4 @@ void Tilemap::DrawMapData(bool above) {
   read_tilemap(render_viewport_);
 }
 
-}  // namespace rgssx
+}  // namespace lime
