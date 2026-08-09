@@ -931,6 +931,10 @@ void Tilemap::DrawMapData(bool above) {
     process_common_layer(ox, oy, w, h, 2);
   };
 
+  // Blend state
+  raylib::rlEnableColorBlend();
+  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+
   // Process tilemap data
   read_tilemap(render_viewport_);
 }
