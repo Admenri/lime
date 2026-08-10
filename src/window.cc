@@ -1,7 +1,7 @@
 #include "src/window.h"
 
+#include "src/glshader.h"
 #include "src/profile.h"
-#include "src/shader.h"
 
 namespace raylib {
 
@@ -532,21 +532,18 @@ void Window::Draw(DrawParam param) {
           if (contents_) {
             if (ox_ > 0)
               raylib::DrawTexturePro(skin_texture, arrow_left_src,
-                                     arrow_left_dest, {}, 0.0f,
-                                     raylib::RAYWHITE);
+                                     arrow_left_dest, {}, 0.0f, raylib::WHITE);
             if (oy_ > 0)
               raylib::DrawTexturePro(skin_texture, arrow_up_src, arrow_up_dest,
-                                     {}, 0.0f, raylib::RAYWHITE);
+                                     {}, 0.0f, raylib::WHITE);
             if (padding_rect.width <
                 static_cast<float>(contents_->Width() - ox_))
               raylib::DrawTexturePro(skin_texture, arrow_right_src,
-                                     arrow_right_dest, {}, 0.0f,
-                                     raylib::RAYWHITE);
+                                     arrow_right_dest, {}, 0.0f, raylib::WHITE);
             if (padding_rect.height <
                 static_cast<float>(contents_->Height() - oy_))
               raylib::DrawTexturePro(skin_texture, arrow_down_src,
-                                     arrow_down_dest, {}, 0.0f,
-                                     raylib::RAYWHITE);
+                                     arrow_down_dest, {}, 0.0f, raylib::WHITE);
           }
         }
 
@@ -565,7 +562,7 @@ void Window::Draw(DrawParam param) {
 
           raylib::DrawTexturePro(skin_texture,
                                  pause_src[kPauseIndexTable[pause_index_]],
-                                 pause_dest, {}, 0.0f, raylib::RAYWHITE);
+                                 pause_dest, {}, 0.0f, raylib::WHITE);
         }
       }
     }

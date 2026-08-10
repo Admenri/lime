@@ -69,7 +69,7 @@ void Graphics::Update() {
     dstrec.height = static_cast<float>(raylib::GetScreenHeight());
 
     raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
-                           raylib::RAYWHITE);
+                           raylib::WHITE);
   }
   raylib::EndDrawing();
 
@@ -285,6 +285,9 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
 }
 
 void Graphics::UpdatePerFrame() {
+  // Frame count increase
+  frame_count_++;
+
   // Audio imexplicit update
   Audio::Instance()->Update();
 }

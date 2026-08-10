@@ -3,7 +3,7 @@
 #include "src/bitmap.h"
 #include "src/common.h"
 #include "src/drawable.h"
-#include "src/shader.h"
+#include "src/glshader.h"
 
 namespace lime {
 

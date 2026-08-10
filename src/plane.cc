@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "src/shader.h"
+#include "src/glshader.h"
 
 namespace lime {
 

@@ -59,6 +59,10 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   RefPtr<Rect> TextSize(std::string str);
 
   void SaveFile(std::string filename);
+  void MaskBlt(RefPtr<Rect> dst_rect,
+               RefPtr<Bitmap> src_bitmap,
+               RefPtr<Rect> src_rect,
+               RefPtr<Bitmap> mask);
 
   ATTR(RefPtr<Font>, Font);
   /*-export.end-*/

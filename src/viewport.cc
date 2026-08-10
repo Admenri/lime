@@ -172,11 +172,22 @@ ATTR_DEF(RefPtr<Tone>, Tone, Viewport) {
   }
 }
 
+ATTR_DEF(RefPtr<Shader>, Shader, Viewport) {
+  if (value.has_value()) {
+    shader_ = *value;
+    return std::nullopt;
+  } else {
+    return shader_;
+  }
+}
+
 void Viewport::DisposeObject() {
   Drawable::RemoveFromList();
 
   raylib::UnloadRenderTexture(cache_);
   cache_ = {};
+
+  shader_.reset();
 }
 
 void Viewport::Draw(DrawParam param) {
@@ -241,7 +252,7 @@ void Viewport::Draw(DrawParam param) {
       {
         // Copy back buffer to current cache
         raylib::DrawTextureRec(param.target.texture, viewport_region, {},
-                               raylib::RAYWHITE);
+                               raylib::WHITE);
       }
       raylib::rlPopMatrix();
     }
@@ -256,28 +267,34 @@ void Viewport::Draw(DrawParam param) {
     if (flash_.color.w > color_norm.w)
       color_norm = flash_.color;
 
-    raylib::BeginShaderMode(shader.shader);
-    raylib::rlDrawRenderBatchActive();
-    raylib::rlDisableColorBlend();
     {
-      raylib::rlMatrixMode(RL_MODELVIEW);
-      raylib::rlPushMatrix();
-      raylib::rlLoadIdentity();
-      {
-        raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
-                               raylib::SHADER_UNIFORM_VEC4);
-        raylib::SetShaderValue(shader.shader, shader.u_tone, &tone_norm,
-                               raylib::SHADER_UNIFORM_VEC4);
-        raylib::SetShaderValue(shader.shader, shader.u_opacity, &opacity_norm,
-                               raylib::SHADER_UNIFORM_FLOAT);
+      shader_ ? shader_->BeginEffect() : raylib::BeginShaderMode(shader.shader);
 
-        raylib::DrawTexture(cache_.texture, viewport_region.x,
-                            viewport_region.y, raylib::RAYWHITE);
+      raylib::rlDrawRenderBatchActive();
+      raylib::rlDisableColorBlend();
+      {
+        raylib::rlMatrixMode(RL_MODELVIEW);
+        raylib::rlPushMatrix();
+        raylib::rlLoadIdentity();
+        {
+          if (!shader_) {
+            // Default shader params
+            raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
+                                   raylib::SHADER_UNIFORM_VEC4);
+            raylib::SetShaderValue(shader.shader, shader.u_tone, &tone_norm,
+                                   raylib::SHADER_UNIFORM_VEC4);
+            raylib::SetShaderValue(shader.shader, shader.u_opacity,
+                                   &opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
+          }
+
+          raylib::DrawTexture(cache_.texture, viewport_region.x,
+                              viewport_region.y, raylib::WHITE);
+        }
+        raylib::rlPopMatrix();
       }
-      raylib::rlPopMatrix();
+      raylib::rlDrawRenderBatchActive();
+      raylib::EndShaderMode();
     }
-    raylib::rlDrawRenderBatchActive();
-    raylib::EndShaderMode();
   }
 }
 

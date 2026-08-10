@@ -3,6 +3,7 @@
 #include "binding_bitmap.h"
 #include "binding_color.h"
 #include "binding_rect.h"
+#include "binding_shader.h"
 #include "binding_tone.h"
 
 #include "src/viewport.h"
@@ -114,6 +115,11 @@ BINDING_ATTR_OBJECT_REF(Viewport,
                         Tone,
                         lime::Tone,
                         kToneDataType);
+BINDING_ATTR_OBJECT_REF(Viewport,
+                        lime::Viewport,
+                        Shader,
+                        lime::Shader,
+                        kShaderDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Viewport, lime::Viewport);
@@ -153,6 +159,9 @@ void InitViewportBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "color=", Viewport_ColorEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "tone", Viewport_Tone, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "tone=", Viewport_ToneEqual, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "shader", Viewport_Shader, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "shader=", Viewport_ShaderEqual,
+                    MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Viewport_Dispose, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "disposed?", Viewport_IsDisposed,

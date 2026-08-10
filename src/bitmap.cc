@@ -2,6 +2,7 @@
 
 #include "src/filesystem.h"
 #include "src/font/font_system.h"
+#include "src/glshader.h"
 
 namespace lime {
 
@@ -45,7 +46,7 @@ Bitmap::Bitmap(RefPtr<Bitmap> other)
 
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
-  raylib::DrawTexture(other->render_texture().texture, 0, 0, raylib::RAYWHITE);
+  raylib::DrawTexture(other->render_texture().texture, 0, 0, raylib::WHITE);
   raylib::EndTextureMode();
 }
 
@@ -80,6 +81,16 @@ void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
                         RefPtr<Rect> src_rect,
                         int opacity) {
   Dispoable::Guard();
+
+  if (!dst_rect)
+    throw Exception(Exception::RGSSError, "invalid destination rect.");
+
+  if (!src_rect)
+    throw Exception(Exception::RGSSError, "invalid source rect.");
+
+  if (!src_bitmap || src_bitmap->IsDisposed())
+    throw Exception(Exception::RGSSError, "invalid source bitmap.");
+
   raylib::BeginTextureMode(texture_);
   raylib::rlEnableColorBlend();
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
@@ -95,6 +106,10 @@ void Bitmap::FillRect(int x,
                       int height,
                       RefPtr<Color> color) {
   Dispoable::Guard();
+
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   raylib::DrawRectangle(x, y, width, height, color->As());
@@ -114,6 +129,10 @@ void Bitmap::GradientFillRect(int x,
                               RefPtr<Color> color2,
                               bool vertical) {
   Dispoable::Guard();
+
+  if (!color1 || !color2)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   if (vertical) {
@@ -152,6 +171,10 @@ void Bitmap::ClearRect(int x, int y, int width, int height) {
 
 void Bitmap::ClearRect(RefPtr<Rect> rect) {
   Dispoable::Guard();
+
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+
   ClearRect(rect->x, rect->y, rect->width, rect->height);
 }
 
@@ -165,6 +188,10 @@ RefPtr<Color> Bitmap::GetPixel(int x, int y) {
 
 void Bitmap::SetPixel(int x, int y, RefPtr<Color> color) {
   Dispoable::Guard();
+
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   raylib::DrawPixel(x, y, color->As());
@@ -262,6 +289,41 @@ void Bitmap::SaveFile(std::string filename) {
   auto image = raylib::LoadImageFromTexture(texture_.texture);
   raylib::ExportImage(image, filename.c_str());
   raylib::UnloadImage(image);
+}
+
+void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
+                     RefPtr<Bitmap> src_bitmap,
+                     RefPtr<Rect> src_rect,
+                     RefPtr<Bitmap> mask) {
+  Dispoable::Guard();
+
+  if (!dst_rect)
+    throw Exception(Exception::RGSSError, "invalid destination rect.");
+
+  if (!src_rect)
+    throw Exception(Exception::RGSSError, "invalid source rect.");
+
+  if (!src_bitmap || src_bitmap->IsDisposed())
+    throw Exception(Exception::RGSSError, "invalid source bitmap.");
+
+  if (!mask || mask->IsDisposed())
+    throw Exception(Exception::RGSSError, "invalid mask bitmap.");
+
+  raylib::BeginTextureMode(texture_);
+  {
+    auto& shader = ShaderSet::Instance()->bitmap_mask;
+    raylib::BeginShaderMode(shader.shader);
+    raylib::SetShaderValueTexture(shader.shader, shader.u_mask,
+                                  mask->render_texture().texture);
+    {
+      raylib::rlEnableColorBlend();
+      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      raylib::DrawTexturePro(src_bitmap->render_texture().texture,
+                             src_rect->As(), dst_rect->As(), {}, 0, {});
+    }
+    raylib::EndShaderMode();
+  }
+  raylib::EndTextureMode();
 }
 
 ATTR_DEF(RefPtr<Font>, Font, Bitmap) {

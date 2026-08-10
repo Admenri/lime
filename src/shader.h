@@ -1,63 +1,44 @@
 #pragma once
 
+#include <span>
+#include <unordered_map>
+
 #include "src/common.h"
 #include "src/raywarp.h"
+#include "src/refptr.h"
 
 namespace lime {
 
-struct ShaderBase {
-  ShaderBase() = default;
-  ~ShaderBase();
+class Bitmap;
 
-  ShaderBase(const ShaderBase&) = delete;
-  ShaderBase& operator=(const ShaderBase&) = delete;
+class Shader : public RefCounted<Shader> {
+ public:
+  Shader(std::string vs_code, std::string fs_code);
+  ~Shader();
 
-  raylib::Shader shader = {};
-};
+  /*-export.begin-*/
+  void SetValueF(std::string uniform,
+                 std::span<float> value,
+                 int item_count = 1);
+  void SetValueI(std::string uniform,
+                 std::span<int32_t> value,
+                 int item_count = 1);
+  void SetValueU(std::string uniform,
+                 std::span<uint32_t> value,
+                 int item_count = 1);
+  void SetValueT(std::string uniform, RefPtr<Bitmap> texture);
+  void SetValueM(std::string uniform, float value[16]);
+  /*-export.end-*/
 
-struct SpriteShader : public ShaderBase {
-  SpriteShader();
+ public:
+  void BeginEffect();
 
-  int u_color = 0;
-  int u_tone = 0;
-  int u_opacity = 0;
-  int u_bush_depth = 0;
-  int u_bush_opacity = 0;
-};
+ private:
+  int GetValueLocation(std::string name);
 
-struct AlphaTransition : public ShaderBase {
-  AlphaTransition();
-
-  int u_frozen_image = 0;
-  int u_progress = 0;
-};
-
-struct MappingTransition : public ShaderBase {
-  MappingTransition();
-
-  int u_frozen_image = 0;
-  int u_mapping_image = 0;
-  int u_progress = 0;
-  int u_vague = 0;
-};
-
-struct ViewportShader : public ShaderBase {
-  ViewportShader();
-
-  int u_color = 0;
-  int u_tone = 0;
-  int u_opacity = 0;
-};
-
-// --------------------------------------------------------------
-
-struct ShaderSet : public Singleton<ShaderSet> {
-  ShaderSet() = default;
-
-  SpriteShader sprite;
-  AlphaTransition alpha_trans;
-  MappingTransition mapping_trans;
-  ViewportShader viewport;
+  raylib::Shader shader_ = {};
+  std::unordered_map<std::string, int> locations_;
+  std::unordered_map<int, RefPtr<Bitmap>> textures_;
 };
 
 }  // namespace lime

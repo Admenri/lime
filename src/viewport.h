@@ -4,6 +4,7 @@
 #include "src/common.h"
 #include "src/drawable.h"
 #include "src/refptr.h"
+#include "src/shader.h"
 #include "src/utility.h"
 
 namespace lime {
@@ -48,6 +49,7 @@ class Viewport : public RefCounted<Viewport>,
   ATTR(bool, Clip);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
+  ATTR(RefPtr<Shader>, Shader);
   /*-export.end-*/
 
  public:
@@ -67,6 +69,7 @@ class Viewport : public RefCounted<Viewport>,
   bool clip_ = true;
   RefPtr<Color> color_;
   RefPtr<Tone> tone_;
+  RefPtr<Shader> shader_;
 
   struct {
     raylib::Vector4 color = {};

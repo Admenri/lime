@@ -1,6 +1,6 @@
 #include "src/sprite.h"
 
-#include "src/shader.h"
+#include "src/glshader.h"
 
 namespace lime {
 
@@ -225,8 +225,20 @@ ATTR_DEF(RefPtr<Tone>, Tone, Sprite) {
   }
 }
 
+ATTR_DEF(RefPtr<Shader>, Shader, Sprite) {
+  if (value.has_value()) {
+    shader_ = *value;
+    return std::nullopt;
+  } else {
+    return shader_;
+  }
+}
+
 void Sprite::DisposeObject() {
   Drawable::RemoveFromList();
+
+  bitmap_.reset();
+  shader_.reset();
 }
 
 void Sprite::Draw(DrawParam param) {
@@ -236,33 +248,39 @@ void Sprite::Draw(DrawParam param) {
     if (mirror_)
       src_rectangle.width = -src_rectangle.width;
 
-    auto& shader = ShaderSet::Instance()->sprite;
+    auto& default_shader = ShaderSet::Instance()->sprite;
+    shader_ ? shader_->BeginEffect()
+            : raylib::BeginShaderMode(default_shader.shader);
 
-    raylib::BeginShaderMode(shader.shader);
     raylib::rlEnableColorBlend();
     raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
     {
-      auto color_norm = color_->Normalize();
-      auto tone_norm = tone_->Normalize();
-      auto opacity_norm = opacity_ / 255.0f;
-      auto bush_depth_norm =
-          (src_rectangle.y + src_rectangle.height - bush_depth_) /
-          static_cast<float>(bitmap_texture.texture.height);
-      auto bush_opacity_norm = bush_opacity_ / 255.0f;
+      if (!shader_) {
+        // Default shader params
+        auto color_norm = color_->Normalize();
+        auto tone_norm = tone_->Normalize();
+        auto opacity_norm = opacity_ / 255.0f;
+        auto bush_depth_norm =
+            (src_rectangle.y + src_rectangle.height - bush_depth_) /
+            static_cast<float>(bitmap_texture.texture.height);
+        auto bush_opacity_norm = bush_opacity_ / 255.0f;
 
-      if (flash_.color.w > color_norm.w)
-        color_norm = flash_.color;
+        if (flash_.color.w > color_norm.w)
+          color_norm = flash_.color;
 
-      raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
-                             raylib::SHADER_UNIFORM_VEC4);
-      raylib::SetShaderValue(shader.shader, shader.u_tone, &tone_norm,
-                             raylib::SHADER_UNIFORM_VEC4);
-      raylib::SetShaderValue(shader.shader, shader.u_opacity, &opacity_norm,
-                             raylib::SHADER_UNIFORM_FLOAT);
-      raylib::SetShaderValue(shader.shader, shader.u_bush_depth,
-                             &bush_depth_norm, raylib::SHADER_UNIFORM_FLOAT);
-      raylib::SetShaderValue(shader.shader, shader.u_bush_opacity,
-                             &bush_opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
+        raylib::SetShaderValue(default_shader.shader, default_shader.u_color,
+                               &color_norm, raylib::SHADER_UNIFORM_VEC4);
+        raylib::SetShaderValue(default_shader.shader, default_shader.u_tone,
+                               &tone_norm, raylib::SHADER_UNIFORM_VEC4);
+        raylib::SetShaderValue(default_shader.shader, default_shader.u_opacity,
+                               &opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
+        raylib::SetShaderValue(default_shader.shader,
+                               default_shader.u_bush_depth, &bush_depth_norm,
+                               raylib::SHADER_UNIFORM_FLOAT);
+        raylib::SetShaderValue(
+            default_shader.shader, default_shader.u_bush_opacity,
+            &bush_opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
+      }
 
       raylib::rlMatrixMode(RL_MODELVIEW);
       raylib::rlPushMatrix();

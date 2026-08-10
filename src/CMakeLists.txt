@@ -11,6 +11,8 @@ target_sources(lime_core
   drawable.cc
   filesystem.cc
   font.cc
+  geometry.cc
+  glshader.cc
   graphics.cc
   input.cc
   plane.cc
