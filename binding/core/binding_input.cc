@@ -1,6 +1,9 @@
 #include "binding_input.h"
 
+#include "magic_enum/magic_enum.hpp"
+
 #include "src/input.h"
+#include "src/raywarp.h"
 
 namespace binding {
 
@@ -88,6 +91,42 @@ MRB_FUNC(Input_Dir8) {
   return mrb_nil_value();
 }
 
+MRB_FUNC(Input_KeyPressed) {
+  auto* self_obj = lime::Input::Instance();
+  mrb_int keycode;
+  mrb_get_args(mrb, "i", &keycode);
+
+  EXC_BEGIN {
+    return mrb_bool_value(self_obj->KeyPressed(keycode));
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Input_KeyTriggered) {
+  auto* self_obj = lime::Input::Instance();
+  mrb_int keycode;
+  mrb_get_args(mrb, "i", &keycode);
+
+  EXC_BEGIN {
+    return mrb_bool_value(self_obj->KeyTriggered(keycode));
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Input_KeyRepeated) {
+  auto* self_obj = lime::Input::Instance();
+  mrb_int keycode;
+  mrb_get_args(mrb, "i", &keycode);
+
+  EXC_BEGIN {
+    return mrb_bool_value(self_obj->KeyRepeated(keycode));
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
 void InitInputBinding(mrb_state* mrb) {
   auto mod = mrb_define_module(mrb, "Input");
 
@@ -100,6 +139,12 @@ void InitInputBinding(mrb_state* mrb) {
                              MRB_ARGS_REQ(1));
   mrb_define_module_function(mrb, mod, "dir4", Input_Dir4, MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "dir8", Input_Dir8, MRB_ARGS_NONE());
+  mrb_define_module_function(mrb, mod, "key_pressed", Input_KeyPressed,
+                             MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "key_triggered", Input_KeyTriggered,
+                             MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "key_repeated", Input_KeyRepeated,
+                             MRB_ARGS_REQ(1));
 
   for (size_t i = 0; i < std::size(lime::kKeyboardBindings); ++i) {
     auto& binding_set = lime::kKeyboardBindings[i];
@@ -107,6 +152,16 @@ void InitInputBinding(mrb_state* mrb) {
                                     binding_set.name.size());
     mrb_value val = mrb_fixnum_value(binding_set.key_id);
     mrb_const_set(mrb, mrb_obj_value(mod), key, val);
+  }
+
+  for (int i = 0; i < 512; ++i) {
+    auto value = magic_enum::enum_cast<raylib::KeyboardKey>(i);
+    if (value.has_value()) {
+      auto name = magic_enum::enum_name(*value);
+      mrb_sym key = mrb_intern_static(mrb, name.data(), name.size());
+      mrb_value val = mrb_fixnum_value(*value);
+      mrb_const_set(mrb, mrb_obj_value(mod), key, val);
+    }
   }
 }
 

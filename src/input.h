@@ -30,6 +30,10 @@ class Input : public Singleton<Input> {
   bool Repeated(std::string sym);
   int Dir4();
   int Dir8();
+
+  bool KeyPressed(int keycode);
+  bool KeyTriggered(int keycode);
+  bool KeyRepeated(int keycode);
   /*-export.end-*/
 
  public:

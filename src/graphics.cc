@@ -223,6 +223,10 @@ void* Graphics::WindowHandle() {
   return raylib::GetWindowHandle();
 }
 
+float Graphics::Delta() {
+  return raylib::GetFrameTime();
+}
+
 ATTR_DEF(int, FrameRate, Graphics) {
   if (value.has_value()) {
     frame_rate_ = *value;

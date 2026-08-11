@@ -40,8 +40,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_sources(lime_core PUBLIC platform/win32.cc)
 endif()
 
-target_link_libraries(lime_core PUBLIC raylib)
+target_link_libraries(lime_core PUBLIC raylib magic_enum)
 target_link_libraries(lime_core PUBLIC freetype harfbuzz)
 
 target_link_libraries(lime_core PUBLIC physfs-static)
-target_compile_definitions(lime_core PUBLIC PHYSFS_STATIC)
+target_compile_definitions(lime_core
+ PUBLIC
+  PHYSFS_STATIC=1
+  MAGIC_ENUM_RANGE_MIN=0
+  MAGIC_ENUM_RANGE_MAX=512
+)

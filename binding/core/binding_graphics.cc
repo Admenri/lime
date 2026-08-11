@@ -214,6 +214,15 @@ MRB_FUNC(Graphics_WindowHandle) {
   return mrb_nil_value();
 }
 
+MRB_FUNC(Graphics_Delta) {
+  auto* self_obj = lime::Graphics::Instance();
+  EXC_BEGIN {
+    return mrb_float_value(mrb, static_cast<mrb_float>(self_obj->Delta()));
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
 #define GRAPHICS_INT_ATTR(cap)                       \
   MRB_FUNC(Graphics_##cap) {                         \
     auto* self_obj = lime::Graphics::Instance();     \
@@ -272,6 +281,8 @@ void InitGraphicsBinding(mrb_state* mrb) {
   mrb_define_module_function(mrb, mod, "play_movie", Graphics_PlayMovie,
                              MRB_ARGS_REQ(1));
   mrb_define_module_function(mrb, mod, "window_handle", Graphics_WindowHandle,
+                             MRB_ARGS_NONE());
+  mrb_define_module_function(mrb, mod, "delta", Graphics_Delta,
                              MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "frame_rate", Graphics_FrameRate,
                              MRB_ARGS_NONE());

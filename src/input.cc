@@ -151,6 +151,24 @@ int Input::Dir8() {
   return dir8_state_.active;
 }
 
+bool Input::KeyPressed(int keycode) {
+  if (keycode >= 0 && keycode < std::size(states_))
+    return states_[keycode].pressed;
+  return false;
+}
+
+bool Input::KeyTriggered(int keycode) {
+  if (keycode >= 0 && keycode < std::size(states_))
+    return states_[keycode].trigger;
+  return false;
+}
+
+bool Input::KeyRepeated(int keycode) {
+  if (keycode >= 0 && keycode < std::size(states_))
+    return states_[keycode].repeat;
+  return false;
+}
+
 void Input::UpdateDir4() {
   bool key_states[std::size(kArrowDirsSymbol)] = {0};
   for (auto& it : bindings_)

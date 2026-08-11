@@ -19,6 +19,7 @@ add_subdirectory(3rdparty/raylib)
 add_subdirectory(3rdparty/physfs)
 add_subdirectory(3rdparty/freetype)
 add_subdirectory(3rdparty/harfbuzz)
+add_subdirectory(3rdparty/magic_enum)
 add_subdirectory(3rdparty/mruby-cmake)
 
 add_subdirectory(src)

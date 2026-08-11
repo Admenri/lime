@@ -13,6 +13,9 @@
 [submodule "3rdparty/freetype"]
 	path = 3rdparty/freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "3rdparty/magic_enum"]
+	path = 3rdparty/magic_enum
+	url = https://github.com/Neargye/magic_enum.git
 [submodule "3rdparty/harfbuzz"]
 	path = 3rdparty/harfbuzz
 	url = https://github.com/harfbuzz/harfbuzz.git

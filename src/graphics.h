@@ -29,6 +29,7 @@ class Graphics : public Singleton<Graphics> {
   void ResizeScreen(int width, int height);
   void PlayMovie(std::string filename);
   void* WindowHandle();
+  float Delta();
 
   ATTR(int, FrameRate);
   ATTR(int, FrameCount);
