@@ -3,6 +3,7 @@
 #include "binding_bitmap.h"
 #include "binding_color.h"
 #include "binding_shader.h"
+#include "binding_vector.h"
 #include "binding_viewport.h"
 
 #include "src/geometry.h"
@@ -38,12 +39,14 @@ MRB_FUNC(Geometry_initialize) {
 MRB_FUNC(Geometry_SetPosition) {
   auto* self_obj = GetSelfData<lime::Geometry>(self);
   mrb_int triangle, point;
-  mrb_float x, y, z;
-  mrb_get_args(mrb, "iifff", &triangle, &point, &x, &y, &z);
+  mrb_value position_val;
+  mrb_get_args(mrb, "iio", &triangle, &point, &position_val);
+
+  auto position =
+      GetObject<lime::Vector3>(mrb, position_val, kVector3DataType);
 
   EXC_BEGIN {
-    self_obj->SetPosition(triangle, point, static_cast<float>(x),
-                          static_cast<float>(y), static_cast<float>(z));
+    self_obj->SetPosition(triangle, point, position);
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -52,12 +55,14 @@ MRB_FUNC(Geometry_SetPosition) {
 MRB_FUNC(Geometry_SetTexcoord) {
   auto* self_obj = GetSelfData<lime::Geometry>(self);
   mrb_int triangle, point;
-  mrb_float x, y;
-  mrb_get_args(mrb, "iiff", &triangle, &point, &x, &y);
+  mrb_value texcoord_val;
+  mrb_get_args(mrb, "iio", &triangle, &point, &texcoord_val);
+
+  auto texcoord =
+      GetObject<lime::Vector2>(mrb, texcoord_val, kVector2DataType);
 
   EXC_BEGIN {
-    self_obj->SetTexcoord(triangle, point, static_cast<float>(x),
-                          static_cast<float>(y));
+    self_obj->SetTexcoord(triangle, point, texcoord);
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -107,9 +112,9 @@ void InitGeometryBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "initialize", Geometry_initialize,
                     MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "set_position", Geometry_SetPosition,
-                    MRB_ARGS_REQ(5));
+                    MRB_ARGS_REQ(3));
   mrb_define_method(mrb, klass, "set_texcoord", Geometry_SetTexcoord,
-                    MRB_ARGS_REQ(4));
+                    MRB_ARGS_REQ(3));
   mrb_define_method(mrb, klass, "set_color", Geometry_SetColor,
                     MRB_ARGS_REQ(3));
   mrb_define_method(mrb, klass, "capacity", Geometry_Capacity,

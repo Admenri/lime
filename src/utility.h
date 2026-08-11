@@ -151,4 +151,98 @@ class Tone : public RefCounted<Tone> {
   bool HasEffect() { return red || green || blue || gray; }
 };
 
+class Vector2 : public RefCounted<Vector2> {
+ public:
+  Vector2(float xv, float yv) : x(xv), y(yv) {}
+  Vector2(RefPtr<Vector2> o) : x(o->x), y(o->y) {}
+  Vector2() {}
+
+  /*-export.begin-*/
+  void Set(float xv, float yv) {
+    x = xv;
+    y = yv;
+  }
+
+  void Set(RefPtr<Vector2> v) {
+    x = v->x;
+    y = v->y;
+  }
+
+  float x = 0, y = 0;
+  /*-export.end-*/
+
+  raylib::Vector2 As() {
+    raylib::Vector2 result = {};
+    result.x = x;
+    result.y = y;
+    return result;
+  }
+};
+
+class Vector3 : public RefCounted<Vector3> {
+ public:
+  Vector3(float xv, float yv, float zv) : x(xv), y(yv), z(zv) {}
+  Vector3(RefPtr<Vector3> o) : x(o->x), y(o->y), z(o->z) {}
+  Vector3() {}
+
+  /*-export.begin-*/
+  void Set(float xv, float yv, float zv) {
+    x = xv;
+    y = yv;
+    z = zv;
+  }
+
+  void Set(RefPtr<Vector3> v) {
+    x = v->x;
+    y = v->y;
+    z = v->z;
+  }
+
+  float x = 0, y = 0, z = 0;
+  /*-export.end-*/
+
+  raylib::Vector3 As() {
+    raylib::Vector3 result = {};
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    return result;
+  }
+};
+
+class Vector4 : public RefCounted<Vector4> {
+ public:
+  Vector4(float xv, float yv, float zv, float wv)
+      : x(xv), y(yv), z(zv), w(wv) {}
+  Vector4(RefPtr<Vector4> o) : x(o->x), y(o->y), z(o->z), w(o->w) {}
+  Vector4() {}
+
+  /*-export.begin-*/
+  void Set(float xv, float yv, float zv, float wv) {
+    x = xv;
+    y = yv;
+    z = zv;
+    w = wv;
+  }
+
+  void Set(RefPtr<Vector4> v) {
+    x = v->x;
+    y = v->y;
+    z = v->z;
+    w = v->w;
+  }
+
+  float x = 0, y = 0, z = 0, w = 0;
+  /*-export.end-*/
+
+  raylib::Vector4 As() {
+    raylib::Vector4 result = {};
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    result.w = w;
+    return result;
+  }
+};
+
 }  // namespace lime

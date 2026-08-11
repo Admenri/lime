@@ -3,6 +3,7 @@
 #include "src/common.h"
 #include "src/raywarp.h"
 #include "src/refptr.h"
+#include "src/utility.h"
 #include "src/viewport.h"
 
 namespace lime {
@@ -15,8 +16,8 @@ class Geometry : public RefCounted<Geometry>,
   ~Geometry();
 
   /*-export.begin-*/
-  void SetPosition(int triangle, int point, float x, float y, float z);
-  void SetTexcoord(int triangle, int point, float x, float y);
+  void SetPosition(int triangle, int point, RefPtr<Vector3> position);
+  void SetTexcoord(int triangle, int point, RefPtr<Vector2> texcoord);
   void SetColor(int triangle, int point, RefPtr<Color> color);
 
   ATTR(int, Capacity);

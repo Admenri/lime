@@ -6,6 +6,61 @@
 
 namespace lime {
 
+// RAII wrapper that opens the render target for shape drawing and enables
+// standard alpha blending (raylib's default for shapes). Declared in the
+// lime namespace (not anonymous) so it matches the `friend class
+// ShapeDrawScope;` declaration in Bitmap, which grants it access to the
+// private texture_ / shape_bitmap_ members.
+class ShapeDrawScope {
+ public:
+  explicit ShapeDrawScope(Bitmap* context) {
+    raylib::BeginTextureMode(context->texture_);
+    raylib::rlEnableColorBlend();
+    raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+    if (auto& texture = context->shape_bitmap_; texture) {
+      raylib::Rectangle rec = {};
+      rec.width = texture->Width();
+      rec.height = texture->Height();
+      raylib::SetShapesTexture(texture->texture_.texture, rec);
+    }
+  }
+
+  ~ShapeDrawScope() {
+    raylib::SetShapesTexture({}, {});
+    raylib::EndTextureMode();
+  }
+};
+
+namespace {
+
+// Converts an array of wrapped Vector2 into a flat raylib Vector2 buffer so
+// it can be passed to the raylib shape functions.
+std::vector<raylib::Vector2> ToRaylibPoints(
+    const std::vector<RefPtr<Vector2>>& points) {
+  std::vector<raylib::Vector2> result;
+  result.reserve(points.size());
+  for (const auto& point : points) {
+    if (!point)
+      throw Exception(Exception::RGSSError, "invalid vector.");
+    result.push_back(point->As());
+  }
+  return result;
+}
+
+// Converts an RGBA color to premultiplied alpha: the RGB channels are scaled
+// by the normalized alpha value so the color composites correctly in the
+// premultiplied blend mode used by the render texture (see StretchBlt).
+raylib::Color PremultiplyColor(RefPtr<Color> color) {
+  auto result = color->As();
+  const float factor = result.a / 255.0f;
+  result.r = static_cast<uint8_t>(result.r * factor);
+  result.g = static_cast<uint8_t>(result.g * factor);
+  result.b = static_cast<uint8_t>(result.b * factor);
+  return result;
+}
+
+}  // namespace
+
 Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
   raylib::Image image = {};
 
@@ -326,12 +381,768 @@ void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
   raylib::EndTextureMode();
 }
 
+// ---------------------------------------------------------------------------
+// Basic shapes drawing functions (raylib passthrough)
+// ---------------------------------------------------------------------------
+
+void Bitmap::DrawPixel(int x, int y, RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawPixel(x, y, PremultiplyColor(color));
+}
+
+void Bitmap::DrawLine(int x1, int y1, int x2, int y2, RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawLine(x1, y1, x2, y2, PremultiplyColor(color));
+}
+
+void Bitmap::DrawLine(RefPtr<Vector2> start_pos,
+                      RefPtr<Vector2> end_pos,
+                      RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!start_pos || !end_pos)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawLineV(start_pos->As(), end_pos->As(), PremultiplyColor(color));
+}
+
+void Bitmap::DrawLineEx(RefPtr<Vector2> start_pos,
+                        RefPtr<Vector2> end_pos,
+                        float thick,
+                        RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!start_pos || !end_pos)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawLineEx(start_pos->As(), end_pos->As(), thick,
+                     PremultiplyColor(color));
+}
+
+void Bitmap::DrawLineStrip(std::vector<RefPtr<Vector2>> points,
+                           RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawLineStrip(rpoints.data(), (int)rpoints.size(),
+                        PremultiplyColor(color));
+}
+
+void Bitmap::DrawLineBezier(RefPtr<Vector2> start_pos,
+                            RefPtr<Vector2> end_pos,
+                            float thick,
+                            RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!start_pos || !end_pos)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawLineBezier(start_pos->As(), end_pos->As(), thick,
+                         PremultiplyColor(color));
+}
+
+void Bitmap::DrawLineDashed(RefPtr<Vector2> start_pos,
+                            RefPtr<Vector2> end_pos,
+                            int dash_size,
+                            int space_size,
+                            RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!start_pos || !end_pos)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawLineDashed(start_pos->As(), end_pos->As(), dash_size, space_size,
+                         PremultiplyColor(color));
+}
+
+void Bitmap::DrawTriangle(RefPtr<Vector2> v1,
+                          RefPtr<Vector2> v2,
+                          RefPtr<Vector2> v3,
+                          RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!v1 || !v2 || !v3)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawTriangle(v1->As(), v2->As(), v3->As(), PremultiplyColor(color));
+}
+
+void Bitmap::DrawTriangleGradient(RefPtr<Vector2> v1,
+                                  RefPtr<Vector2> v2,
+                                  RefPtr<Vector2> v3,
+                                  RefPtr<Color> c1,
+                                  RefPtr<Color> c2,
+                                  RefPtr<Color> c3) {
+  Dispoable::Guard();
+  if (!v1 || !v2 || !v3)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!c1 || !c2 || !c3)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawTriangleGradient(v1->As(), v2->As(), v3->As(),
+                               PremultiplyColor(c1), PremultiplyColor(c2),
+                               PremultiplyColor(c3));
+}
+
+void Bitmap::DrawTriangleLines(RefPtr<Vector2> v1,
+                               RefPtr<Vector2> v2,
+                               RefPtr<Vector2> v3,
+                               RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!v1 || !v2 || !v3)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawTriangleLines(v1->As(), v2->As(), v3->As(),
+                            PremultiplyColor(color));
+}
+
+void Bitmap::DrawTriangleFan(std::vector<RefPtr<Vector2>> points,
+                             RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawTriangleFan(rpoints.data(), (int)rpoints.size(),
+                          PremultiplyColor(color));
+}
+
+void Bitmap::DrawTriangleStrip(std::vector<RefPtr<Vector2>> points,
+                               RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawTriangleStrip(rpoints.data(), (int)rpoints.size(),
+                            PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangle(int x,
+                           int y,
+                           int width,
+                           int height,
+                           RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangle(x, y, width, height, PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangle(RefPtr<Vector2> position,
+                           RefPtr<Vector2> size,
+                           RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!position || !size)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleV(position->As(), size->As(), PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangle(RefPtr<Rect> rect, RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleRec(rect->As(), PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectanglePro(RefPtr<Rect> rect,
+                              RefPtr<Vector2> origin,
+                              float rotation,
+                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!origin)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectanglePro(rect->As(), origin->As(), rotation,
+                           PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangleGradientV(int x,
+                                    int y,
+                                    int width,
+                                    int height,
+                                    RefPtr<Color> top,
+                                    RefPtr<Color> bottom) {
+  Dispoable::Guard();
+  if (!top || !bottom)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleGradientV(x, y, width, height, PremultiplyColor(top),
+                                 PremultiplyColor(bottom));
+}
+
+void Bitmap::DrawRectangleGradientH(int x,
+                                    int y,
+                                    int width,
+                                    int height,
+                                    RefPtr<Color> left,
+                                    RefPtr<Color> right) {
+  Dispoable::Guard();
+  if (!left || !right)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleGradientH(x, y, width, height, PremultiplyColor(left),
+                                 PremultiplyColor(right));
+}
+
+void Bitmap::DrawRectangleGradientEx(RefPtr<Rect> rect,
+                                     RefPtr<Color> col1,
+                                     RefPtr<Color> col2,
+                                     RefPtr<Color> col3,
+                                     RefPtr<Color> col4) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!col1 || !col2 || !col3 || !col4)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleGradientEx(
+      rect->As(), PremultiplyColor(col1), PremultiplyColor(col2),
+      PremultiplyColor(col3), PremultiplyColor(col4));
+}
+
+void Bitmap::DrawRectangleLines(int x,
+                                int y,
+                                int width,
+                                int height,
+                                RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleLines(x, y, width, height, PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangleLinesEx(RefPtr<Rect> rect,
+                                  float thick,
+                                  RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleLinesEx(rect->As(), thick, PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangleRounded(RefPtr<Rect> rect,
+                                  float roundness,
+                                  int segments,
+                                  RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleRounded(rect->As(), roundness, segments,
+                               PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangleRoundedLines(RefPtr<Rect> rect,
+                                       float roundness,
+                                       int segments,
+                                       RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleRoundedLines(rect->As(), roundness, segments,
+                                    PremultiplyColor(color));
+}
+
+void Bitmap::DrawRectangleRoundedLinesEx(RefPtr<Rect> rect,
+                                         float roundness,
+                                         int segments,
+                                         float thick,
+                                         RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRectangleRoundedLinesEx(rect->As(), roundness, segments, thick,
+                                      PremultiplyColor(color));
+}
+
+void Bitmap::DrawPoly(RefPtr<Vector2> center,
+                      int sides,
+                      float radius,
+                      float rotation,
+                      RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawPoly(center->As(), sides, radius, rotation,
+                   PremultiplyColor(color));
+}
+
+void Bitmap::DrawPolyLines(RefPtr<Vector2> center,
+                           int sides,
+                           float radius,
+                           float rotation,
+                           RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawPolyLines(center->As(), sides, radius, rotation,
+                        PremultiplyColor(color));
+}
+
+void Bitmap::DrawPolyLinesEx(RefPtr<Vector2> center,
+                             int sides,
+                             float radius,
+                             float rotation,
+                             float thick,
+                             RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawPolyLinesEx(center->As(), sides, radius, rotation, thick,
+                          PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircle(int center_x,
+                        int center_y,
+                        float radius,
+                        RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircle(center_x, center_y, radius, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircle(RefPtr<Vector2> center,
+                        float radius,
+                        RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleV(center->As(), radius, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircleGradient(RefPtr<Vector2> center,
+                                float radius,
+                                RefPtr<Color> inner,
+                                RefPtr<Color> outer) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!inner || !outer)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleGradient(center->As(), radius, PremultiplyColor(inner),
+                             PremultiplyColor(outer));
+}
+
+void Bitmap::DrawCircleSector(RefPtr<Vector2> center,
+                              float radius,
+                              float start_angle,
+                              float end_angle,
+                              int segments,
+                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleSector(center->As(), radius, start_angle, end_angle,
+                           segments, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircleSectorLines(RefPtr<Vector2> center,
+                                   float radius,
+                                   float start_angle,
+                                   float end_angle,
+                                   int segments,
+                                   RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleSectorLines(center->As(), radius, start_angle, end_angle,
+                                segments, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircleLines(int center_x,
+                             int center_y,
+                             float radius,
+                             RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleLines(center_x, center_y, radius, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircleLines(RefPtr<Vector2> center,
+                             float radius,
+                             RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleLinesV(center->As(), radius, PremultiplyColor(color));
+}
+
+void Bitmap::DrawCircleLinesEx(RefPtr<Vector2> center,
+                               float radius,
+                               float thick,
+                               RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawCircleLinesEx(center->As(), radius, thick,
+                            PremultiplyColor(color));
+}
+
+void Bitmap::DrawEllipse(int center_x,
+                         int center_y,
+                         float radius_h,
+                         float radius_v,
+                         RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawEllipse(center_x, center_y, radius_h, radius_v,
+                      PremultiplyColor(color));
+}
+
+void Bitmap::DrawEllipse(RefPtr<Vector2> center,
+                         float radius_h,
+                         float radius_v,
+                         RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawEllipseV(center->As(), radius_h, radius_v,
+                       PremultiplyColor(color));
+}
+
+void Bitmap::DrawEllipseLines(int center_x,
+                              int center_y,
+                              float radius_h,
+                              float radius_v,
+                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawEllipseLines(center_x, center_y, radius_h, radius_v,
+                           PremultiplyColor(color));
+}
+
+void Bitmap::DrawEllipseLines(RefPtr<Vector2> center,
+                              float radius_h,
+                              float radius_v,
+                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawEllipseLinesV(center->As(), radius_h, radius_v,
+                            PremultiplyColor(color));
+}
+
+void Bitmap::DrawRing(RefPtr<Vector2> center,
+                      float inner_radius,
+                      float outer_radius,
+                      float start_angle,
+                      float end_angle,
+                      int segments,
+                      RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRing(center->As(), inner_radius, outer_radius, start_angle,
+                   end_angle, segments, PremultiplyColor(color));
+}
+
+void Bitmap::DrawRingLines(RefPtr<Vector2> center,
+                           float inner_radius,
+                           float outer_radius,
+                           float start_angle,
+                           float end_angle,
+                           int segments,
+                           RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!center)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawRingLines(center->As(), inner_radius, outer_radius, start_angle,
+                        end_angle, segments, PremultiplyColor(color));
+}
+
+// ---------------------------------------------------------------------------
+// Splines drawing functions (raylib passthrough)
+// ---------------------------------------------------------------------------
+
+void Bitmap::DrawSplineLinear(std::vector<RefPtr<Vector2>> points,
+                              float thick,
+                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineLinear(rpoints.data(), (int)rpoints.size(), thick,
+                           PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineBasis(std::vector<RefPtr<Vector2>> points,
+                             float thick,
+                             RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineBasis(rpoints.data(), (int)rpoints.size(), thick,
+                          PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineCatmullRom(std::vector<RefPtr<Vector2>> points,
+                                  float thick,
+                                  RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineCatmullRom(rpoints.data(), (int)rpoints.size(), thick,
+                               PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineBezierQuadratic(std::vector<RefPtr<Vector2>> points,
+                                       float thick,
+                                       RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineBezierQuadratic(rpoints.data(), (int)rpoints.size(), thick,
+                                    PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineBezierCubic(std::vector<RefPtr<Vector2>> points,
+                                   float thick,
+                                   RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  auto rpoints = ToRaylibPoints(points);
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineBezierCubic(rpoints.data(), (int)rpoints.size(), thick,
+                                PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineSegmentLinear(RefPtr<Vector2> p1,
+                                     RefPtr<Vector2> p2,
+                                     float thick,
+                                     RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!p1 || !p2)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineSegmentLinear(p1->As(), p2->As(), thick,
+                                  PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineSegmentBasis(RefPtr<Vector2> p1,
+                                    RefPtr<Vector2> p2,
+                                    RefPtr<Vector2> p3,
+                                    RefPtr<Vector2> p4,
+                                    float thick,
+                                    RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!p1 || !p2 || !p3 || !p4)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineSegmentBasis(p1->As(), p2->As(), p3->As(), p4->As(), thick,
+                                 PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineSegmentCatmullRom(RefPtr<Vector2> p1,
+                                         RefPtr<Vector2> p2,
+                                         RefPtr<Vector2> p3,
+                                         RefPtr<Vector2> p4,
+                                         float thick,
+                                         RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!p1 || !p2 || !p3 || !p4)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineSegmentCatmullRom(p1->As(), p2->As(), p3->As(), p4->As(),
+                                      thick, PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineSegmentBezierQuadratic(RefPtr<Vector2> p1,
+                                              RefPtr<Vector2> c2,
+                                              RefPtr<Vector2> p3,
+                                              float thick,
+                                              RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!p1 || !c2 || !p3)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineSegmentBezierQuadratic(p1->As(), c2->As(), p3->As(), thick,
+                                           PremultiplyColor(color));
+}
+
+void Bitmap::DrawSplineSegmentBezierCubic(RefPtr<Vector2> p1,
+                                          RefPtr<Vector2> c2,
+                                          RefPtr<Vector2> c3,
+                                          RefPtr<Vector2> p4,
+                                          float thick,
+                                          RefPtr<Color> color) {
+  Dispoable::Guard();
+  if (!p1 || !c2 || !c3 || !p4)
+    throw Exception(Exception::RGSSError, "invalid vector.");
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid color.");
+
+  ShapeDrawScope scope(this);
+  raylib::DrawSplineSegmentBezierCubic(p1->As(), c2->As(), c3->As(), p4->As(),
+                                       thick, PremultiplyColor(color));
+}
+
 ATTR_DEF(RefPtr<Font>, Font, Bitmap) {
   if (value.has_value()) {
     font_ = *value;
     return std::nullopt;
   } else {
     return font_;
+  }
+}
+
+ATTR_DEF(RefPtr<Bitmap>, ShapeBitmap, Bitmap) {
+  if (value.has_value()) {
+    if (shape_bitmap_ == this)
+      throw Exception(Exception::RGSSError, "dont set self as shape bitmap.");
+    shape_bitmap_ = *value;
+    return std::nullopt;
+  } else {
+    return shape_bitmap_;
   }
 }
 

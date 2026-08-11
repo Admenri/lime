@@ -209,9 +209,9 @@ void InitShaderBinding(mrb_state* mrb) {
                     MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "set_value_u", Shader_SetValueU,
                     MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "set_value_t", Shader_SetValueT,
+  mrb_define_method(mrb, klass, "set_bitmap", Shader_SetValueT,
                     MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, klass, "set_value_m", Shader_SetValueM,
+  mrb_define_method(mrb, klass, "set_matrix", Shader_SetValueM,
                     MRB_ARGS_REQ(2));
 }
 

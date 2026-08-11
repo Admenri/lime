@@ -9,27 +9,33 @@ Geometry::~Geometry() {
   Dispose();
 }
 
-void Geometry::SetPosition(int triangle, int point, float x, float y, float z) {
+void Geometry::SetPosition(int triangle, int point, RefPtr<Vector3> position) {
   Dispoable::Guard();
 
   if (triangle < 0 || triangle >= data_.size() || point < 0 || point >= 3)
     throw Exception(Exception::RGSSError, "invalid range");
 
+  if (!position)
+    throw Exception(Exception::RGSSError, "invalid data.");
+
   auto& v = data_[triangle];
-  v.position[point].x = x;
-  v.position[point].y = y;
-  v.position[point].z = z;
+  v.position[point].x = position->x;
+  v.position[point].y = position->y;
+  v.position[point].z = position->z;
 }
 
-void Geometry::SetTexcoord(int triangle, int point, float x, float y) {
+void Geometry::SetTexcoord(int triangle, int point, RefPtr<Vector2> texcoord) {
   Dispoable::Guard();
 
   if (triangle < 0 || triangle >= data_.size() || point < 0 || point >= 3)
     throw Exception(Exception::RGSSError, "invalid range");
 
+  if (!texcoord)
+    throw Exception(Exception::RGSSError, "invalid data.");
+
   auto& v = data_[triangle];
-  v.texcoord[point].x = x;
-  v.texcoord[point].y = y;
+  v.texcoord[point].x = texcoord->x;
+  v.texcoord[point].y = texcoord->y;
 }
 
 void Geometry::SetColor(int triangle, int point, RefPtr<Color> color) {

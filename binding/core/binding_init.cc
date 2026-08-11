@@ -14,6 +14,7 @@
 #include "binding_table.h"
 #include "binding_tilemap.h"
 #include "binding_tone.h"
+#include "binding_vector.h"
 #include "binding_viewport.h"
 #include "binding_window.h"
 
@@ -34,6 +35,7 @@ void InitBindings(mrb_state* mrb) {
   InitTableBinding(mrb);
   InitTilemapBinding(mrb);
   InitToneBinding(mrb);
+  InitVectorBinding(mrb);
   InitViewportBinding(mrb);
   InitWindowBinding(mrb);
 }
