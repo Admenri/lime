@@ -73,6 +73,8 @@ class Tilemap : public RefCounted<Tilemap>,
   void UpdateViewport(DrawParam param);
   void DrawMapData(bool above);
 
+  bool rgss3_style_ = true;
+
   std::unique_ptr<TilemapAbove> above_;
   raylib::Texture shadow_texture_;
   raylib::Rectangle render_viewport_ = {};
@@ -90,7 +92,6 @@ class Tilemap : public RefCounted<Tilemap>,
   RefPtr<Table> flash_data_;
   RefPtr<Table> flags_;
   int ox_ = 0, oy_ = 0;
-  bool rgss3_style_ = true;
   bool xrepeat_ = true, yrepeat_ = true;
   int tilesize_ = 32;
 };

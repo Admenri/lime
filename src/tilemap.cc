@@ -1,7 +1,7 @@
 #include "src/tilemap.h"
 
-#include "src/profile.h"
 #include "src/glshader.h"
+#include "src/profile.h"
 
 namespace lime {
 
@@ -308,8 +308,8 @@ void TilemapAbove::Draw(DrawParam param) {
 
 Tilemap::Tilemap(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
-      above_(std::make_unique<TilemapAbove>(this, viewport)),
-      rgss3_style_(Config::Instance()->rgss_version >= 3) {
+      rgss3_style_(Config::Instance()->rgss_version >= 3),
+      above_(std::make_unique<TilemapAbove>(this, viewport)) {
   CreateShadowSet();
 }
 

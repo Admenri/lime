@@ -38,13 +38,19 @@ uniform float bushOpacity;
 void main() {
   vec4 texelColor = texture2D(texture0, fragTexCoord);
 
+  // Resume alpha
+  texelColor.rgb /= (texelColor.a > 0.0 ? texelColor.a : 1.0);
+
   // Tone
-  float luma = texelColor.r * 0.299 + texelColor.g * 0.587 + texelColor.b * 0.114;
-	texelColor.rgb = mix(texelColor.rgb, vec3(luma), tone.w);
+  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
+	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
   texelColor.rgb += tone.rgb;
 
   // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
+  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
+
+  // Multipy alpha
+  texelColor.rgb *= texelColor.a;
 
   // Opacity
   texelColor *= opacity;
@@ -119,13 +125,19 @@ uniform float opacity;
 void main() {
   vec4 texelColor = texture2D(texture0, fragTexCoord);
 
+  // Resume alpha
+  texelColor.rgb /= (texelColor.a > 0.0 ? texelColor.a : 1.0);
+
   // Tone
-  float luma = texelColor.r * 0.299 + texelColor.g * 0.587 + texelColor.b * 0.114;
-	texelColor.rgb = mix(texelColor.rgb, vec3(luma), tone.w);
+  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
+	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
   texelColor.rgb += tone.rgb;
 
   // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
+  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
+
+  // Multipy alpha
+  texelColor.rgb *= texelColor.a;
 
   // Opacity
   texelColor *= opacity;

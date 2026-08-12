@@ -49,6 +49,8 @@ class Window : public RefCounted<Window>,
   void DisposeObject() override;
   void Draw(DrawParam param) override;
 
+  bool rgss3_style_ = true;
+
   RefPtr<Bitmap> window_skin_;
   RefPtr<Bitmap> contents_;
   RefPtr<Rect> cursor_rect_;
@@ -61,7 +63,6 @@ class Window : public RefCounted<Window>,
   RefPtr<Tone> tone_;
   int scale_ = 2;
 
-  bool rgss3_style_ = true;
   int pause_index_ = 0;
   int cursor_index_ = 0;
 };

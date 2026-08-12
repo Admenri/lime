@@ -384,8 +384,9 @@ void Window::Draw(DrawParam param) {
   const float fpad = static_cast<float>(padding_);
   const float fpad_bottom = static_cast<float>(padding_bottom_);
 
-  raylib::Rectangle padding_rect{fpad, fpad, std::max(0.0f, fw - fpad * 2.0f),
-                                 std::max(0.0f, fh - (fpad + fpad_bottom))};
+  raylib::Rectangle padding_rect = {fpad, fpad,
+                                    std::max(0.0f, fw - fpad * 2.0f),
+                                    std::max(0.0f, fh - (fpad + fpad_bottom))};
 
   raylib::rlEnableColorBlend();
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
