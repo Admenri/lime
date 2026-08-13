@@ -1,7 +1,7 @@
 #include "src/window.h"
 
-#include "src/shader.h"
 #include "src/profile.h"
+#include "src/shader.h"
 
 namespace raylib {
 
@@ -141,10 +141,11 @@ static const int kCursorAlphaTable[] = {
 };
 
 Window::Window(int x, int y, int width, int height)
-    : rgss3_style_(Config::Instance()->rgss_version >= 3),
-      ViewportChild(nullptr,
-                    rgss3_style_ ? ZValue(100, std::numeric_limits<int>::max())
-                                 : ZValue(0, 0)),
+    : ViewportChild(nullptr,
+                    Config::Instance()->rgss_version >= 3
+                        ? ZValue(100, std::numeric_limits<int>::max())
+                        : ZValue(0, 0)),
+      rgss3_style_(Config::Instance()->rgss_version >= 3),
       window_skin_(nullptr),
       contents_(MakeRefCounted<Bitmap>(1, 1)),
       cursor_rect_(MakeRefCounted<Rect>()),
