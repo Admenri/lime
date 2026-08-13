@@ -19,52 +19,6 @@ void main() {
 
 // -------------------------------------------------------------
 
-const std::string kSpriteFragmentGLSL = R"(
-#version 100
-
-precision mediump float;
-
-varying vec2 fragTexCoord;
-
-uniform sampler2D texture0;
-
-uniform vec4 color;
-uniform vec4 tone;
-uniform float opacity;
-
-uniform float bushDepth;
-uniform float bushOpacity;
-
-void main() {
-  vec4 texelColor = texture2D(texture0, fragTexCoord);
-
-  // Resume alpha
-  texelColor.rgb /= (texelColor.a > 0.0 ? texelColor.a : 1.0);
-
-  // Tone
-  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
-	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
-  texelColor.rgb += tone.rgb;
-
-  // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
-
-  // Multipy alpha
-  texelColor.rgb *= texelColor.a;
-
-  // Opacity
-  texelColor *= opacity;
-
-  // Bush effect
-  float bushing = float(fragTexCoord.y < bushDepth);
-  texelColor *= clamp(bushOpacity + bushing, 0.0, 1.0);
-
-  gl_FragColor = texelColor;
-}
-)";
-
-// -------------------------------------------------------------
-
 const std::string kAlphaTransitionFragmentGLSL = R"(
 #version 100
 
@@ -109,6 +63,46 @@ void main() {
 
 // -------------------------------------------------------------
 
+const std::string kSpriteFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0;
+
+uniform vec4 color;
+uniform vec4 tone;
+uniform float opacity;
+
+uniform float bushDepth;
+uniform float bushOpacity;
+
+void main() {
+  vec4 texelColor = texture2D(texture0, fragTexCoord);
+
+  // Tone
+  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
+	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
+  texelColor.rgb += tone.rgb * texelColor.a;
+
+  // Color
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
+
+  // Opacity
+  texelColor *= opacity;
+
+  // Bush effect
+  float bushing = float(fragTexCoord.y < bushDepth);
+  texelColor *= clamp(bushOpacity + bushing, 0.0, 1.0);
+
+  gl_FragColor = texelColor;
+}
+)";
+
+// -------------------------------------------------------------
+
 const std::string kViewportFragmentGLSL = R"(
 #version 100
 
@@ -125,19 +119,13 @@ uniform float opacity;
 void main() {
   vec4 texelColor = texture2D(texture0, fragTexCoord);
 
-  // Resume alpha
-  texelColor.rgb /= (texelColor.a > 0.0 ? texelColor.a : 1.0);
-
   // Tone
   float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
 	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
-  texelColor.rgb += tone.rgb;
+  texelColor.rgb += tone.rgb * texelColor.a;
 
   // Color
-  texelColor.rgb = mix(texelColor.rgb, color.rgb, color.a);
-
-  // Multipy alpha
-  texelColor.rgb *= texelColor.a;
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
 
   // Opacity
   texelColor *= opacity;
@@ -176,17 +164,6 @@ ShaderBase::~ShaderBase() {
   raylib::UnloadShader(shader);
 }
 
-SpriteShader::SpriteShader() {
-  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
-                                        kSpriteFragmentGLSL.c_str());
-
-  u_color = raylib::GetShaderLocation(shader, "color");
-  u_tone = raylib::GetShaderLocation(shader, "tone");
-  u_opacity = raylib::GetShaderLocation(shader, "opacity");
-  u_bush_depth = raylib::GetShaderLocation(shader, "bushDepth");
-  u_bush_opacity = raylib::GetShaderLocation(shader, "bushOpacity");
-}
-
 AlphaTransition::AlphaTransition() {
   shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
                                         kAlphaTransitionFragmentGLSL.c_str());
@@ -203,6 +180,17 @@ MappingTransition::MappingTransition() {
   u_mapping_image = raylib::GetShaderLocation(shader, "texture2");
   u_progress = raylib::GetShaderLocation(shader, "progress");
   u_vague = raylib::GetShaderLocation(shader, "vague");
+}
+
+SpriteShader::SpriteShader() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kSpriteFragmentGLSL.c_str());
+
+  u_color = raylib::GetShaderLocation(shader, "color");
+  u_tone = raylib::GetShaderLocation(shader, "tone");
+  u_opacity = raylib::GetShaderLocation(shader, "opacity");
+  u_bush_depth = raylib::GetShaderLocation(shader, "bushDepth");
+  u_bush_opacity = raylib::GetShaderLocation(shader, "bushOpacity");
 }
 
 ViewportShader::ViewportShader() {

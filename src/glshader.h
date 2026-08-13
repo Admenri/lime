@@ -15,16 +15,6 @@ struct ShaderBase {
   raylib::Shader shader = {};
 };
 
-struct SpriteShader : public ShaderBase {
-  SpriteShader();
-
-  int u_color = 0;
-  int u_tone = 0;
-  int u_opacity = 0;
-  int u_bush_depth = 0;
-  int u_bush_opacity = 0;
-};
-
 struct AlphaTransition : public ShaderBase {
   AlphaTransition();
 
@@ -39,6 +29,16 @@ struct MappingTransition : public ShaderBase {
   int u_mapping_image = 0;
   int u_progress = 0;
   int u_vague = 0;
+};
+
+struct SpriteShader : public ShaderBase {
+  SpriteShader();
+
+  int u_color = 0;
+  int u_tone = 0;
+  int u_opacity = 0;
+  int u_bush_depth = 0;
+  int u_bush_opacity = 0;
 };
 
 struct ViewportShader : public ShaderBase {
