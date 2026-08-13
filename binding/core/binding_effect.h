@@ -4,8 +4,8 @@
 
 namespace binding {
 
-MRB_DATATYPE_DECLARE(Shader);
+MRB_DATATYPE_DECLARE(Effect);
 
-void InitShaderBinding(mrb_state* mrb);
+void InitEffectBinding(mrb_state* mrb);
 
 }  // namespace binding

@@ -16,13 +16,13 @@ target_sources(binding_mruby
   core/binding_audio.cc
   core/binding_bitmap.cc
   core/binding_color.cc
+  core/binding_effect.cc
   core/binding_font.cc
   core/binding_geometry.cc
   core/binding_graphics.cc
   core/binding_input.cc
   core/binding_plane.cc
   core/binding_rect.cc
-  core/binding_shader.cc
   core/binding_sprite.cc
   core/binding_table.cc
   core/binding_tilemap.cc

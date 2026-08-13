@@ -2,7 +2,7 @@
 
 #include "binding_bitmap.h"
 #include "binding_color.h"
-#include "binding_shader.h"
+#include "binding_effect.h"
 #include "binding_vector.h"
 #include "binding_viewport.h"
 
@@ -92,9 +92,9 @@ BINDING_ATTR_OBJECT_REF(Geometry,
 BINDING_ATTR_INT(Geometry, lime::Geometry, BlendType);
 BINDING_ATTR_OBJECT_REF(Geometry,
                         lime::Geometry,
-                        Shader,
-                        lime::Shader,
-                        kShaderDataType);
+                        Effect,
+                        lime::Effect,
+                        kEffectDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Geometry, lime::Geometry);
@@ -128,8 +128,8 @@ void InitGeometryBinding(mrb_state* mrb) {
                     MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "blend_type=", Geometry_BlendTypeEqual,
                     MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, klass, "shader", Geometry_Shader, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "shader=", Geometry_ShaderEqual,
+  mrb_define_method(mrb, klass, "effect", Geometry_Effect, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "effect=", Geometry_EffectEqual,
                     MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Geometry_Dispose, MRB_ARGS_NONE());

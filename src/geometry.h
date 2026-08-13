@@ -23,7 +23,7 @@ class Geometry : public RefCounted<Geometry>,
   ATTR(int, Capacity);
   ATTR(RefPtr<Bitmap>, Bitmap);
   ATTR(int, BlendType);
-  ATTR(RefPtr<Shader>, Shader);
+  ATTR(RefPtr<Effect>, Effect);
   /*-export.end-*/
 
  private:
@@ -38,7 +38,7 @@ class Geometry : public RefCounted<Geometry>,
 
   RefPtr<Bitmap> bitmap_;
   int blend_type_ = 0;
-  RefPtr<Shader> shader_;
+  RefPtr<Effect> effect_;
 
   std::vector<TriangleData> data_;
 };

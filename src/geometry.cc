@@ -80,12 +80,12 @@ ATTR_DEF(int, BlendType, Geometry) {
   }
 }
 
-ATTR_DEF(RefPtr<Shader>, Shader, Geometry) {
+ATTR_DEF(RefPtr<Effect>, Effect, Geometry) {
   if (value.has_value()) {
-    shader_ = *value;
+    effect_ = *value;
     return std::nullopt;
   } else {
-    return shader_;
+    return effect_;
   }
 }
 
@@ -93,38 +93,39 @@ void Geometry::DisposeObject() {
   Drawable::RemoveFromList();
 
   bitmap_.reset();
-  shader_.reset();
+  effect_.reset();
 }
 
 void Geometry::Draw(DrawParam param) {
-  if (shader_)
-    shader_->BeginEffect();
-  {
+  if (effect_) {
+    effect_->BeginEffect();
+  } else {
     raylib::rlEnableColorBlend();
     raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
-
-    for (auto& triangle : data_) {
-      if (bitmap_ && !bitmap_->IsDisposed())
-        raylib::rlSetTexture(bitmap_->render_texture().texture.id);
-
-      raylib::rlBegin(RL_TRIANGLES);
-      {
-        raylib::rlNormal3f(0.0f, 0.0f, 1.0f);
-
-        for (int i = 0; i < 3; ++i) {
-          auto& color = triangle.color[i];
-          auto& texcoord = triangle.texcoord[i];
-          auto& position = triangle.position[i];
-
-          raylib::rlColor4ub(color.r, color.g, color.b, color.a);
-          raylib::rlTexCoord2f(texcoord.x, texcoord.y);
-          raylib::rlVertex2f(position.x, position.y);
-        }
-      }
-      raylib::rlEnd();
-    }
   }
-  if (shader_)
+
+  for (auto& triangle : data_) {
+    if (bitmap_ && !bitmap_->IsDisposed())
+      raylib::rlSetTexture(bitmap_->render_texture().texture.id);
+
+    raylib::rlBegin(RL_TRIANGLES);
+    {
+      raylib::rlNormal3f(0.0f, 0.0f, 1.0f);
+
+      for (int i = 0; i < 3; ++i) {
+        auto& color = triangle.color[i];
+        auto& texcoord = triangle.texcoord[i];
+        auto& position = triangle.position[i];
+
+        raylib::rlColor4ub(color.r, color.g, color.b, color.a);
+        raylib::rlTexCoord2f(texcoord.x, texcoord.y);
+        raylib::rlVertex2f(position.x, position.y);
+      }
+    }
+    raylib::rlEnd();
+  }
+
+  if (effect_)
     raylib::EndShaderMode();
 }
 

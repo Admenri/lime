@@ -3,6 +3,7 @@
 #include "src/bitmap.h"
 #include "src/common.h"
 #include "src/drawable.h"
+#include "src/effect.h"
 #include "src/refptr.h"
 #include "src/viewport.h"
 
@@ -42,7 +43,7 @@ class Sprite : public RefCounted<Sprite>,
   ATTR(int, BlendType);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
-  ATTR(RefPtr<Shader>, Shader);
+  ATTR(RefPtr<Effect>, Effect);
   /*-export.end-*/
 
  private:
@@ -62,7 +63,7 @@ class Sprite : public RefCounted<Sprite>,
   int opacity_ = 255, blend_type_ = 0;
   RefPtr<Color> color_;
   RefPtr<Tone> tone_;
-  RefPtr<Shader> shader_;
+  RefPtr<Effect> effect_;
 
   struct {
     raylib::Vector4 color = {};

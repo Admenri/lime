@@ -1,6 +1,6 @@
 #include "src/sprite.h"
 
-#include "src/glshader.h"
+#include "src/shader.h"
 
 namespace lime {
 
@@ -231,12 +231,12 @@ ATTR_DEF(RefPtr<Tone>, Tone, Sprite) {
   }
 }
 
-ATTR_DEF(RefPtr<Shader>, Shader, Sprite) {
+ATTR_DEF(RefPtr<Effect>, Effect, Sprite) {
   if (value.has_value()) {
-    shader_ = *value;
+    effect_ = *value;
     return std::nullopt;
   } else {
-    return shader_;
+    return effect_;
   }
 }
 
@@ -244,7 +244,7 @@ void Sprite::DisposeObject() {
   Drawable::RemoveFromList();
 
   bitmap_.reset();
-  shader_.reset();
+  effect_.reset();
 }
 
 void Sprite::Draw(DrawParam param) {
@@ -255,13 +255,16 @@ void Sprite::Draw(DrawParam param) {
       src_rectangle.width = -src_rectangle.width;
 
     auto& default_shader = ShaderSet::Instance()->sprite;
-    shader_ ? shader_->BeginEffect()
-            : raylib::BeginShaderMode(default_shader.shader);
+    if (effect_) {
+      effect_->BeginEffect();
+    } else {
+      raylib::BeginShaderMode(default_shader.shader);
+      raylib::rlEnableColorBlend();
+      raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
+    }
 
-    raylib::rlEnableColorBlend();
-    raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
     {
-      if (!shader_) {
+      if (!effect_) {
         // Default shader params
         auto color_norm = color_->Normalize();
         auto tone_norm = tone_->Normalize();
@@ -328,6 +331,7 @@ void Sprite::Draw(DrawParam param) {
       }
       raylib::rlPopMatrix();
     }
+
     raylib::EndShaderMode();
   }
 }

@@ -1,14 +1,16 @@
-#include "binding_shader.h"
+#include "binding_effect.h"
 
 #include "binding_bitmap.h"
 
+#include "mruby/hash.h"
+
 #include "src/bitmap.h"
-#include "src/shader.h"
+#include "src/effect.h"
 
 namespace binding {
 
 // Define mrb data type
-MRB_DATATYPE_DEFINE(Shader);
+MRB_DATATYPE_DEFINE(Effect);
 
 // Helper: convert a Ruby Array of numbers to std::vector<float>.
 static std::vector<float> GetFloatArray(mrb_state* mrb, mrb_value val) {
@@ -69,22 +71,80 @@ static void GetMatrixArray(mrb_state* mrb, mrb_value val, float out[16]) {
     out[i] = static_cast<float>(mrb_as_float(mrb, ptr[i]));
 }
 
-MRB_FUNC(Shader_initialize) {
-  const char* vs_code;
-  const char* fs_code;
-  mrb_get_args(mrb, "zz", &vs_code, &fs_code);
+// Reads an optional (string | nil) hash field into a std::optional<string>.
+static void GetOptionalString(mrb_state* mrb,
+                              mrb_value hash,
+                              const char* key,
+                              std::optional<std::string>& out) {
+  mrb_value val =
+      mrb_hash_get(mrb, hash, mrb_symbol_value(mrb_intern_cstr(mrb, key)));
+  if (mrb_nil_p(val))
+    return;
+  if (!mrb_string_p(val))
+    mrb_raise(mrb, E_TYPE_ERROR, "expected String");
+  out = mrb_str_to_cstr(mrb, val);
+}
 
-  lime::RefPtr<lime::Shader> obj = nullptr;
+// Parses an EffectCreateInfo struct from a Ruby Hash. Missing (or nil) keys
+// keep the C++ struct defaults. Example:
+//
+//   Effect.new(vertex_shader: "...",
+//              fragment_shader: "...",
+//              color_blend: { src_rgb: 1, dst_rgb: 2, ... })
+//
+static lime::Effect::EffectCreateInfo GetEffectCreateInfo(mrb_state* mrb,
+                                                          mrb_value hash) {
+  lime::Effect::EffectCreateInfo info;
+  if (!mrb_hash_p(hash))
+    mrb_raise(mrb, E_TYPE_ERROR, "expected Hash");
+
+  GetOptionalString(mrb, hash, "vertex_shader", info.vertex_shader);
+  GetOptionalString(mrb, hash, "fragment_shader", info.fragment_shader);
+
+  mrb_value cb = mrb_hash_get(
+      mrb, hash, mrb_symbol_value(mrb_intern_lit(mrb, "color_blend")));
+  if (mrb_nil_p(cb))
+    return info;
+  if (!mrb_hash_p(cb))
+    mrb_raise(mrb, E_TYPE_ERROR, "color_blend must be a Hash");
+
+  lime::Effect::ColorBlendState state;
+  struct Field {
+    const char* name;
+    int* dst;
+  } fields[] = {
+      {"src_rgb", &state.src_rgb},       {"dst_rgb", &state.dst_rgb},
+      {"src_alpha", &state.src_alpha},   {"dst_alpha", &state.dst_alpha},
+      {"equal_rgb", &state.equal_rgb},   {"equal_alpha", &state.equal_alpha},
+  };
+  for (auto& field : fields) {
+    mrb_value val = mrb_hash_get(
+        mrb, cb, mrb_symbol_value(mrb_intern_cstr(mrb, field.name)));
+    if (mrb_nil_p(val))
+      continue;
+    *field.dst = static_cast<int>(mrb_as_int(mrb, val));
+  }
+  info.color_blend = state;
+
+  return info;
+}
+
+MRB_FUNC(Effect_initialize) {
+  mrb_value create_info_val;
+  mrb_get_args(mrb, "o", &create_info_val);
+
+  lime::RefPtr<lime::Effect> obj = nullptr;
   EXC_BEGIN {
-    obj = lime::MakeRefCounted<lime::Shader>(vs_code, fs_code);
+    auto create_info = GetEffectCreateInfo(mrb, create_info_val);
+    obj = lime::MakeRefCounted<lime::Effect>(create_info);
   }
   EXC_END(mrb);
 
-  return SetupSelfData(self, obj.get(), kShaderDataType);
+  return SetupSelfData(self, obj.get(), kEffectDataType);
 }
 
-MRB_FUNC(Shader_SetValueF) {
-  auto* self_obj = GetSelfData<lime::Shader>(self);
+MRB_FUNC(Effect_SetValueF) {
+  auto* self_obj = GetSelfData<lime::Effect>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
@@ -111,8 +171,8 @@ MRB_FUNC(Shader_SetValueF) {
   return mrb_nil_value();
 }
 
-MRB_FUNC(Shader_SetValueI) {
-  auto* self_obj = GetSelfData<lime::Shader>(self);
+MRB_FUNC(Effect_SetValueI) {
+  auto* self_obj = GetSelfData<lime::Effect>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
@@ -139,8 +199,8 @@ MRB_FUNC(Shader_SetValueI) {
   return mrb_nil_value();
 }
 
-MRB_FUNC(Shader_SetValueU) {
-  auto* self_obj = GetSelfData<lime::Shader>(self);
+MRB_FUNC(Effect_SetValueU) {
+  auto* self_obj = GetSelfData<lime::Effect>(self);
 
   mrb_int argc = mrb_get_argc(mrb);
   EXC_BEGIN {
@@ -167,8 +227,8 @@ MRB_FUNC(Shader_SetValueU) {
   return mrb_nil_value();
 }
 
-MRB_FUNC(Shader_SetValueT) {
-  auto* self_obj = GetSelfData<lime::Shader>(self);
+MRB_FUNC(Effect_SetValueT) {
+  auto* self_obj = GetSelfData<lime::Effect>(self);
   const char* uniform;
   mrb_value texture_val;
   mrb_get_args(mrb, "zo", &uniform, &texture_val);
@@ -182,8 +242,8 @@ MRB_FUNC(Shader_SetValueT) {
   return mrb_nil_value();
 }
 
-MRB_FUNC(Shader_SetValueM) {
-  auto* self_obj = GetSelfData<lime::Shader>(self);
+MRB_FUNC(Effect_SetValueM) {
+  auto* self_obj = GetSelfData<lime::Effect>(self);
   const char* uniform;
   mrb_value value_val;
   mrb_get_args(mrb, "zo", &uniform, &value_val);
@@ -198,20 +258,20 @@ MRB_FUNC(Shader_SetValueM) {
   return mrb_nil_value();
 }
 
-void InitShaderBinding(mrb_state* mrb) {
-  auto klass = DefineClass(mrb, "Shader");
+void InitEffectBinding(mrb_state* mrb) {
+  auto klass = DefineClass(mrb, "Effect");
 
-  mrb_define_method(mrb, klass, "initialize", Shader_initialize,
+  mrb_define_method(mrb, klass, "initialize", Effect_initialize,
+                    MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "set_value_f", Effect_SetValueF,
+                    MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "set_value_i", Effect_SetValueI,
+                    MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "set_value_u", Effect_SetValueU,
+                    MRB_ARGS_ANY());
+  mrb_define_method(mrb, klass, "set_bitmap", Effect_SetValueT,
                     MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, klass, "set_value_f", Shader_SetValueF,
-                    MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "set_value_i", Shader_SetValueI,
-                    MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "set_value_u", Shader_SetValueU,
-                    MRB_ARGS_ANY());
-  mrb_define_method(mrb, klass, "set_bitmap", Shader_SetValueT,
-                    MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, klass, "set_matrix", Shader_SetValueM,
+  mrb_define_method(mrb, klass, "set_matrix", Effect_SetValueM,
                     MRB_ARGS_REQ(2));
 }
 

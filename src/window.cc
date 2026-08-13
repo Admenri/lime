@@ -1,6 +1,6 @@
 #include "src/window.h"
 
-#include "src/glshader.h"
+#include "src/shader.h"
 #include "src/profile.h"
 
 namespace raylib {

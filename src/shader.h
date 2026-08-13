@@ -1,44 +1,70 @@
 #pragma once
 
-#include <span>
-#include <unordered_map>
-
 #include "src/common.h"
 #include "src/raywarp.h"
-#include "src/refptr.h"
 
 namespace lime {
 
-class Bitmap;
+struct ShaderBase {
+  ShaderBase() = default;
+  ~ShaderBase();
 
-class Shader : public RefCounted<Shader> {
- public:
-  Shader(std::string vs_code, std::string fs_code);
-  ~Shader();
+  ShaderBase(const ShaderBase&) = delete;
+  ShaderBase& operator=(const ShaderBase&) = delete;
 
-  /*-export.begin-*/
-  void SetValueF(std::string uniform,
-                 std::span<float> value,
-                 int item_count = 1);
-  void SetValueI(std::string uniform,
-                 std::span<int32_t> value,
-                 int item_count = 1);
-  void SetValueU(std::string uniform,
-                 std::span<uint32_t> value,
-                 int item_count = 1);
-  void SetValueT(std::string uniform, RefPtr<Bitmap> texture);
-  void SetValueM(std::string uniform, float value[16]);
-  /*-export.end-*/
+  raylib::Shader shader = {};
+};
 
- public:
-  void BeginEffect();
+struct AlphaTransition : public ShaderBase {
+  AlphaTransition();
 
- private:
-  int GetValueLocation(std::string name);
+  int u_frozen_image = 0;
+  int u_progress = 0;
+};
 
-  raylib::Shader shader_ = {};
-  std::unordered_map<std::string, int> locations_;
-  std::unordered_map<int, RefPtr<Bitmap>> textures_;
+struct MappingTransition : public ShaderBase {
+  MappingTransition();
+
+  int u_frozen_image = 0;
+  int u_mapping_image = 0;
+  int u_progress = 0;
+  int u_vague = 0;
+};
+
+struct SpriteShader : public ShaderBase {
+  SpriteShader();
+
+  int u_color = 0;
+  int u_tone = 0;
+  int u_opacity = 0;
+  int u_bush_depth = 0;
+  int u_bush_opacity = 0;
+};
+
+struct ViewportShader : public ShaderBase {
+  ViewportShader();
+
+  int u_color = 0;
+  int u_tone = 0;
+  int u_opacity = 0;
+};
+
+struct BitmapMaskShader : public ShaderBase {
+  BitmapMaskShader();
+
+  int u_mask = 0;
+};
+
+// --------------------------------------------------------------
+
+struct ShaderSet : public Singleton<ShaderSet> {
+  ShaderSet() = default;
+
+  SpriteShader sprite;
+  AlphaTransition alpha_trans;
+  MappingTransition mapping_trans;
+  ViewportShader viewport;
+  BitmapMaskShader bitmap_mask;
 };
 
 }  // namespace lime

@@ -9,10 +9,10 @@ target_sources(lime_core
   audio.cc
   bitmap.cc
   drawable.cc
+  effect.cc
   filesystem.cc
   font.cc
   geometry.cc
-  glshader.cc
   graphics.cc
   input.cc
   plane.cc

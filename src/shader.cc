@@ -1,86 +1,212 @@
 #include "src/shader.h"
 
-#include "src/bitmap.h"
+const std::string kBaseVertexGLSL = R"(
+#version 100
+
+attribute vec3 vertexPosition;
+attribute vec2 vertexTexCoord;
+
+uniform mat4 mvp;
+
+varying vec2 fragTexCoord;
+
+void main() {
+  fragTexCoord = vertexTexCoord;
+  gl_Position = mvp * vec4(vertexPosition, 1.0);
+}
+
+)";
+
+// -------------------------------------------------------------
+
+const std::string kAlphaTransitionFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0; // Current
+uniform sampler2D texture1; // Frozen
+
+uniform float progress;
+
+void main() {
+  vec4 currentColor = texture2D(texture0, fragTexCoord);
+  vec4 frozenColor = texture2D(texture1, fragTexCoord);
+  gl_FragColor = mix(frozenColor, currentColor, progress);
+}
+)";
+
+const std::string kMappingTransitionFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0; // Current
+uniform sampler2D texture1; // Frozen
+uniform sampler2D texture2; // Mapping
+
+uniform float progress;
+uniform float vague;
+
+void main() {
+  vec4 currentColor = texture2D(texture0, fragTexCoord);
+  vec4 frozenColor = texture2D(texture1, fragTexCoord);
+  float mappingValue = texture2D(texture2, fragTexCoord).r;
+  float current = clamp(mappingValue, progress, progress + vague);
+  gl_FragColor = mix(currentColor, frozenColor, current);
+}
+)";
+
+// -------------------------------------------------------------
+
+const std::string kSpriteFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0;
+
+uniform vec4 color;
+uniform vec4 tone;
+uniform float opacity;
+
+uniform float bushDepth;
+uniform float bushOpacity;
+
+void main() {
+  vec4 texelColor = texture2D(texture0, fragTexCoord);
+
+  // Tone
+  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
+	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
+  texelColor.rgb += tone.rgb * texelColor.a;
+
+  // Color
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
+
+  // Opacity
+  texelColor *= opacity;
+
+  // Bush effect
+  float bushing = float(fragTexCoord.y < bushDepth);
+  texelColor *= clamp(bushOpacity + bushing, 0.0, 1.0);
+
+  gl_FragColor = texelColor;
+}
+)";
+
+// -------------------------------------------------------------
+
+const std::string kViewportFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0;
+
+uniform vec4 color;
+uniform vec4 tone;
+uniform float opacity;
+
+void main() {
+  vec4 texelColor = texture2D(texture0, fragTexCoord);
+
+  // Tone
+  float lumin = dot(texelColor.rgb, vec3(0.299, 0.587, 0.114));
+	texelColor.rgb = mix(texelColor.rgb, vec3(lumin), tone.w);
+  texelColor.rgb += tone.rgb * texelColor.a;
+
+  // Color
+  texelColor.rgb = mix(texelColor.rgb, color.rgb * texelColor.a, color.a);
+
+  // Opacity
+  texelColor *= opacity;
+
+  gl_FragColor = texelColor;
+}
+)";
+
+// -------------------------------------------------------------
+
+const std::string kBitmapMaskFragmentGLSL = R"(
+#version 100
+
+precision mediump float;
+
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0;
+
+uniform sampler2D mask;
+
+void main() {
+  vec4 texelColor = texture2D(texture0, fragTexCoord);
+  vec4 maskColor = texture2D(mask, fragTexCoord);
+
+  texelColor *= maskColor.a;
+  gl_FragColor = texelColor;
+}
+)";
+
+// -------------------------------------------------------------
 
 namespace lime {
 
-Shader::Shader(std::string vs_code, std::string fs_code) {
-  shader_ =
-      raylib::LoadShaderFromMemory(vs_code.empty() ? nullptr : vs_code.c_str(),
-                                   fs_code.empty() ? nullptr : fs_code.c_str());
-  if (!raylib::IsShaderValid(shader_))
-    throw Exception(Exception::RGSSError, "failed to compile shader.");
+ShaderBase::~ShaderBase() {
+  raylib::UnloadShader(shader);
 }
 
-Shader::~Shader() {
-  raylib::UnloadShader(shader_);
+AlphaTransition::AlphaTransition() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kAlphaTransitionFragmentGLSL.c_str());
+
+  u_frozen_image = raylib::GetShaderLocation(shader, "texture1");
+  u_progress = raylib::GetShaderLocation(shader, "progress");
 }
 
-void Shader::SetValueF(std::string uniform,
-                       std::span<float> value,
-                       int item_count) {
-  int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_FLOAT + item_count - 1,
-                          value.size());
+MappingTransition::MappingTransition() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kMappingTransitionFragmentGLSL.c_str());
+
+  u_frozen_image = raylib::GetShaderLocation(shader, "texture1");
+  u_mapping_image = raylib::GetShaderLocation(shader, "texture2");
+  u_progress = raylib::GetShaderLocation(shader, "progress");
+  u_vague = raylib::GetShaderLocation(shader, "vague");
 }
 
-void Shader::SetValueI(std::string uniform,
-                       std::span<int32_t> value,
-                       int item_count) {
-  int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_INT + item_count - 1,
-                          value.size());
+SpriteShader::SpriteShader() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kSpriteFragmentGLSL.c_str());
+
+  u_color = raylib::GetShaderLocation(shader, "color");
+  u_tone = raylib::GetShaderLocation(shader, "tone");
+  u_opacity = raylib::GetShaderLocation(shader, "opacity");
+  u_bush_depth = raylib::GetShaderLocation(shader, "bushDepth");
+  u_bush_opacity = raylib::GetShaderLocation(shader, "bushOpacity");
 }
 
-void Shader::SetValueU(std::string uniform,
-                       std::span<uint32_t> value,
-                       int item_count) {
-  int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_UINT + item_count - 1,
-                          value.size());
+ViewportShader::ViewportShader() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kViewportFragmentGLSL.c_str());
+
+  u_color = raylib::GetShaderLocation(shader, "color");
+  u_tone = raylib::GetShaderLocation(shader, "tone");
+  u_opacity = raylib::GetShaderLocation(shader, "opacity");
 }
 
-void Shader::SetValueT(std::string uniform, RefPtr<Bitmap> texture) {
-  int loc = GetValueLocation(uniform);
+BitmapMaskShader::BitmapMaskShader() {
+  shader = raylib::LoadShaderFromMemory(kBaseVertexGLSL.c_str(),
+                                        kBitmapMaskFragmentGLSL.c_str());
 
-  if (texture && !texture->IsDisposed())
-    textures_[loc] = texture;
-  else
-    textures_.erase(loc);
-}
-
-void Shader::SetValueM(std::string uniform, float value[16]) {
-  int loc = GetValueLocation(uniform);
-
-  raylib::Matrix mat = {};
-  std::memcpy(&mat, value, sizeof(float) * 16);
-
-  raylib::SetShaderValueMatrix(shader_, loc, mat);
-}
-
-void Shader::BeginEffect() {
-  raylib::rlSetShader(shader_.id, shader_.locs);
-
-  for (auto& it : textures_) {
-    if (it.second && !it.second->IsDisposed()) {
-      auto& tex = it.second->render_texture();
-      raylib::SetShaderValueTexture(shader_, it.first, tex.texture);
-    }
-  }
-}
-
-int Shader::GetValueLocation(std::string name) {
-  auto it = locations_.find(name);
-  if (it == locations_.end()) {
-    int loc = raylib::GetShaderLocation(shader_, name.c_str());
-    locations_[name] = loc;
-    return loc;
-  }
-
-  return it->second;
+  u_mask = raylib::GetShaderLocation(shader, "mask");
 }
 
 }  // namespace lime

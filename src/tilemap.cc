@@ -1,6 +1,6 @@
 #include "src/tilemap.h"
 
-#include "src/glshader.h"
+#include "src/shader.h"
 #include "src/profile.h"
 
 namespace lime {

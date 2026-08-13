@@ -178,12 +178,12 @@ ATTR_DEF(RefPtr<Tone>, Tone, Viewport) {
   }
 }
 
-ATTR_DEF(RefPtr<Shader>, Shader, Viewport) {
+ATTR_DEF(RefPtr<Effect>, Effect, Viewport) {
   if (value.has_value()) {
-    shader_ = *value;
+    effect_ = *value;
     return std::nullopt;
   } else {
-    return shader_;
+    return effect_;
   }
 }
 
@@ -193,7 +193,7 @@ void Viewport::DisposeObject() {
   raylib::UnloadRenderTexture(cache_);
   cache_ = {};
 
-  shader_.reset();
+  effect_.reset();
 }
 
 void Viewport::Draw(DrawParam param) {
@@ -274,16 +274,20 @@ void Viewport::Draw(DrawParam param) {
       color_norm = flash_.color;
 
     {
-      shader_ ? shader_->BeginEffect() : raylib::BeginShaderMode(shader.shader);
+      if (effect_) {
+        effect_->BeginEffect();
+      } else {
+        raylib::BeginShaderMode(shader.shader);
+        raylib::rlDrawRenderBatchActive();
+        raylib::rlDisableColorBlend();
+      }
 
-      raylib::rlDrawRenderBatchActive();
-      raylib::rlDisableColorBlend();
       {
         raylib::rlMatrixMode(RL_MODELVIEW);
         raylib::rlPushMatrix();
         raylib::rlLoadIdentity();
         {
-          if (!shader_) {
+          if (!effect_) {
             // Default shader params
             raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
                                    raylib::SHADER_UNIFORM_VEC4);

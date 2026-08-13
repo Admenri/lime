@@ -2,8 +2,8 @@
 
 #include "binding_bitmap.h"
 #include "binding_color.h"
+#include "binding_effect.h"
 #include "binding_rect.h"
-#include "binding_shader.h"
 #include "binding_tone.h"
 #include "binding_viewport.h"
 
@@ -106,9 +106,9 @@ BINDING_ATTR_OBJECT_REF(Sprite,
 BINDING_ATTR_OBJECT_REF(Sprite, lime::Sprite, Tone, lime::Tone, kToneDataType);
 BINDING_ATTR_OBJECT_REF(Sprite,
                         lime::Sprite,
-                        Shader,
-                        lime::Shader,
-                        kShaderDataType);
+                        Effect,
+                        lime::Effect,
+                        kEffectDataType);
 
 // Inherited from Dispoable / ViewportChild / Drawable
 BINDING_INHERITED_DISPOABLE(Sprite, lime::Sprite);
@@ -184,8 +184,8 @@ void InitSpriteBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "color=", Sprite_ColorEqual, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "tone", Sprite_Tone, MRB_ARGS_NONE());
   mrb_define_method(mrb, klass, "tone=", Sprite_ToneEqual, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, klass, "shader", Sprite_Shader, MRB_ARGS_NONE());
-  mrb_define_method(mrb, klass, "shader=", Sprite_ShaderEqual,
+  mrb_define_method(mrb, klass, "effect", Sprite_Effect, MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "effect=", Sprite_EffectEqual,
                     MRB_ARGS_REQ(1));
   // Inherited from Dispoable
   mrb_define_method(mrb, klass, "dispose", Sprite_Dispose, MRB_ARGS_NONE());

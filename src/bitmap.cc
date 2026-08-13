@@ -2,7 +2,7 @@
 
 #include "src/filesystem.h"
 #include "src/font/font_system.h"
-#include "src/glshader.h"
+#include "src/shader.h"
 
 namespace lime {
 
