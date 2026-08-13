@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
   // The game directory is both the search root and the write root
   io_service->SetWritePath(base_dir);
-  io_service->AddLoadPath(base_dir, "/");
+  io_service->AddLoadPath(".", "/");
 
   // Global config
   auto config = new lime::Config(ini);

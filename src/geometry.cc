@@ -44,11 +44,17 @@ void Geometry::SetColor(int triangle, int point, RefPtr<Color> color) {
   if (triangle < 0 || triangle >= data_.size() || point < 0 || point >= 3)
     throw Exception(Exception::RGSSError, "invalid range");
 
+  if (!color)
+    throw Exception(Exception::RGSSError, "invalid data.");
+
   data_[triangle].color[point] = color->As();
 }
 
 ATTR_DEF(int, Capacity, Geometry) {
   if (value.has_value()) {
+    if (*value <= 0)
+      throw Exception(Exception::RGSSError, "invalid capacity range.");
+
     data_.resize(*value);
     return std::nullopt;
   } else {

@@ -209,6 +209,9 @@ ATTR_DEF(int, BlendType, Sprite) {
 
 ATTR_DEF(RefPtr<Color>, Color, Sprite) {
   if (value.has_value()) {
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
     color_->Set(*value);
     return std::nullopt;
   } else {
@@ -218,6 +221,9 @@ ATTR_DEF(RefPtr<Color>, Color, Sprite) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Sprite) {
   if (value.has_value()) {
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
     tone_->Set(*value);
     return std::nullopt;
   } else {

@@ -80,7 +80,10 @@ ATTR_DEF(int, BlendType, Plane) {
 
 ATTR_DEF(RefPtr<Color>, Color, Plane) {
   if (value.has_value()) {
-    color_ = *value;
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
+    color_->Set(*value);
     return std::nullopt;
   } else {
     return color_;
@@ -89,7 +92,10 @@ ATTR_DEF(RefPtr<Color>, Color, Plane) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Plane) {
   if (value.has_value()) {
-    tone_ = *value;
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
+    tone_->Set(*value);
     return std::nullopt;
   } else {
     return tone_;

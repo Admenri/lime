@@ -127,6 +127,10 @@ void Bitmap::Blt(int x,
                  RefPtr<Rect> src_rect,
                  int opacity) {
   Dispoable::Guard();
+
+  if (!src_rect)
+    throw Exception(Exception::RGSSError, "invalid source rect.");
+
   StretchBlt(MakeRefCounted<Rect>(x, y, src_rect->width, src_rect->height),
              src_bitmap, src_rect, opacity);
 }
@@ -205,12 +209,17 @@ void Bitmap::GradientFillRect(RefPtr<Rect> rect,
                               RefPtr<Color> color2,
                               bool vertical) {
   Dispoable::Guard();
+
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+
   GradientFillRect(rect->x, rect->y, rect->width, rect->height, color1, color2,
                    vertical);
 }
 
 void Bitmap::Clear() {
   Dispoable::Guard();
+
   raylib::BeginTextureMode(texture_);
   raylib::ClearBackground({});
   raylib::EndTextureMode();
@@ -218,6 +227,7 @@ void Bitmap::Clear() {
 
 void Bitmap::ClearRect(int x, int y, int width, int height) {
   Dispoable::Guard();
+
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
   raylib::DrawRectangle(x, y, width, height, {});
@@ -235,9 +245,11 @@ void Bitmap::ClearRect(RefPtr<Rect> rect) {
 
 RefPtr<Color> Bitmap::GetPixel(int x, int y) {
   Dispoable::Guard();
+
   auto image = raylib::LoadImageFromTexture(texture_.texture);
   auto color = raylib::GetImageColor(image, x, y);
   raylib::UnloadImage(image);
+
   return MakeRefCounted<Color>(color);
 }
 
@@ -325,6 +337,10 @@ void Bitmap::DrawText(int x,
 
 void Bitmap::DrawText(RefPtr<Rect> rect, std::string str, int align) {
   Dispoable::Guard();
+
+  if (!rect)
+    throw Exception(Exception::RGSSError, "invalid rect.");
+
   DrawText(rect->x, rect->y, rect->width, rect->height, str, align);
 }
 
@@ -1128,7 +1144,10 @@ void Bitmap::DrawSplineSegmentBezierCubic(RefPtr<Vector2> p1,
 
 ATTR_DEF(RefPtr<Font>, Font, Bitmap) {
   if (value.has_value()) {
-    font_ = *value;
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
+    font_ = MakeRefCounted<Font>(*value);
     return std::nullopt;
   } else {
     return font_;
@@ -1139,6 +1158,7 @@ ATTR_DEF(RefPtr<Bitmap>, ShapeBitmap, Bitmap) {
   if (value.has_value()) {
     if (shape_bitmap_ == this)
       throw Exception(Exception::RGSSError, "dont set self as shape bitmap.");
+
     shape_bitmap_ = *value;
     return std::nullopt;
   } else {

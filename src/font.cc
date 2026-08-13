@@ -168,9 +168,17 @@ Font::Font(std::vector<std::string> names, int size)
   }
 }
 
-Font::Font(RefPtr<Font> other) {}
+Font::Font(RefPtr<Font> other)
+    : name_(other->name_),
+      size_(other->size_),
+      bold_(other->bold_),
+      italic_(other->italic_),
+      outline_(other->outline_),
+      shadow_(other->shadow_),
+      color_(other->color_),
+      out_color_(other->out_color_) {}
 
-Font::~Font() {}
+Font::~Font() = default;
 
 void Font::ResetFontSystem() {
   font_system_.reset();

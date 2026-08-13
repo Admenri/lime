@@ -364,6 +364,9 @@ ATTR_DEF(int, Scale, Window) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Window) {
   if (value.has_value()) {
+    if (!*value)
+      throw Exception(Exception::RGSSError, "invalid value.");
+
     tone_->Set(*value);
     return std::nullopt;
   } else {
