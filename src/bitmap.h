@@ -2,6 +2,7 @@
 
 #include "src/common.h"
 #include "src/font.h"
+#include "src/palette.h"
 #include "src/raywarp.h"
 #include "src/refptr.h"
 #include "src/utility.h"
@@ -58,11 +59,13 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
   void DrawText(RefPtr<Rect> rect, std::string str, int align = 0);
   RefPtr<Rect> TextSize(std::string str);
 
-  void SaveFile(std::string filename);
   void MaskBlt(RefPtr<Rect> dst_rect,
                RefPtr<Bitmap> src_bitmap,
                RefPtr<Rect> src_rect,
                RefPtr<Bitmap> mask);
+
+  RefPtr<Palette> ToPalette();
+  void UpdateWithPalette(RefPtr<Palette> palette);
 
   void SetFilter(int value);
   void SetWrap(int value);

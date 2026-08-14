@@ -250,6 +250,10 @@ RefPtr<Color> Bitmap::GetPixel(int x, int y) {
   auto color = raylib::GetImageColor(image, x, y);
   raylib::UnloadImage(image);
 
+  float alpha = (float)color.a / 255.0f;
+  color.r = (unsigned char)((float)color.r / alpha);
+  color.g = (unsigned char)((float)color.g / alpha);
+  color.b = (unsigned char)((float)color.b / alpha);
   return MakeRefCounted<Color>(color);
 }
 
@@ -261,7 +265,7 @@ void Bitmap::SetPixel(int x, int y, RefPtr<Color> color) {
 
   raylib::BeginTextureMode(texture_);
   raylib::rlDisableColorBlend();
-  raylib::DrawPixel(x, y, color->As());
+  raylib::DrawPixel(x, y, PremultiplyColor(color));
   raylib::EndTextureMode();
 }
 
@@ -355,13 +359,6 @@ RefPtr<Rect> Bitmap::TextSize(std::string str) {
                               static_cast<int>(size.y));
 }
 
-void Bitmap::SaveFile(std::string filename) {
-  Dispoable::Guard();
-  auto image = raylib::LoadImageFromTexture(texture_.texture);
-  raylib::ExportImage(image, filename.c_str());
-  raylib::UnloadImage(image);
-}
-
 void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
                      RefPtr<Bitmap> src_bitmap,
                      RefPtr<Rect> src_rect,
@@ -395,6 +392,20 @@ void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
     raylib::EndShaderMode();
   }
   raylib::EndTextureMode();
+}
+
+RefPtr<Palette> Bitmap::ToPalette() {
+  Dispoable::Guard();
+  return MakeRefCounted<Palette>(raylib::LoadImageFromTexture(texture_.texture));
+}
+
+void Bitmap::UpdateWithPalette(RefPtr<Palette> palette) {
+  Dispoable::Guard();
+
+  if (!palette)
+    throw Exception(Exception::RGSSError, "invalid palette.");
+
+  raylib::UpdateTexture(texture_.texture, palette->image().data);
 }
 
 void Bitmap::SetFilter(int value) {

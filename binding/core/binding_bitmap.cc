@@ -2,6 +2,7 @@
 
 #include "binding_color.h"
 #include "binding_font.h"
+#include "binding_palette.h"
 #include "binding_rect.h"
 #include "binding_vector.h"
 
@@ -358,18 +359,6 @@ MRB_FUNC(Bitmap_TextSize) {
   return mrb_nil_value();
 }
 
-MRB_FUNC(Bitmap_SaveFile) {
-  auto* self_obj = GetSelfData<lime::Bitmap>(self);
-  const char* filename;
-  mrb_get_args(mrb, "z", &filename);
-
-  EXC_BEGIN {
-    self_obj->SaveFile(filename);
-  }
-  EXC_END(mrb);
-  return mrb_nil_value();
-}
-
 MRB_FUNC(Bitmap_MaskBlt) {
   auto* self_obj = GetSelfData<lime::Bitmap>(self);
   mrb_value dst_rect_val, src_bitmap_val, src_rect_val, mask_val;
@@ -384,6 +373,30 @@ MRB_FUNC(Bitmap_MaskBlt) {
 
   EXC_BEGIN {
     self_obj->MaskBlt(dst_rect, src_bitmap, src_rect, mask);
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Bitmap_ToPalette) {
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
+  EXC_BEGIN {
+    auto result = self_obj->ToPalette();
+    return WrapObject(mrb, result.get(), kPaletteDataType);
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Bitmap_UpdateWithPalette) {
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
+  mrb_value palette_val;
+  mrb_get_args(mrb, "o", &palette_val);
+
+  auto palette = GetObject<lime::Palette>(mrb, palette_val, kPaletteDataType);
+
+  EXC_BEGIN {
+    self_obj->UpdateWithPalette(palette);
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -1304,8 +1317,11 @@ void InitBitmapBinding(mrb_state* mrb) {
                     MRB_ARGS_REQ(2));
   mrb_define_method(mrb, klass, "draw_text", Bitmap_DrawText, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "text_size", Bitmap_TextSize, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, klass, "save_file", Bitmap_SaveFile, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "mask_blt", Bitmap_MaskBlt, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, klass, "to_palette", Bitmap_ToPalette,
+                    MRB_ARGS_NONE());
+  mrb_define_method(mrb, klass, "update_with_palette",
+                    Bitmap_UpdateWithPalette, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set_filter", Bitmap_SetFilter,
                     MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set_wrap", Bitmap_SetWrap, MRB_ARGS_REQ(1));

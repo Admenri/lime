@@ -8,6 +8,7 @@
 #include "binding_geometry.h"
 #include "binding_graphics.h"
 #include "binding_input.h"
+#include "binding_palette.h"
 #include "binding_plane.h"
 #include "binding_rect.h"
 #include "binding_sprite.h"
@@ -29,6 +30,7 @@ void InitBindings(mrb_state* mrb) {
   InitGeometryBinding(mrb);
   InitGraphicsBinding(mrb);
   InitInputBinding(mrb);
+  InitPaletteBinding(mrb);
   InitPlaneBinding(mrb);
   InitRectBinding(mrb);
   InitSpriteBinding(mrb);

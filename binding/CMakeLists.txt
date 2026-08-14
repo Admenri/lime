@@ -21,6 +21,7 @@ target_sources(binding_mruby
   core/binding_geometry.cc
   core/binding_graphics.cc
   core/binding_input.cc
+  core/binding_palette.cc
   core/binding_plane.cc
   core/binding_rect.cc
   core/binding_sprite.cc

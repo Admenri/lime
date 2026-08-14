@@ -15,6 +15,7 @@ target_sources(lime_core
   geometry.cc
   graphics.cc
   input.cc
+  palette.cc
   plane.cc
   shader.cc
   sprite.cc
