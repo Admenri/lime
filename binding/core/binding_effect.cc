@@ -113,9 +113,9 @@ static lime::Effect::EffectCreateInfo GetEffectCreateInfo(mrb_state* mrb,
     const char* name;
     int* dst;
   } fields[] = {
-      {"src_rgb", &state.src_rgb},       {"dst_rgb", &state.dst_rgb},
-      {"src_alpha", &state.src_alpha},   {"dst_alpha", &state.dst_alpha},
-      {"equal_rgb", &state.equal_rgb},   {"equal_alpha", &state.equal_alpha},
+      {"src_rgb", &state.src_rgb},     {"dst_rgb", &state.dst_rgb},
+      {"src_alpha", &state.src_alpha}, {"dst_alpha", &state.dst_alpha},
+      {"equal_rgb", &state.equal_rgb}, {"equal_alpha", &state.equal_alpha},
   };
   for (auto& field : fields) {
     mrb_value val = mrb_hash_get(
@@ -273,6 +273,41 @@ void InitEffectBinding(mrb_state* mrb) {
                     MRB_ARGS_REQ(2));
   mrb_define_method(mrb, klass, "set_matrix", Effect_SetValueM,
                     MRB_ARGS_REQ(2));
+
+  // OpenGL blend constants (use with color_blend.src_rgb/dst_rgb/src_alpha/
+  // dst_alpha and color_blend.equal_rgb/equal_alpha in Effect.new)
+  struct BlendConstant {
+    const char* name;
+    int value;
+  } blend_constants[] = {
+      // Blend factors
+      {"FACTOR_ZERO", RL_ZERO},
+      {"FACTOR_ONE", RL_ONE},
+      {"FACTOR_SRC_COLOR", RL_SRC_COLOR},
+      {"FACTOR_ONE_MINUS_SRC_COLOR", RL_ONE_MINUS_SRC_COLOR},
+      {"FACTOR_SRC_ALPHA", RL_SRC_ALPHA},
+      {"FACTOR_ONE_MINUS_SRC_ALPHA", RL_ONE_MINUS_SRC_ALPHA},
+      {"FACTOR_DST_ALPHA", RL_DST_ALPHA},
+      {"FACTOR_ONE_MINUS_DST_ALPHA", RL_ONE_MINUS_DST_ALPHA},
+      {"FACTOR_DST_COLOR", RL_DST_COLOR},
+      {"FACTOR_ONE_MINUS_DST_COLOR", RL_ONE_MINUS_DST_COLOR},
+      {"FACTOR_SRC_ALPHA_SATURATE", RL_SRC_ALPHA_SATURATE},
+      {"FACTOR_CONSTANT_COLOR", RL_CONSTANT_COLOR},
+      {"FACTOR_ONE_MINUS_CONSTANT_COLOR", RL_ONE_MINUS_CONSTANT_COLOR},
+      {"FACTOR_CONSTANT_ALPHA", RL_CONSTANT_ALPHA},
+      {"FACTOR_ONE_MINUS_CONSTANT_ALPHA", RL_ONE_MINUS_CONSTANT_ALPHA},
+      // Blend equations
+      {"EQUATION_ADD", RL_FUNC_ADD},
+      {"EQUATION_MIN", RL_MIN},
+      {"EQUATION_MAX", RL_MAX},
+      {"EQUATION_SUBTRACT", RL_FUNC_SUBTRACT},
+      {"EQUATION_REVERSE_SUBTRACT", RL_FUNC_REVERSE_SUBTRACT},
+  };
+  for (auto& constant : blend_constants) {
+    mrb_const_set(mrb, mrb_obj_value(klass),
+                  mrb_intern_cstr(mrb, constant.name),
+                  mrb_fixnum_value(constant.value));
+  }
 }
 
 }  // namespace binding
