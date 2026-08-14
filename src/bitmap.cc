@@ -397,6 +397,18 @@ void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
   raylib::EndTextureMode();
 }
 
+void Bitmap::SetFilter(int value) {
+  raylib::rlTextureParameters(texture_.texture.id, RL_TEXTURE_MIN_FILTER,
+                              value);
+  raylib::rlTextureParameters(texture_.texture.id, RL_TEXTURE_MAG_FILTER,
+                              value);
+}
+
+void Bitmap::SetWrap(int value) {
+  raylib::rlTextureParameters(texture_.texture.id, RL_TEXTURE_WRAP_S, value);
+  raylib::rlTextureParameters(texture_.texture.id, RL_TEXTURE_WRAP_T, value);
+}
+
 // ---------------------------------------------------------------------------
 // Basic shapes drawing functions (raylib passthrough)
 // ---------------------------------------------------------------------------

@@ -64,6 +64,9 @@ class Bitmap : public RefCounted<Bitmap>, public Dispoable {
                RefPtr<Rect> src_rect,
                RefPtr<Bitmap> mask);
 
+  void SetFilter(int value);
+  void SetWrap(int value);
+
   // Basic shapes drawing functions (raylib passthrough)
   void DrawPixel(int x, int y, RefPtr<Color> color);
   void DrawLine(int x1, int y1, int x2, int y2, RefPtr<Color> color);

@@ -389,6 +389,30 @@ MRB_FUNC(Bitmap_MaskBlt) {
   return mrb_nil_value();
 }
 
+MRB_FUNC(Bitmap_SetFilter) {
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
+  mrb_int value;
+  mrb_get_args(mrb, "i", &value);
+
+  EXC_BEGIN {
+    self_obj->SetFilter(value);
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
+MRB_FUNC(Bitmap_SetWrap) {
+  auto* self_obj = GetSelfData<lime::Bitmap>(self);
+  mrb_int value;
+  mrb_get_args(mrb, "i", &value);
+
+  EXC_BEGIN {
+    self_obj->SetWrap(value);
+  }
+  EXC_END(mrb);
+  return mrb_nil_value();
+}
+
 // ---------------------------------------------------------------------------
 // Basic shapes drawing functions (raylib passthrough)
 // ---------------------------------------------------------------------------
@@ -1229,6 +1253,33 @@ BINDING_INHERITED_DISPOABLE(Bitmap, lime::Bitmap);
 void InitBitmapBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Bitmap");
 
+  // Texture filter / wrap constants (values from rlgl.h, the RL_TEXTURE_
+  // prefix is removed). Used with Bitmap#set_filter / Bitmap#set_wrap.
+  mrb_define_const(mrb, klass, "FILTER_NEAREST",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_NEAREST));
+  mrb_define_const(mrb, klass, "FILTER_LINEAR",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_LINEAR));
+  mrb_define_const(mrb, klass, "FILTER_MIP_NEAREST",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_MIP_NEAREST));
+  mrb_define_const(mrb, klass, "FILTER_NEAREST_MIP_LINEAR",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_NEAREST_MIP_LINEAR));
+  mrb_define_const(mrb, klass, "FILTER_LINEAR_MIP_NEAREST",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_LINEAR_MIP_NEAREST));
+  mrb_define_const(mrb, klass, "FILTER_MIP_LINEAR",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_MIP_LINEAR));
+  mrb_define_const(mrb, klass, "FILTER_ANISOTROPIC",
+                   mrb_fixnum_value(RL_TEXTURE_FILTER_ANISOTROPIC));
+  mrb_define_const(mrb, klass, "MIPMAP_BIAS_RATIO",
+                   mrb_fixnum_value(RL_TEXTURE_MIPMAP_BIAS_RATIO));
+  mrb_define_const(mrb, klass, "WRAP_REPEAT",
+                   mrb_fixnum_value(RL_TEXTURE_WRAP_REPEAT));
+  mrb_define_const(mrb, klass, "WRAP_CLAMP",
+                   mrb_fixnum_value(RL_TEXTURE_WRAP_CLAMP));
+  mrb_define_const(mrb, klass, "WRAP_MIRROR_REPEAT",
+                   mrb_fixnum_value(RL_TEXTURE_WRAP_MIRROR_REPEAT));
+  mrb_define_const(mrb, klass, "WRAP_MIRROR_CLAMP",
+                   mrb_fixnum_value(RL_TEXTURE_WRAP_MIRROR_CLAMP));
+
   mrb_define_method(mrb, klass, "initialize", Bitmap_initialize,
                     MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "initialize_copy", Bitmap_initialize_copy,
@@ -1255,6 +1306,9 @@ void InitBitmapBinding(mrb_state* mrb) {
   mrb_define_method(mrb, klass, "text_size", Bitmap_TextSize, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "save_file", Bitmap_SaveFile, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "mask_blt", Bitmap_MaskBlt, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, klass, "set_filter", Bitmap_SetFilter,
+                    MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "set_wrap", Bitmap_SetWrap, MRB_ARGS_REQ(1));
   // Basic shapes drawing functions
   mrb_define_method(mrb, klass, "draw_pixel", Bitmap_DrawPixel, MRB_ARGS_ANY());
   mrb_define_method(mrb, klass, "draw_line", Bitmap_DrawLine, MRB_ARGS_ANY());
