@@ -58,18 +58,27 @@ void Graphics::Update() {
   raylib::BeginDrawing();
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
-    raylib::ClearBackground({255, 0, 0, 255});
+    raylib::rlMatrixMode(RL_MODELVIEW);
+    raylib::rlPushMatrix();
+    {
+      raylib::rlScalef(1.0f, -1.0f, 1.0f);
+      raylib::rlTranslatef(0.0f, -screen_buffer_.texture.height, 0.0f);
+      raylib::ClearBackground({255, 0, 0, 255});
 
-    raylib::Rectangle srcrec = {};
-    srcrec.width = static_cast<float>(screen_buffer_.texture.width);
-    srcrec.height = -static_cast<float>(screen_buffer_.texture.height);
+      raylib::Rectangle srcrec = {};
+      srcrec.width = static_cast<float>(screen_buffer_.texture.width);
+      srcrec.height = static_cast<float>(screen_buffer_.texture.height);
 
-    raylib::Rectangle dstrec = {};
-    dstrec.width = static_cast<float>(raylib::GetScreenWidth());
-    dstrec.height = static_cast<float>(raylib::GetScreenHeight());
+      raylib::Rectangle dstrec = {};
+      dstrec.width = static_cast<float>(raylib::GetScreenWidth());
+      dstrec.height = static_cast<float>(raylib::GetScreenHeight());
 
-    raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
-                           raylib::WHITE);
+      raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
+                             raylib::WHITE);
+
+      raylib::DrawFPS(10, 10);
+    }
+    raylib::rlPopMatrix();
   }
   raylib::EndDrawing();
 

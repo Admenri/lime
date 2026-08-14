@@ -10,6 +10,10 @@ add_compile_definitions(
   SUPPORT_FILEFORMAT_JPG
 )
 
+add_compile_definitions(
+  SUPPORT_TRACELOG=$<IF:$<CONFIG:Release>,0,1>
+)
+
 if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
