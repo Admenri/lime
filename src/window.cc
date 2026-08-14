@@ -573,130 +573,127 @@ void Window::Draw(DrawParam param) {
     }
 
     if (openness_ == 255) {
-      if (auto windowskin = window_skin_; window_skin_) {
-        auto& skin_texture = window_skin_->render_texture().texture;
+      const auto cursor_rect = cursor_rect_->As();
+      const bool has_cursor = (window_skin_ != nullptr) &&
+                              cursor_rect.width > 0 && cursor_rect.height > 0;
+      const bool has_contents = (contents_ != nullptr);
 
-        // 6. Cursor
+      // Stencil clip: restrict the cursor and the contents to the window
+      // content area (#padding_rect, in window coordinates). The content area
+      // is rasterized into the stencil buffer once (color writes disabled),
+      // then the cursor and the contents are drawn with the stencil test
+      // enabled (only fragments where the stencil value equals the reference
+      // pass), so no manual per-quad clipping is required.
+      if (has_cursor || has_contents) {
+        const raylib::Rectangle clip_rect =
+            raylib::IntRect(x_ + padding_rect.x, y_ + padding_rect.y,
+                            padding_rect.width, padding_rect.height);
+
+        raylib::rlDrawRenderBatchActive();
+
+        raylib::rlEnableStencilTest();
+        raylib::rlSetStencilClearValue(0);
+        raylib::rlClearStencilBuffer();
+
+        // Draw the content area into the stencil buffer (stencil = 1)
+        // without touching the color buffer.
+        raylib::rlColorMask(false, false, false, false);
+        raylib::rlStencilFunc(RL_ALWAYS, 1, 0xFF);
+        raylib::rlStencilOp(RL_KEEP, RL_KEEP, RL_REPLACE);
+        raylib::rlStencilMask(0xFF);
+        raylib::DrawRectangle(
+            static_cast<int>(clip_rect.x), static_cast<int>(clip_rect.y),
+            static_cast<int>(clip_rect.width),
+            static_cast<int>(clip_rect.height), raylib::WHITE);
+
+        // Flush the stencil shape now, while color writes are disabled and
+        // the stencil state is still ALWAYS/REPLACE. The render batch defers
+        // the actual drawing, so any state change below would otherwise apply
+        // to it.
+        raylib::rlDrawRenderBatchActive();
+
+        // Only pass where the stencil value is 1 and keep the stencil buffer
+        // untouched during the content draws.
+        raylib::rlColorMask(true, true, true, true);
+        raylib::rlStencilFunc(RL_EQUAL, 1, 0xFF);
+        raylib::rlStencilOp(RL_KEEP, RL_KEEP, RL_KEEP);
+        raylib::rlStencilMask(0x00);
+      }
+
+      // 6. Cursor
+
+      if (has_cursor) {
+        auto& skin_texture = window_skin_->render_texture().texture;
         const raylib::Color contents_tint = raylib::MakeColor(
             contents_opacity_ * kCursorAlphaTable[cursor_index_] / 255);
-        const auto cursor_rect = cursor_rect_->As();
-        if (cursor_rect.width > 0 && cursor_rect.height > 0) {
-          auto build_cursor_internal = [&](const raylib::Rectangle& rect,
-                                           raylib::Rectangle quad_rects[9],
-                                           int32_t unit) {
-            const int32_t w = rect.width;
-            const int32_t h = rect.height;
-            const int32_t l = rect.x;
-            const int32_t r = l + w;
-            const int32_t t = rect.y;
-            const int32_t b = t + h;
 
-            int32_t i = 0;
-            // Left-Top
-            quad_rects[i++] = raylib::IntRect(l, t, unit, unit);
-            // Right-Top
-            quad_rects[i++] = raylib::IntRect(r - unit, t, unit, unit);
-            // Right-Bottom
-            quad_rects[i++] = raylib::IntRect(r - unit, b - unit, unit, unit);
-            // Left-Bottom
-            quad_rects[i++] = raylib::IntRect(l, b - unit, unit, unit);
+        auto build_cursor_internal = [&](const raylib::Rectangle& rect,
+                                         raylib::Rectangle quad_rects[9],
+                                         int32_t unit) {
+          const int32_t w = rect.width;
+          const int32_t h = rect.height;
+          const int32_t l = rect.x;
+          const int32_t r = l + w;
+          const int32_t t = rect.y;
+          const int32_t b = t + h;
 
-            // Left
-            quad_rects[i++] = raylib::IntRect(l, t + unit, unit, h - unit * 2);
-            // Right
-            quad_rects[i++] =
-                raylib::IntRect(r - unit, t + unit, unit, h - unit * 2);
-            // Top
-            quad_rects[i++] = raylib::IntRect(l + unit, t, w - unit * 2, unit);
-            // Bottom
-            quad_rects[i++] =
-                raylib::IntRect(l + unit, b - unit, w - unit * 2, unit);
-            // Center
-            quad_rects[i++] =
-                raylib::IntRect(l + unit, t + unit, w - unit * 2, h - unit * 2);
-          };
+          int32_t i = 0;
+          // Left-Top
+          quad_rects[i++] = raylib::IntRect(l, t, unit, unit);
+          // Right-Top
+          quad_rects[i++] = raylib::IntRect(r - unit, t, unit, unit);
+          // Right-Bottom
+          quad_rects[i++] = raylib::IntRect(r - unit, b - unit, unit, unit);
+          // Left-Bottom
+          quad_rects[i++] = raylib::IntRect(l, b - unit, unit, unit);
 
-          // Manual glScissor: clip the 9-slice cursor to the window content
-          // area (#padding_rect, in window coordinates). Each quad's dest is
-          // intersected with the clip region, then the intersection is mapped
-          // back to the source. In a 9-slice each source rect maps to its dest
-          // by an independent per-axis scale (the four corners are 1:1, the
-          // borders and the center stretch), so the inverse mapping is linear.
-          const raylib::Rectangle clip_rect =
-              raylib::IntRect(x_ + padding_rect.x, y_ + padding_rect.y,
-                              padding_rect.width, padding_rect.height);
+          // Left
+          quad_rects[i++] = raylib::IntRect(l, t + unit, unit, h - unit * 2);
+          // Right
+          quad_rects[i++] =
+              raylib::IntRect(r - unit, t + unit, unit, h - unit * 2);
+          // Top
+          quad_rects[i++] = raylib::IntRect(l + unit, t, w - unit * 2, unit);
+          // Bottom
+          quad_rects[i++] =
+              raylib::IntRect(l + unit, b - unit, w - unit * 2, unit);
+          // Center
+          quad_rects[i++] =
+              raylib::IntRect(l + unit, t + unit, w - unit * 2, h - unit * 2);
+        };
 
-          auto build_cursor_quads = [&](const raylib::Rectangle& src,
-                                        const raylib::Rectangle& dst) {
-            const int32_t cursor_scale = scale_ >= 4 ? scale_ * 2 : 4;
+        const int32_t cursor_scale = scale_ >= 4 ? scale_ * 2 : 4;
+        const raylib::Rectangle cursor_src =
+            raylib::IntRect(32 * scale_, 32 * scale_, 16 * scale_, 16 * scale_);
+        raylib::Rectangle cursor_dest =
+            raylib::IntRect(x_ + padding_rect.x + cursor_rect.x,
+                            y_ + padding_rect.y + cursor_rect.y,
+                            cursor_rect.width, cursor_rect.height);
 
-            raylib::Rectangle texcoords[9], positions[9];
-            build_cursor_internal(src, texcoords, cursor_scale);
-            build_cursor_internal(dst, positions, cursor_scale);
+        if (rgss3_style_) {
+          cursor_dest.x -= ox_;
+          cursor_dest.y -= oy_;
+        }
 
-            for (int32_t i = 0; i < 9; ++i) {
-              const raylib::Rectangle& dst_rect = positions[i];
-              const raylib::Rectangle& src_rect = texcoords[i];
+        raylib::Rectangle texcoords[9], positions[9];
+        build_cursor_internal(cursor_src, texcoords, cursor_scale);
+        build_cursor_internal(cursor_dest, positions, cursor_scale);
 
-              // Region intersection of this quad's dest with the clip area.
-              const float clip_left = std::max(dst_rect.x, clip_rect.x);
-              const float clip_top = std::max(dst_rect.y, clip_rect.y);
-              const float clip_right = std::min(dst_rect.x + dst_rect.width,
-                                                clip_rect.x + clip_rect.width);
-              const float clip_bottom = std::min(
-                  dst_rect.y + dst_rect.height, clip_rect.y + clip_rect.height);
-              const float clip_width = clip_right - clip_left;
-              const float clip_height = clip_bottom - clip_top;
-              if (clip_width <= 0.0f || clip_height <= 0.0f)
-                continue;
-
-              // Inverse 9-slice mapping:
-              //   src - src_rect = (dst - dst_rect) * (src_rect.size /
-              //   dst_rect.size)
-              const float sx_scale = dst_rect.width != 0.0f
-                                         ? src_rect.width / dst_rect.width
-                                         : 0.0f;
-              const float sy_scale = dst_rect.height != 0.0f
-                                         ? src_rect.height / dst_rect.height
-                                         : 0.0f;
-
-              const raylib::Rectangle clipped_src = {
-                  src_rect.x + (clip_left - dst_rect.x) * sx_scale,
-                  src_rect.y + (clip_top - dst_rect.y) * sy_scale,
-                  clip_width * sx_scale, clip_height * sy_scale};
-
-              raylib::DrawTexturePro(
-                  skin_texture, clipped_src,
-                  {clip_left, clip_top, clip_width, clip_height}, {}, 0,
-                  contents_tint);
-            }
-          };
-
-          const raylib::Rectangle cursor_src = raylib::IntRect(
-              32 * scale_, 32 * scale_, 16 * scale_, 16 * scale_);
-          if (cursor_rect.width > 0 && cursor_rect.height > 0) {
-            raylib::Rectangle cursor_dest =
-                raylib::IntRect(x_ + padding_rect.x + cursor_rect.x,
-                                y_ + padding_rect.y + cursor_rect.y,
-                                cursor_rect.width, cursor_rect.height);
-
-            if (rgss3_style_) {
-              cursor_dest.x -= ox_;
-              cursor_dest.y -= oy_;
-            }
-
-            build_cursor_quads(cursor_src, cursor_dest);
-          }
+        for (int32_t i = 0; i < 9; ++i) {
+          // Skip inverted slices (dest smaller than 2*unit), as the old
+          // manual clipping did; the stencil test clips the rest.
+          if (positions[i].width <= 0.0f || positions[i].height <= 0.0f)
+            continue;
+          raylib::DrawTexturePro(skin_texture, texcoords[i], positions[i], {},
+                                 0, contents_tint);
         }
       }
 
       // 7. Contents
-      if (contents_) {
+      if (has_contents) {
         auto& contents_texture = contents_->render_texture().texture;
 
         raylib::Rectangle s = {}, d = {};
-        s.x = 0;
-        s.y = 0;
         s.width = contents_texture.width;
         s.height = contents_texture.height;
 
@@ -705,31 +702,16 @@ void Window::Draw(DrawParam param) {
         d.width = contents_texture.width;
         d.height = contents_texture.height;
 
-        // Manual glScissor: clip the contents draw to the window content
-        // area (#padding_rect, in window coordinates). This draw is 1:1
-        // (no stretch: source size == dest size == texture size), so the
-        // inverse mapping from dest to source is a plain offset:
-        //   src = s + (clip - d)
-        const raylib::Rectangle clip_rect =
-            raylib::IntRect(x_ + padding_rect.x, y_ + padding_rect.y,
-                            padding_rect.width, padding_rect.height);
+        raylib::DrawTexturePro(contents_texture, s, d, {}, 0,
+                               raylib::MakeColor(contents_opacity_));
+      }
 
-        const float clip_left = std::max(d.x, clip_rect.x);
-        const float clip_top = std::max(d.y, clip_rect.y);
-        const float clip_right =
-            std::min(d.x + d.width, clip_rect.x + clip_rect.width);
-        const float clip_bottom =
-            std::min(d.y + d.height, clip_rect.y + clip_rect.height);
-        const float clip_width = clip_right - clip_left;
-        const float clip_height = clip_bottom - clip_top;
-        if (clip_width > 0.0f && clip_height > 0.0f) {
-          const raylib::Rectangle clipped_src = {s.x + (clip_left - d.x),
-                                                 s.y + (clip_top - d.y),
-                                                 clip_width, clip_height};
-          raylib::DrawTexturePro(contents_texture, clipped_src,
-                                 {clip_left, clip_top, clip_width, clip_height},
-                                 {}, 0, raylib::MakeColor(contents_opacity_));
-        }
+      if (has_cursor || has_contents) {
+        // Flush the remaining cursor/contents draws while the stencil test is
+        // still active, before disabling it (the batch defers actual drawing).
+        raylib::rlDrawRenderBatchActive();
+        raylib::rlStencilMask(0xFF);
+        raylib::rlDisableStencilTest();
       }
     }
   }

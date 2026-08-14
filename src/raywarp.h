@@ -8,19 +8,6 @@ namespace raylib {
 
 #include "3rdparty/raygui/src/raygui.h"
 
-inline void BeginDrawTexture(RenderTexture2D target) {
-  raylib::BeginTextureMode(target);
-
-  raylib::rlMatrixMode(RL_PROJECTION);
-  raylib::rlLoadIdentity();
-  raylib::rlOrtho(0, target.texture.width, 0, target.texture.height, 0.0, 1.0);
-}
-inline void EndDrawTexture() {
-  raylib::EndTextureMode();
-}
-#define BeginTextureMode BeginDrawTexture
-#define EndTextureMode EndDrawTexture
-
 template <typename Ty>
 Color MakeColor(Ty value) {
   Color result = {};

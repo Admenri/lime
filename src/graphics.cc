@@ -62,7 +62,7 @@ void Graphics::Update() {
 
     raylib::Rectangle srcrec = {};
     srcrec.width = static_cast<float>(screen_buffer_.texture.width);
-    srcrec.height = static_cast<float>(screen_buffer_.texture.height);
+    srcrec.height = -static_cast<float>(screen_buffer_.texture.height);
 
     raylib::Rectangle dstrec = {};
     dstrec.width = static_cast<float>(raylib::GetScreenWidth());
