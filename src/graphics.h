@@ -28,19 +28,28 @@ class Graphics : public Singleton<Graphics> {
   int Height();
   void ResizeScreen(int width, int height);
   void PlayMovie(std::string filename);
+
   void* WindowHandle();
   float Delta();
 
   ATTR(int, FrameRate);
   ATTR(int, FrameCount);
   ATTR(int, Brightness);
+
+  ATTR(int, OX);
+  ATTR(int, OY);
   /*-export.end-*/
 
  public:
   DrawableSet* drawable_set() { return &drawables_; }
 
+  static void RenderFrame(DrawableSet* root,
+                          raylib::RenderTexture2D target,
+                          raylib::Color clear_color,
+                          raylib::Vector2 offset,
+                          int brightness);
+
  private:
-  void RenderFrame(raylib::RenderTexture2D target);
   void UpdatePerFrame();
 
   DrawableSet drawables_;
@@ -50,6 +59,7 @@ class Graphics : public Singleton<Graphics> {
   int brightness_ = 255;
   int frame_count_ = 0;
   int frame_rate_ = 60;
+  raylib::Vector2 offset_ = {};
 };
 
 }  // namespace lime

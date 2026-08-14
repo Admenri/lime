@@ -249,6 +249,8 @@ MRB_FUNC(Graphics_Delta) {
 GRAPHICS_INT_ATTR(FrameRate);
 GRAPHICS_INT_ATTR(FrameCount);
 GRAPHICS_INT_ATTR(Brightness);
+GRAPHICS_INT_ATTR(OX);
+GRAPHICS_INT_ATTR(OY);
 
 #undef GRAPHICS_INT_ATTR
 
@@ -295,6 +297,12 @@ void InitGraphicsBinding(mrb_state* mrb) {
   mrb_define_module_function(mrb, mod, "brightness", Graphics_Brightness,
                              MRB_ARGS_NONE());
   mrb_define_module_function(mrb, mod, "brightness=", Graphics_BrightnessEqual,
+                             MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "ox", Graphics_OX, MRB_ARGS_NONE());
+  mrb_define_module_function(mrb, mod, "ox=", Graphics_OXEqual,
+                             MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mod, "oy", Graphics_OY, MRB_ARGS_NONE());
+  mrb_define_module_function(mrb, mod, "oy=", Graphics_OYEqual,
                              MRB_ARGS_REQ(1));
 }
 

@@ -58,9 +58,10 @@ class Viewport : public RefCounted<Viewport>,
  private:
   void DisposeObject() override;
   void Draw(DrawParam param) override;
+  void UpdateCacheTexture();
 
   DrawableSet drawables_;
-  raylib::RenderTexture2D cache_;
+  raylib::RenderTexture2D cache_ = {};
 
   RefPtr<Rect> rect_;
   int ox_ = 0, oy_ = 0;

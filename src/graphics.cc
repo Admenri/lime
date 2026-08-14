@@ -52,33 +52,27 @@ Graphics::~Graphics() {
 
 void Graphics::Update() {
   if (!frozen_)
-    RenderFrame(screen_buffer_);
+    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, offset_,
+                brightness_);
 
   // Screen present
   raylib::BeginDrawing();
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
-    raylib::rlMatrixMode(RL_MODELVIEW);
-    raylib::rlPushMatrix();
-    {
-      raylib::rlScalef(1.0f, -1.0f, 1.0f);
-      raylib::rlTranslatef(0.0f, -screen_buffer_.texture.height, 0.0f);
-      raylib::ClearBackground({255, 0, 0, 255});
+    raylib::ClearBackground({255, 0, 0, 255});
 
-      raylib::Rectangle srcrec = {};
-      srcrec.width = static_cast<float>(screen_buffer_.texture.width);
-      srcrec.height = static_cast<float>(screen_buffer_.texture.height);
+    raylib::Rectangle srcrec = {};
+    srcrec.width = static_cast<float>(screen_buffer_.texture.width);
+    srcrec.height = static_cast<float>(screen_buffer_.texture.height);
 
-      raylib::Rectangle dstrec = {};
-      dstrec.width = static_cast<float>(raylib::GetScreenWidth());
-      dstrec.height = static_cast<float>(raylib::GetScreenHeight());
+    raylib::Rectangle dstrec = {};
+    dstrec.width = static_cast<float>(raylib::GetScreenWidth());
+    dstrec.height = static_cast<float>(raylib::GetScreenHeight());
 
-      raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
-                             raylib::WHITE);
+    raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
+                           raylib::WHITE);
 
-      raylib::DrawFPS(10, 10);
-    }
-    raylib::rlPopMatrix();
+    raylib::DrawFPS(10, 10);
   }
   raylib::EndDrawing();
 
@@ -117,7 +111,8 @@ void Graphics::FadeOut(int duration) {
 
 void Graphics::Freeze() {
   if (!frozen_) {
-    RenderFrame(screen_buffer_);
+    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, offset_,
+                brightness_);
     frozen_ = true;
   }
 }
@@ -138,7 +133,9 @@ void Graphics::TransitionBitmap(int duration,
     auto current_texture = raylib::LoadRenderTexture(Width(), Height());
     auto frozen_texture = raylib::LoadRenderTexture(Width(), Height());
     std::swap(screen_buffer_, frozen_texture);
-    RenderFrame(current_texture);
+
+    RenderFrame(&drawables_, current_texture, raylib::BLACK, offset_,
+                brightness_);
 
     for (int i = 0; i < duration; ++i) {
       raylib::BeginTextureMode(screen_buffer_);
@@ -193,7 +190,8 @@ void Graphics::TransitionBitmap(int duration,
 
 RefPtr<Bitmap> Graphics::SnapToBitmap() {
   RefPtr<Bitmap> result = MakeRefCounted<Bitmap>(Width(), Height());
-  RenderFrame(result->render_texture());
+  RenderFrame(&drawables_, result->render_texture(), raylib::BLACK, offset_,
+              brightness_);
   return result;
 }
 
@@ -264,13 +262,34 @@ ATTR_DEF(int, Brightness, Graphics) {
   }
 }
 
-void Graphics::RenderFrame(raylib::RenderTexture2D target) {
+ATTR_DEF(int, OX, Graphics) {
+  if (value.has_value()) {
+    offset_.x = static_cast<float>(*value);
+    return std::nullopt;
+  } else {
+    return static_cast<int>(offset_.x);
+  }
+}
+
+ATTR_DEF(int, OY, Graphics) {
+  if (value.has_value()) {
+    offset_.y = static_cast<float>(*value);
+    return std::nullopt;
+  } else {
+    return static_cast<int>(offset_.y);
+  }
+}
+
+void Graphics::RenderFrame(DrawableSet* root,
+                           raylib::RenderTexture2D target,
+                           raylib::Color clear_color,
+                           raylib::Vector2 offset,
+                           int brightness) {
   // Screen rendering
   raylib::BeginTextureMode(target);
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
-    raylib::Color bgcolor = {0, 0, 0, 255};
-    raylib::ClearBackground(bgcolor);
+    raylib::ClearBackground(clear_color);
 
     DrawParam param = {};
     param.scissor = {};
@@ -278,17 +297,22 @@ void Graphics::RenderFrame(raylib::RenderTexture2D target) {
     param.scissor.height = target.texture.height;
     param.target = target;
 
-    raylib::rlEnableScissorTest();
-    raylib::rlScissor(0, 0, param.scissor.width, param.scissor.height);
-    drawables_.DispatchDraw(param);
-    raylib::rlDisableScissorTest();
+    raylib::rlMatrixMode(RL_MODELVIEW);
+    raylib::rlLoadIdentity();
+    raylib::rlTranslatef(offset.x, offset.y, 0.0f);
+    {
+      raylib::rlEnableScissorTest();
+      raylib::rlScissor(0, 0, param.scissor.width, param.scissor.height);
+      root->DispatchDraw(param);
+      raylib::rlDisableScissorTest();
+    }
 
-    if (brightness_ < 255) {
+    if (brightness < 255) {
       raylib::rlEnableColorBlend();
       raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
       {
         raylib::Color brightness_norm = {};
-        brightness_norm.a = 255 - brightness_;
+        brightness_norm.a = 255 - brightness;
         raylib::DrawRectangle(0, 0, target.texture.width, target.texture.height,
                               brightness_norm);
       }

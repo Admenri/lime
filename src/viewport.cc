@@ -69,25 +69,8 @@ void Viewport::Update() {
 
 void Viewport::Render(RefPtr<Bitmap> target) {
   if (target && !target->IsDisposed()) {
-    // Rendering
-    raylib::BeginTextureMode(target->render_texture());
-    raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-    raylib::rlEnableScissorTest();
-    {
-      raylib::Color bgcolor = {0, 0, 0, 255};
-      raylib::ClearBackground(bgcolor);
-
-      DrawParam param = {};
-      param.scissor = {};
-      param.scissor.width = target->Width();
-      param.scissor.height = target->Height();
-      param.target = target->render_texture();
-
-      raylib::rlScissor(0, 0, param.scissor.width, param.scissor.height);
-      drawables_.DispatchDraw(param);
-    }
-    raylib::rlDisableScissorTest();
-    raylib::EndTextureMode();
+    Graphics::RenderFrame(&drawables_, target->render_texture(), raylib::BLANK,
+                          {}, 255);
   }
 }
 
@@ -191,7 +174,6 @@ void Viewport::DisposeObject() {
   Drawable::RemoveFromList();
 
   raylib::UnloadRenderTexture(cache_);
-  cache_ = {};
 
   effect_.reset();
 }
@@ -242,11 +224,7 @@ void Viewport::Draw(DrawParam param) {
 
   // Viewport effect process
   if (clip_ && (tone_->HasEffect() || color_->alpha || flash_.color.w)) {
-    if (cache_.texture.width != rect_->width ||
-        cache_.texture.height != rect_->height) {
-      raylib::UnloadRenderTexture(cache_);
-      cache_ = raylib::LoadRenderTexture(rect_->width, rect_->height);
-    }
+    UpdateCacheTexture();
 
     raylib::EndTextureMode();
     raylib::BeginTextureMode(cache_);
@@ -305,6 +283,14 @@ void Viewport::Draw(DrawParam param) {
       raylib::rlDrawRenderBatchActive();
       raylib::EndShaderMode();
     }
+  }
+}
+
+void Viewport::UpdateCacheTexture() {
+  if (cache_.texture.width != rect_->width ||
+      cache_.texture.height != rect_->height) {
+    raylib::UnloadRenderTexture(cache_);
+    cache_ = raylib::LoadRenderTexture(rect_->width, rect_->height);
   }
 }
 

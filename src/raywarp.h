@@ -8,6 +8,19 @@ namespace raylib {
 
 #include "3rdparty/raygui/src/raygui.h"
 
+inline void BeginScreen() {
+  BeginDrawing();
+
+  rlMatrixMode(RL_PROJECTION);
+  rlLoadIdentity();
+  rlOrtho(0, GetRenderWidth(), 0, GetRenderHeight(), 0.0f, 1.0f);
+}
+inline void EndScreen() {
+  EndDrawing();
+}
+#define BeginDrawing BeginScreen
+#define EndDrawing EndScreen
+
 template <typename Ty>
 Color MakeColor(Ty value) {
   Color result = {};
