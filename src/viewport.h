@@ -49,7 +49,6 @@ class Viewport : public RefCounted<Viewport>,
   ATTR(bool, Clip);
   ATTR(RefPtr<Color>, Color);
   ATTR(RefPtr<Tone>, Tone);
-  ATTR(RefPtr<Effect>, Effect);
   /*-export.end-*/
 
  public:
@@ -70,7 +69,6 @@ class Viewport : public RefCounted<Viewport>,
   bool clip_ = true;
   RefPtr<Color> color_;
   RefPtr<Tone> tone_;
-  RefPtr<Effect> effect_;
 
   struct {
     raylib::Vector4 color = {};

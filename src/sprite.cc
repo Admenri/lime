@@ -294,12 +294,10 @@ void Sprite::Draw(DrawParam param) {
       raylib::rlMatrixMode(RL_MODELVIEW);
       raylib::rlPushMatrix();
       {
-        raylib::rlTranslatef(static_cast<float>(x_), static_cast<float>(y_),
-                             0.0f);
+        raylib::rlTranslatef(x_, y_, 0.0f);
         raylib::rlRotatef(angle_, 0.0f, 0.0f, 1.0f);
         raylib::rlScalef(zoom_x_, zoom_y_, 1.0f);
-        raylib::rlTranslatef(-static_cast<float>(ox_), -static_cast<float>(oy_),
-                             0.0f);
+        raylib::rlTranslatef(-ox_, -oy_, 0.0f);
 
         if (wave_amp_ != 0 && wave_length_ != 0 && src_rect_->height > 0) {
           const int kSliceHeight = 8;

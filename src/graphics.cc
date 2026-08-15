@@ -57,27 +57,31 @@ void Graphics::Update() {
 
   // Screen present
   raylib::BeginDrawing();
+  raylib::rlEnableColorBlend();
   raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlDisableScissorTest();
   {
-    raylib::ClearBackground({255, 0, 0, 255});
+    raylib::ClearBackground({148, 243, 244, 255});
+    auto& texture = screen_buffer_.texture;
 
     raylib::Rectangle srcrec = {};
-    srcrec.width = static_cast<float>(screen_buffer_.texture.width);
-    srcrec.height = static_cast<float>(screen_buffer_.texture.height);
+    srcrec.width = static_cast<float>(texture.width);
+    srcrec.height = static_cast<float>(texture.height);
 
     raylib::Rectangle dstrec = {};
     dstrec.width = static_cast<float>(raylib::GetScreenWidth());
     dstrec.height = static_cast<float>(raylib::GetScreenHeight());
 
-    raylib::DrawTexturePro(screen_buffer_.texture, srcrec, dstrec, {}, 0,
-                           raylib::WHITE);
+    raylib::DrawTexturePro(texture, srcrec, dstrec, {}, 0, raylib::WHITE);
 
     raylib::DrawFPS(10, 10);
   }
   raylib::EndDrawing();
 
+  // Update frame
   UpdatePerFrame();
 
+  // Update event
   if (raylib::WindowShouldClose())
     throw Exception(Exception::ExitError, "exit");
   if (raylib::IsKeyReleased(raylib::KEY_F12))
@@ -92,21 +96,25 @@ void Graphics::Wait(int duration) {
 void Graphics::FadeIn(int duration) {
   duration = std::max(duration, 1);
   int step = (255 - brightness_) / duration;
-  for (int i = 0; i < duration + 1; ++i) {
+  for (int i = 0; i < duration; ++i) {
     brightness_ += step;
     brightness_ = std::clamp<int>(brightness_, 0, 255);
+
     Update();
   }
+  brightness_ = 255;
 }
 
 void Graphics::FadeOut(int duration) {
   duration = std::max(duration, 1);
   int step = brightness_ / duration;
-  for (int i = 0; i < duration + 1; ++i) {
+  for (int i = 0; i < duration; ++i) {
     brightness_ -= step;
     brightness_ = std::clamp<int>(brightness_, 0, 255);
+
     Update();
   }
+  brightness_ = 0;
 }
 
 void Graphics::Freeze() {
@@ -132,13 +140,14 @@ void Graphics::TransitionBitmap(int duration,
 
     auto current_texture = raylib::LoadRenderTexture(Width(), Height());
     auto frozen_texture = raylib::LoadRenderTexture(Width(), Height());
-    std::swap(screen_buffer_, frozen_texture);
 
-    RenderFrame(&drawables_, current_texture, raylib::BLACK, origin_,
-                brightness_);
+    RenderFrame(&drawables_, current_texture, raylib::BLACK, origin_);
+
+    std::swap(screen_buffer_, frozen_texture);
 
     for (int i = 0; i < duration; ++i) {
       raylib::BeginTextureMode(screen_buffer_);
+      raylib::rlDisableScissorTest();
       raylib::rlDisableColorBlend();
       if (bitmap) {
         // Vague mapping
@@ -176,7 +185,6 @@ void Graphics::TransitionBitmap(int duration,
         }
         raylib::EndShaderMode();
       }
-      raylib::rlEnableColorBlend();
       raylib::EndTextureMode();
 
       Update();
@@ -299,27 +307,26 @@ void Graphics::RenderFrame(DrawableSet* root,
 
     raylib::rlDrawRenderBatchActive();
     raylib::rlMatrixMode(RL_MODELVIEW);
-    raylib::rlPushMatrix();
+    raylib::rlLoadIdentity();
+    raylib::rlTranslatef(param.offset.x, param.offset.y, 0.0f);
     {
-      raylib::rlLoadIdentity();
-      raylib::rlTranslatef(-origin.x, -origin.y, 0.0f);
-      {
-        raylib::rlScissor(0, 0, width, height);
-        root->DispatchDraw(param);
-      }
+      raylib::rlEnableScissorTest();
+      raylib::rlScissor(0, 0, width, height);
+      root->DispatchDraw(param);
+    }
 
-      raylib::rlLoadIdentity();
-      if (brightness < 255) {
-        raylib::rlEnableColorBlend();
-        raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
-        {
-          raylib::Color brightness_norm = {};
-          brightness_norm.a = 255 - brightness;
-          raylib::DrawRectangle(0, 0, width, height, brightness_norm);
-        }
+    raylib::rlDrawRenderBatchActive();
+    raylib::rlLoadIdentity();
+    if (brightness < 255) {
+      raylib::rlDisableScissorTest();
+      raylib::rlEnableColorBlend();
+      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      {
+        raylib::Color brightness_norm = {};
+        brightness_norm.a = 255 - brightness;
+        raylib::DrawRectangle(0, 0, width, height, brightness_norm);
       }
     }
-    raylib::rlPopMatrix();
     raylib::rlDrawRenderBatchActive();
   }
   raylib::EndTextureMode();
