@@ -107,6 +107,8 @@ void Geometry::Draw(DrawParam param) {
   for (auto& triangle : data_) {
     if (bitmap_ && !bitmap_->IsDisposed())
       raylib::rlSetTexture(bitmap_->render_texture().texture.id);
+    else
+      raylib::rlSetTexture(raylib::rlGetTextureIdDefault());
 
     raylib::rlBegin(RL_TRIANGLES);
     {

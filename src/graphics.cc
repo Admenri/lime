@@ -52,7 +52,7 @@ Graphics::~Graphics() {
 
 void Graphics::Update() {
   if (!frozen_)
-    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, offset_,
+    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, origin_,
                 brightness_);
 
   // Screen present
@@ -111,7 +111,7 @@ void Graphics::FadeOut(int duration) {
 
 void Graphics::Freeze() {
   if (!frozen_) {
-    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, offset_,
+    RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, origin_,
                 brightness_);
     frozen_ = true;
   }
@@ -134,7 +134,7 @@ void Graphics::TransitionBitmap(int duration,
     auto frozen_texture = raylib::LoadRenderTexture(Width(), Height());
     std::swap(screen_buffer_, frozen_texture);
 
-    RenderFrame(&drawables_, current_texture, raylib::BLACK, offset_,
+    RenderFrame(&drawables_, current_texture, raylib::BLACK, origin_,
                 brightness_);
 
     for (int i = 0; i < duration; ++i) {
@@ -190,7 +190,7 @@ void Graphics::TransitionBitmap(int duration,
 
 RefPtr<Bitmap> Graphics::SnapToBitmap() {
   RefPtr<Bitmap> result = MakeRefCounted<Bitmap>(Width(), Height());
-  RenderFrame(&drawables_, result->render_texture(), raylib::BLACK, offset_,
+  RenderFrame(&drawables_, result->render_texture(), raylib::BLACK, origin_,
               brightness_);
   return result;
 }
@@ -264,59 +264,63 @@ ATTR_DEF(int, Brightness, Graphics) {
 
 ATTR_DEF(int, OX, Graphics) {
   if (value.has_value()) {
-    offset_.x = static_cast<float>(*value);
+    origin_.x = static_cast<float>(*value);
     return std::nullopt;
   } else {
-    return static_cast<int>(offset_.x);
+    return static_cast<int>(origin_.x);
   }
 }
 
 ATTR_DEF(int, OY, Graphics) {
   if (value.has_value()) {
-    offset_.y = static_cast<float>(*value);
+    origin_.y = static_cast<float>(*value);
     return std::nullopt;
   } else {
-    return static_cast<int>(offset_.y);
+    return static_cast<int>(origin_.y);
   }
 }
 
 void Graphics::RenderFrame(DrawableSet* root,
                            raylib::RenderTexture2D target,
                            raylib::Color clear_color,
-                           raylib::Vector2 offset,
+                           raylib::Vector2 origin,
                            int brightness) {
+  int width = target.texture.width, height = target.texture.height;
+
   // Screen rendering
   raylib::BeginTextureMode(target);
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
   {
     raylib::ClearBackground(clear_color);
 
     DrawParam param = {};
-    param.scissor = {};
-    param.scissor.width = target.texture.width;
-    param.scissor.height = target.texture.height;
+    param.offset.x = -origin.x;
+    param.offset.y = -origin.y;
     param.target = target;
 
+    raylib::rlDrawRenderBatchActive();
     raylib::rlMatrixMode(RL_MODELVIEW);
-    raylib::rlLoadIdentity();
-    raylib::rlTranslatef(offset.x, offset.y, 0.0f);
+    raylib::rlPushMatrix();
     {
-      raylib::rlEnableScissorTest();
-      raylib::rlScissor(0, 0, param.scissor.width, param.scissor.height);
-      root->DispatchDraw(param);
-      raylib::rlDisableScissorTest();
-    }
-
-    if (brightness < 255) {
-      raylib::rlEnableColorBlend();
-      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      raylib::rlLoadIdentity();
+      raylib::rlTranslatef(-origin.x, -origin.y, 0.0f);
       {
-        raylib::Color brightness_norm = {};
-        brightness_norm.a = 255 - brightness;
-        raylib::DrawRectangle(0, 0, target.texture.width, target.texture.height,
-                              brightness_norm);
+        raylib::rlScissor(0, 0, width, height);
+        root->DispatchDraw(param);
+      }
+
+      raylib::rlLoadIdentity();
+      if (brightness < 255) {
+        raylib::rlEnableColorBlend();
+        raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+        {
+          raylib::Color brightness_norm = {};
+          brightness_norm.a = 255 - brightness;
+          raylib::DrawRectangle(0, 0, width, height, brightness_norm);
+        }
       }
     }
+    raylib::rlPopMatrix();
+    raylib::rlDrawRenderBatchActive();
   }
   raylib::EndTextureMode();
 }

@@ -46,8 +46,8 @@ class Graphics : public Singleton<Graphics> {
   static void RenderFrame(DrawableSet* root,
                           raylib::RenderTexture2D target,
                           raylib::Color clear_color,
-                          raylib::Vector2 offset,
-                          int brightness);
+                          raylib::Vector2 origin,
+                          int brightness = 255);
 
  private:
   void UpdatePerFrame();
@@ -59,7 +59,7 @@ class Graphics : public Singleton<Graphics> {
   int brightness_ = 255;
   int frame_count_ = 0;
   int frame_rate_ = 60;
-  raylib::Vector2 offset_ = {};
+  raylib::Vector2 origin_ = {};
 };
 
 }  // namespace lime

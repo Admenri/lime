@@ -9,9 +9,8 @@ namespace lime {
 class DrawableSet;
 
 struct DrawParam {
-  int ox = 0, oy = 0;
-  raylib::Rectangle scissor;
-  raylib::RenderTexture2D target;
+  raylib::Vector2 offset;
+  raylib::RenderTexture2D target = {};
 };
 
 struct ZValue {

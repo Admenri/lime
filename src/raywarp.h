@@ -21,6 +21,23 @@ inline void EndScreen() {
 #define BeginDrawing BeginScreen
 #define EndDrawing EndScreen
 
+inline Rectangle GetScissor() {
+  int x, y, w, h;
+  rlGetScissor(&x, &y, &w, &h);
+
+  Rectangle result = {};
+  result.x = static_cast<float>(x);
+  result.y = static_cast<float>(y);
+  result.width = static_cast<float>(w);
+  result.height = static_cast<float>(h);
+  return result;
+}
+
+inline void SetScissor(Rectangle rec) {
+  raylib::rlScissor(static_cast<int>(rec.x), static_cast<int>(rec.y),
+                    static_cast<int>(rec.width), static_cast<int>(rec.height));
+}
+
 template <typename Ty>
 Color MakeColor(Ty value) {
   Color result = {};

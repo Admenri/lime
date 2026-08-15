@@ -1,7 +1,8 @@
 #include "src/tilemap.h"
 
-#include "src/shader.h"
+#include "src/graphics.h"
 #include "src/profile.h"
+#include "src/shader.h"
 
 namespace lime {
 
@@ -454,13 +455,20 @@ void Tilemap::CreateShadowSet() {
 }
 
 void Tilemap::UpdateViewport(DrawParam param) {
-  auto viewport = Attr_Viewport().value();
-  const int viewport_ox = viewport->Attr_OX().value(),
-            viewport_oy = viewport->Attr_OY().value();
+  auto scissor = raylib::GetScissor();
+  auto viewport = Attr_Viewport();
+  int viewport_ox = 0, viewport_oy = 0;
+  if (viewport.has_value()) {
+    viewport_ox = viewport.value()->Attr_OX().value();
+    viewport_oy = viewport.value()->Attr_OY().value();
+  } else {
+    viewport_ox = Graphics::Instance()->Attr_OX().value();
+    viewport_oy = Graphics::Instance()->Attr_OY().value();
+  }
+
   const int tilemap_real_ox = ox_ + viewport_ox,
             tilemap_real_oy = oy_ + viewport_oy;
-  const int viewport_width = param.scissor.width,
-            viewport_height = param.scissor.height;
+  const int viewport_width = scissor.width, viewport_height = scissor.height;
 
   // Quad parsing viewport
   raylib::Rectangle new_viewport = {};

@@ -140,7 +140,7 @@ void Plane::Draw(DrawParam param) {
       float baseX = -ox_ * zoom_x_;
       float baseY = -oy_ * zoom_y_;
 
-      auto& sc = param.scissor;
+      auto sc = raylib::GetScissor();
 
       // Calculate the range of tile indices that overlap the scissor area
       int firstCol = static_cast<int>(std::floor((sc.x - baseX) / tileW));
