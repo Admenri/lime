@@ -38,6 +38,10 @@ inline void SetScissor(Rectangle rec) {
                     static_cast<int>(rec.width), static_cast<int>(rec.height));
 }
 
+inline void SetScissorTest(bool enable) {
+  enable ? rlEnableScissorTest() : rlDisableScissorTest();
+}
+
 template <typename Ty>
 Color MakeColor(Ty value) {
   Color result = {};

@@ -160,10 +160,21 @@ ATTR_DEF(RefPtr<Tone>, Tone, Viewport) {
   }
 }
 
+ATTR_DEF(RefPtr<Effect>, Effect, Viewport) {
+  if (value.has_value()) {
+    effect_ = *value;
+    return std::nullopt;
+  } else {
+    return effect_;
+  }
+}
+
 void Viewport::DisposeObject() {
   Drawable::RemoveFromList();
 
   raylib::UnloadRenderTexture(cache_);
+
+  effect_.reset();
 }
 
 void Viewport::Draw(DrawParam param) {
@@ -173,94 +184,114 @@ void Viewport::Draw(DrawParam param) {
   viewport_region.width = rect_->width;
   viewport_region.height = rect_->height;
 
-  const raylib::Rectangle last_scissor = raylib::GetScissor();
+  if (effect_) {
+    raylib::EndTextureMode();
+    UpdateCacheTexture();
+    raylib::Vector2 origin = {ox_, oy_};
+    Graphics::RenderFrame(&drawables_, cache_, {}, origin);
+    raylib::BeginTextureMode(param.target);
 
-  raylib::rlDrawRenderBatchActive();
-
-  // Setup scissor
-  const raylib::Rectangle intersect_scissor =
-      raylib::GetCollisionRec(last_scissor, viewport_region);
-  raylib::SetScissor(clip_ ? intersect_scissor : last_scissor);
-
-  // Draw
-  {
     raylib::rlMatrixMode(RL_MODELVIEW);
     raylib::rlPushMatrix();
+    raylib::rlLoadIdentity();
     {
-      raylib::rlTranslatef(rect_->x, rect_->y, 0.0f);
-      raylib::rlRotatef(angle_, 0.0f, 0.0f, 1.0f);
-      raylib::rlScalef(zoom_x_, zoom_y_, 1.0f);
-      raylib::rlTranslatef(-ox_, -oy_, 0.0f);
-
-      // Dispatching drawcalls
-      DrawParam draw_param = param;
-      draw_param.offset.x += rect_->x - ox_;
-      draw_param.offset.y += rect_->y - oy_;
-      drawables_.DispatchDraw(draw_param);
+      effect_->BeginEffect();
+      raylib::DrawTexture(cache_.texture, viewport_region.x, viewport_region.y,
+                          raylib::WHITE);
+      raylib::EndShaderMode();
     }
     raylib::rlPopMatrix();
-  }
+  } else {
+    const raylib::Rectangle last_scissor = raylib::GetScissor();
 
-  raylib::rlDrawRenderBatchActive();
+    raylib::rlDrawRenderBatchActive();
 
-  // Restore scissor
-  raylib::SetScissor(last_scissor);
+    // Setup scissor
+    const raylib::Rectangle intersect_scissor =
+        raylib::GetCollisionRec(last_scissor, viewport_region);
+    raylib::SetScissor(clip_ ? intersect_scissor : last_scissor);
 
-  // Viewport effect process
-  if (clip_ && (tone_->HasEffect() || color_->alpha || flash_.color.w)) {
-    UpdateCacheTexture();
-
-    raylib::EndTextureMode();
-    raylib::BeginTextureMode(cache_);
-    raylib::rlDisableColorBlend();
+    // Draw
     {
       raylib::rlMatrixMode(RL_MODELVIEW);
       raylib::rlPushMatrix();
-      raylib::rlLoadIdentity();
       {
-        // Copy back buffer to current cache
-        raylib::DrawTextureRec(param.target.texture, viewport_region, {},
-                               raylib::WHITE);
+        raylib::rlTranslatef(rect_->x, rect_->y, 0.0f);
+        raylib::rlRotatef(angle_, 0.0f, 0.0f, 1.0f);
+        raylib::rlScalef(zoom_x_, zoom_y_, 1.0f);
+        raylib::rlTranslatef(-ox_, -oy_, 0.0f);
+
+        // Dispatching drawcalls
+        DrawParam draw_param = param;
+        draw_param.offset.x += rect_->x - ox_;
+        draw_param.offset.y += rect_->y - oy_;
+        drawables_.DispatchDraw(draw_param);
       }
       raylib::rlPopMatrix();
     }
-    raylib::EndTextureMode();
-    raylib::BeginTextureMode(param.target);
 
-    auto& shader = ShaderSet::Instance()->viewport;
-    auto color_norm = color_->Normalize();
-    auto tone_norm = tone_->Normalize();
-    auto opacity_norm = 1.0f;
+    raylib::rlDrawRenderBatchActive();
 
-    if (flash_.color.w > color_norm.w)
-      color_norm = flash_.color;
+    // Restore scissor
+    raylib::SetScissor(last_scissor);
 
-    {
-      raylib::BeginShaderMode(shader.shader);
-      raylib::rlDrawRenderBatchActive();
+    // Viewport effect process
+    if (clip_ && (tone_->HasEffect() || color_->alpha || flash_.color.w)) {
+      UpdateCacheTexture();
+
+      raylib::EndTextureMode();
+      raylib::BeginTextureMode(cache_);
       raylib::rlDisableColorBlend();
       {
         raylib::rlMatrixMode(RL_MODELVIEW);
         raylib::rlPushMatrix();
         raylib::rlLoadIdentity();
         {
-          // Default shader params
-          raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
-                                 raylib::SHADER_UNIFORM_VEC4);
-          raylib::SetShaderValue(shader.shader, shader.u_tone, &tone_norm,
-                                 raylib::SHADER_UNIFORM_VEC4);
-          raylib::SetShaderValue(shader.shader, shader.u_opacity, &opacity_norm,
-                                 raylib::SHADER_UNIFORM_FLOAT);
-
-          raylib::DrawTexture(cache_.texture, viewport_region.x,
-                              viewport_region.y, raylib::WHITE);
+          // Copy back buffer to current cache
+          raylib::DrawTextureRec(param.target.texture, viewport_region, {},
+                                 raylib::WHITE);
         }
         raylib::rlPopMatrix();
       }
-      raylib::rlDrawRenderBatchActive();
-      raylib::EndShaderMode();
+      raylib::EndTextureMode();
+      raylib::BeginTextureMode(param.target);
+
+      auto& shader = ShaderSet::Instance()->viewport;
+      auto color_norm = color_->Normalize();
+      auto tone_norm = tone_->Normalize();
+      auto opacity_norm = 1.0f;
+
+      if (flash_.color.w > color_norm.w)
+        color_norm = flash_.color;
+
+      {
+        raylib::BeginShaderMode(shader.shader);
+        raylib::rlDrawRenderBatchActive();
+        raylib::rlDisableColorBlend();
+        {
+          raylib::rlMatrixMode(RL_MODELVIEW);
+          raylib::rlPushMatrix();
+          raylib::rlLoadIdentity();
+          {
+            // Default shader params
+            raylib::SetShaderValue(shader.shader, shader.u_color, &color_norm,
+                                   raylib::SHADER_UNIFORM_VEC4);
+            raylib::SetShaderValue(shader.shader, shader.u_tone, &tone_norm,
+                                   raylib::SHADER_UNIFORM_VEC4);
+            raylib::SetShaderValue(shader.shader, shader.u_opacity,
+                                   &opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
+
+            raylib::DrawTexture(cache_.texture, viewport_region.x,
+                                viewport_region.y, raylib::WHITE);
+          }
+          raylib::rlPopMatrix();
+        }
+        raylib::EndShaderMode();
+      }
     }
   }
+
+  raylib::rlDrawRenderBatchActive();
 }
 
 void Viewport::UpdateCacheTexture() {

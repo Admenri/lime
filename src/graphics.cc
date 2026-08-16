@@ -295,6 +295,9 @@ void Graphics::RenderFrame(DrawableSet* root,
                            int brightness) {
   int width = target.texture.width, height = target.texture.height;
 
+  const auto last_scissor_enable = raylib::rlIsScissorEnabled();
+  const auto last_scissor_rect = raylib::GetScissor();
+
   // Screen rendering
   raylib::BeginTextureMode(target);
   {
@@ -307,29 +310,36 @@ void Graphics::RenderFrame(DrawableSet* root,
 
     raylib::rlDrawRenderBatchActive();
     raylib::rlMatrixMode(RL_MODELVIEW);
-    raylib::rlLoadIdentity();
-    raylib::rlTranslatef(param.offset.x, param.offset.y, 0.0f);
+    raylib::rlPushMatrix();
     {
-      raylib::rlEnableScissorTest();
-      raylib::rlScissor(0, 0, width, height);
-      root->DispatchDraw(param);
-    }
-
-    raylib::rlDrawRenderBatchActive();
-    raylib::rlLoadIdentity();
-    if (brightness < 255) {
-      raylib::rlDisableScissorTest();
-      raylib::rlEnableColorBlend();
-      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      raylib::rlLoadIdentity();
+      raylib::rlTranslatef(param.offset.x, param.offset.y, 0.0f);
       {
-        raylib::Color brightness_norm = {};
-        brightness_norm.a = 255 - brightness;
-        raylib::DrawRectangle(0, 0, width, height, brightness_norm);
+        raylib::rlEnableScissorTest();
+        raylib::rlScissor(0, 0, width, height);
+        root->DispatchDraw(param);
+      }
+
+      raylib::rlDrawRenderBatchActive();
+      raylib::rlLoadIdentity();
+      if (brightness < 255) {
+        raylib::rlDisableScissorTest();
+        raylib::rlEnableColorBlend();
+        raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+        {
+          raylib::Color brightness_norm = {};
+          brightness_norm.a = 255 - brightness;
+          raylib::DrawRectangle(0, 0, width, height, brightness_norm);
+        }
       }
     }
+    raylib::rlPopMatrix();
     raylib::rlDrawRenderBatchActive();
   }
   raylib::EndTextureMode();
+
+  raylib::SetScissor(last_scissor_rect);
+  raylib::SetScissorTest(last_scissor_enable);
 }
 
 void Graphics::UpdatePerFrame() {
