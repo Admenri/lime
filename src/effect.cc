@@ -12,42 +12,44 @@ Effect::Effect(const EffectCreateInfo& create_info) {
                       ? create_info.fragment_shader->c_str()
                       : nullptr;
 
-  shader_ = raylib::LoadShaderFromMemory(vs_code, fs_code);
+  shader_ = MakeRefCounted<ShaderWrapper>(
+      raylib::LoadShaderFromMemory(vs_code, fs_code));
   color_blend_ = create_info.color_blend;
 
-  if (!raylib::IsShaderValid(shader_))
+  if (!raylib::IsShaderValid(shader_->shader))
     throw Exception(Exception::RGSSError, "failed to compile shader.");
 }
 
-Effect::~Effect() {
-  raylib::UnloadShader(shader_);
-}
+Effect::Effect(RefPtr<Effect> other)
+    : shader_(other->shader_), color_blend_(other->color_blend_) {}
+
+Effect::~Effect() = default;
 
 void Effect::SetValueF(std::string uniform,
                        std::span<float> value,
                        int item_count) {
   int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_FLOAT + item_count - 1,
-                          value.size());
+  auto& entry = float_values_[loc];
+  entry.values.assign(value.begin(), value.end());
+  entry.item_count = item_count;
 }
 
 void Effect::SetValueI(std::string uniform,
                        std::span<int32_t> value,
                        int item_count) {
   int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_INT + item_count - 1,
-                          value.size());
+  auto& entry = int_values_[loc];
+  entry.values.assign(value.begin(), value.end());
+  entry.item_count = item_count;
 }
 
 void Effect::SetValueU(std::string uniform,
                        std::span<uint32_t> value,
                        int item_count) {
   int loc = GetValueLocation(uniform);
-  raylib::SetShaderValueV(shader_, loc, value.data(),
-                          raylib::SHADER_UNIFORM_UINT + item_count - 1,
-                          value.size());
+  auto& entry = uint_values_[loc];
+  entry.values.assign(value.begin(), value.end());
+  entry.item_count = item_count;
 }
 
 void Effect::SetValueT(std::string uniform, RefPtr<Bitmap> texture) {
@@ -65,16 +67,42 @@ void Effect::SetValueM(std::string uniform, float value[16]) {
   raylib::Matrix mat = {};
   std::memcpy(&mat, value, sizeof(float) * 16);
 
-  raylib::SetShaderValueMatrix(shader_, loc, mat);
+  matrix_values_[loc] = mat;
 }
 
 void Effect::BeginEffect() {
-  raylib::rlSetShader(shader_.id, shader_.locs);
+  auto shader = shader_->shader;
+  raylib::rlSetShader(shader.id, shader.locs);
+
+  for (auto& it : float_values_) {
+    raylib::SetShaderValueV(
+        shader, it.first, it.second.values.data(),
+        raylib::SHADER_UNIFORM_FLOAT + it.second.item_count - 1,
+        it.second.values.size());
+  }
+
+  for (auto& it : int_values_) {
+    raylib::SetShaderValueV(
+        shader, it.first, it.second.values.data(),
+        raylib::SHADER_UNIFORM_INT + it.second.item_count - 1,
+        it.second.values.size());
+  }
+
+  for (auto& it : uint_values_) {
+    raylib::SetShaderValueV(
+        shader, it.first, it.second.values.data(),
+        raylib::SHADER_UNIFORM_UINT + it.second.item_count - 1,
+        it.second.values.size());
+  }
+
+  for (auto& it : matrix_values_) {
+    raylib::SetShaderValueMatrix(shader, it.first, it.second);
+  }
 
   for (auto& it : textures_) {
     if (it.second && !it.second->IsDisposed()) {
       auto& tex = it.second->render_texture();
-      raylib::SetShaderValueTexture(shader_, it.first, tex.texture);
+      raylib::SetShaderValueTexture(shader, it.first, tex.texture);
     }
   }
 
@@ -92,7 +120,7 @@ void Effect::BeginEffect() {
 int Effect::GetValueLocation(std::string name) {
   auto it = locations_.find(name);
   if (it == locations_.end()) {
-    int loc = raylib::GetShaderLocation(shader_, name.c_str());
+    int loc = raylib::GetShaderLocation(shader_->shader, name.c_str());
     locations_[name] = loc;
     return loc;
   }

@@ -143,6 +143,20 @@ MRB_FUNC(Effect_initialize) {
   return SetupSelfData(self, obj.get(), kEffectDataType);
 }
 
+MRB_FUNC(Effect_initialize_copy) {
+  mrb_value other;
+  mrb_get_args(mrb, "o", &other);
+
+  lime::RefPtr<lime::Effect> obj = nullptr;
+  EXC_BEGIN {
+    auto other_obj = GetObject<lime::Effect>(mrb, other, kEffectDataType);
+    obj = lime::MakeRefCounted<lime::Effect>(other_obj);
+  }
+  EXC_END(mrb);
+
+  return SetupSelfData(self, obj.get(), kEffectDataType);
+}
+
 MRB_FUNC(Effect_SetValueF) {
   auto* self_obj = GetSelfData<lime::Effect>(self);
 
@@ -262,6 +276,8 @@ void InitEffectBinding(mrb_state* mrb) {
   auto klass = DefineClass(mrb, "Effect");
 
   mrb_define_method(mrb, klass, "initialize", Effect_initialize,
+                    MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, klass, "initialize_copy", Effect_initialize_copy,
                     MRB_ARGS_REQ(1));
   mrb_define_method(mrb, klass, "set_value_f", Effect_SetValueF,
                     MRB_ARGS_ANY());

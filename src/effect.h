@@ -2,6 +2,7 @@
 
 #include <span>
 #include <unordered_map>
+#include <vector>
 
 #include "src/common.h"
 #include "src/raywarp.h"
@@ -29,6 +30,7 @@ class Effect : public RefCounted<Effect> {
   };
 
   Effect(const EffectCreateInfo& create_info);
+  Effect(RefPtr<Effect> other);
   ~Effect();
 
   /*-export.begin-*/
@@ -51,10 +53,27 @@ class Effect : public RefCounted<Effect> {
  private:
   int GetValueLocation(std::string name);
 
-  raylib::Shader shader_ = {};
+  struct ShaderWrapper : public RefCounted<ShaderWrapper> {
+    raylib::Shader shader;
+
+    ShaderWrapper(raylib::Shader s) : shader(s) {}
+    ~ShaderWrapper() { raylib::UnloadShader(shader); }
+  };
+
+  template <typename T>
+  struct UniformArrayValue {
+    std::vector<T> values;
+    int item_count = 1;
+  };
+
+  RefPtr<ShaderWrapper> shader_;
   std::optional<ColorBlendState> color_blend_;
 
   std::unordered_map<std::string, int> locations_;
+  std::unordered_map<int, UniformArrayValue<float>> float_values_;
+  std::unordered_map<int, UniformArrayValue<int32_t>> int_values_;
+  std::unordered_map<int, UniformArrayValue<uint32_t>> uint_values_;
+  std::unordered_map<int, raylib::Matrix> matrix_values_;
   std::unordered_map<int, RefPtr<Bitmap>> textures_;
 };
 
