@@ -112,6 +112,7 @@ void Effect::BeginEffect() {
         color_blend_->src_rgb, color_blend_->dst_rgb, color_blend_->src_alpha,
         color_blend_->dst_alpha, color_blend_->equal_rgb,
         color_blend_->equal_alpha);
+    raylib::rlSetBlendMode(raylib::BLEND_CUSTOM_SEPARATE);
   } else {
     raylib::rlDisableColorBlend();
   }
