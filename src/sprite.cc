@@ -330,10 +330,11 @@ void Sprite::Draw(DrawParam param) {
       raylib::rlPopMatrix();
     }
 
-    if (effect_)
+    if (effect_) {
       effect_->EndEffect();
-    else
+    } else {
       raylib::EndShaderMode();
+    }
   }
 }
 
