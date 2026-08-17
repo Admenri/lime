@@ -24,6 +24,7 @@ const Input::KeySym kDefaultKeyboardBindings[] = {
     {"ALT", raylib::KEY_RIGHT_ALT},
 
     {"A", raylib::KEY_LEFT_SHIFT},
+    {"A", raylib::KEY_RIGHT_SHIFT},
     {"B", raylib::KEY_ESCAPE},
     {"B", raylib::KEY_KP_0},
     {"B", raylib::KEY_X},
