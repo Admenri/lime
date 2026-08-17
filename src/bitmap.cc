@@ -16,7 +16,7 @@ class ShapeDrawScope {
   explicit ShapeDrawScope(Bitmap* context) {
     raylib::BeginTextureMode(context->texture_);
     raylib::rlEnableColorBlend();
-    raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+    raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
     if (auto& texture = context->shape_bitmap_; texture) {
       raylib::Rectangle rec = {};
       rec.width = texture->Width();
@@ -152,7 +152,7 @@ void Bitmap::StretchBlt(RefPtr<Rect> dst_rect,
 
   raylib::BeginTextureMode(texture_);
   raylib::rlEnableColorBlend();
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
   raylib::DrawTexturePro(src_bitmap->render_texture().texture, src_rect->As(),
                          dst_rect->As(), {}, 0,
                          raylib::MakeColor(std::clamp<int>(opacity, 0, 255)));
@@ -385,7 +385,7 @@ void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
                                   mask->render_texture().texture);
     {
       raylib::rlEnableColorBlend();
-      raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+      raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
       raylib::DrawTexturePro(src_bitmap->render_texture().texture,
                              src_rect->As(), dst_rect->As(), {}, 0, {});
     }
@@ -396,7 +396,8 @@ void Bitmap::MaskBlt(RefPtr<Rect> dst_rect,
 
 RefPtr<Palette> Bitmap::ToPalette() {
   Dispoable::Guard();
-  return MakeRefCounted<Palette>(raylib::LoadImageFromTexture(texture_.texture));
+  return MakeRefCounted<Palette>(
+      raylib::LoadImageFromTexture(texture_.texture));
 }
 
 void Bitmap::UpdateWithPalette(RefPtr<Palette> palette) {

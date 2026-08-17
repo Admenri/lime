@@ -941,7 +941,7 @@ void Tilemap::DrawMapData(bool above) {
 
   // Blend state
   raylib::rlEnableColorBlend();
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
 
   // Process tilemap data
   read_tilemap(render_viewport_);

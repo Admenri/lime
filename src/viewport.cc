@@ -187,20 +187,22 @@ void Viewport::Draw(DrawParam param) {
   if (effect_) {
     raylib::EndTextureMode();
     UpdateCacheTexture();
-    raylib::Vector2 origin = {ox_, oy_};
+    raylib::Vector2 origin = {static_cast<float>(ox_), static_cast<float>(oy_)};
     Graphics::RenderFrame(&drawables_, cache_, {}, origin);
-    raylib::BeginTextureMode(param.target);
 
-    raylib::rlMatrixMode(RL_MODELVIEW);
-    raylib::rlPushMatrix();
-    raylib::rlLoadIdentity();
+    raylib::BeginTextureMode(param.target);
     {
-      effect_->BeginEffect();
-      raylib::DrawTexture(cache_.texture, viewport_region.x, viewport_region.y,
-                          raylib::WHITE);
-      raylib::EndShaderMode();
+      raylib::rlMatrixMode(RL_MODELVIEW);
+      raylib::rlPushMatrix();
+      raylib::rlLoadIdentity();
+      {
+        effect_->BeginEffect();
+        raylib::DrawTexture(cache_.texture, viewport_region.x,
+                            viewport_region.y, raylib::WHITE);
+        effect_->EndEffect();
+      }
+      raylib::rlPopMatrix();
     }
-    raylib::rlPopMatrix();
   } else {
     const raylib::Rectangle last_scissor = raylib::GetScissor();
 

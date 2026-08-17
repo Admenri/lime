@@ -61,7 +61,7 @@ inline Rectangle IntRect(int x, int y, int w, int h) {
   return rect;
 }
 
-inline BlendMode GetBlendID(int type) {
+inline rlBlendMode GetBlendID(int type) {
   switch (type) {
     default:
     case 0:
@@ -79,7 +79,7 @@ inline BlendMode GetBlendID(int type) {
                                         RL_FUNC_REVERSE_SUBTRACT);
       break;
   }
-  return raylib::BLEND_CUSTOM_SEPARATE;
+  return raylib::RL_BLEND_CUSTOM_SEPARATE;
 }
 
 }  // namespace raylib

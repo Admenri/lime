@@ -393,7 +393,7 @@ void Window::Draw(DrawParam param) {
                                     std::max(0.0f, fh - (fpad + fpad_bottom))};
 
   raylib::rlEnableColorBlend();
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
 
   if (width_ >= scale_ * 2 && height_ >= scale_ * 2) {
     // Window frame & background

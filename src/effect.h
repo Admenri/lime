@@ -49,6 +49,7 @@ class Effect : public RefCounted<Effect> {
 
  public:
   void BeginEffect();
+  void EndEffect();
 
  private:
   int GetValueLocation(std::string name);

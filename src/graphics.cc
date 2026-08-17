@@ -58,7 +58,7 @@ void Graphics::Update() {
   // Screen present
   raylib::BeginDrawing();
   raylib::rlEnableColorBlend();
-  raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+  raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
   raylib::rlDisableScissorTest();
   {
     raylib::ClearBackground({148, 243, 244, 255});
@@ -325,7 +325,7 @@ void Graphics::RenderFrame(DrawableSet* root,
       if (brightness < 255) {
         raylib::rlDisableScissorTest();
         raylib::rlEnableColorBlend();
-        raylib::rlSetBlendMode(raylib::BLEND_ALPHA_PREMULTIPLY);
+        raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
         {
           raylib::Color brightness_norm = {};
           brightness_norm.a = 255 - brightness;

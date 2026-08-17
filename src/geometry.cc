@@ -128,7 +128,7 @@ void Geometry::Draw(DrawParam param) {
   }
 
   if (effect_)
-    raylib::EndShaderMode();
+    effect_->EndEffect();
 }
 
 }  // namespace lime
