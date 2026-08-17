@@ -74,6 +74,8 @@ Bitmap::Bitmap(std::string filename) : font_(MakeRefCounted<Font>()) {
         std::string file_type = "." + ext;
         image = raylib::LoadImageFromMemory(
             file_type.c_str(), (uint8_t*)data.data(), (int)data.size());
+        if (!image.data)
+          return false;
 
         return true;  // matched, stop enumeration
       });
