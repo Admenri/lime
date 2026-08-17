@@ -217,7 +217,7 @@ void Viewport::Draw(DrawParam param) {
       raylib::rlPushMatrix();
       {
         raylib::rlTranslatef(rect_->x, rect_->y, 0.0f);
-        raylib::rlRotatef(angle_, 0.0f, 0.0f, 1.0f);
+        raylib::rlRotatef(-angle_, 0.0f, 0.0f, 1.0f);
         raylib::rlScalef(zoom_x_, zoom_y_, 1.0f);
         raylib::rlTranslatef(-ox_, -oy_, 0.0f);
 
