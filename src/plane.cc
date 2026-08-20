@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -102,9 +102,6 @@ ATTR_DEF(int, BlendType, Plane) {
 
 ATTR_DEF(RefPtr<Color>, Color, Plane) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     color_->Set(*value);
     return std::nullopt;
   } else {
@@ -114,9 +111,6 @@ ATTR_DEF(RefPtr<Color>, Color, Plane) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Plane) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     tone_->Set(*value);
     return std::nullopt;
   } else {
@@ -129,11 +123,11 @@ void Plane::DisposeObject() {
 }
 
 void Plane::Draw(DrawParam param) {
-  if (bitmap_ && !bitmap_->IsDisposed()) {
-    auto& bitmap_texture = bitmap_->render_texture();
+  if (Dispoable::Check(bitmap_)) {
+    auto& texture = bitmap_->handle().texture;
 
-    int bmpW = bitmap_->Width();
-    int bmpH = bitmap_->Height();
+    int bmpW = texture.width;
+    int bmpH = texture.height;
     if (bmpW <= 0 || bmpH <= 0)
       return;
 
@@ -184,8 +178,7 @@ void Plane::Draw(DrawParam param) {
               tileH,
           };
 
-          raylib::DrawTexturePro(bitmap_texture.texture, src, dst, {0.0f, 0.0f},
-                                 0.0f, raylib::WHITE);
+          raylib::DrawTexturePro(texture, src, dst, {}, 0, raylib::WHITE);
         }
       }
     }

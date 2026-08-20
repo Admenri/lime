@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -34,10 +34,10 @@ class Geometry : public RefCounted<Geometry>,
                  public Dispoable,
                  public ViewportChild {
  public:
+  /*-export.begin-*/
   Geometry(RefPtr<Viewport> viewport = nullptr);
   ~Geometry();
 
-  /*-export.begin-*/
   void SetPosition(int triangle, int point, RefPtr<Vector3> position);
   void SetTexcoord(int triangle, int point, RefPtr<Vector2> texcoord);
   void SetColor(int triangle, int point, RefPtr<Color> color);
@@ -49,14 +49,14 @@ class Geometry : public RefCounted<Geometry>,
   /*-export.end-*/
 
  private:
-  void DisposeObject() override;
-  void Draw(DrawParam param) override;
-
   struct TriangleData {
     raylib::Vector3 position[3] = {};
     raylib::Vector2 texcoord[3] = {};
     raylib::Color color[3] = {};
   };
+
+  void DisposeObject() override;
+  void Draw(DrawParam param) override;
 
   RefPtr<Bitmap> bitmap_;
   int blend_type_ = 0;

@@ -166,7 +166,7 @@ MRB_FUNC(Graphics_FrameReset) {
 MRB_FUNC(Graphics_Width) {
   auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
-    return mrb_fixnum_value(self_obj->Width());
+    return mrb_fixnum_value(self_obj->GetWidth());
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -175,7 +175,7 @@ MRB_FUNC(Graphics_Width) {
 MRB_FUNC(Graphics_Height) {
   auto* self_obj = lime::Graphics::Instance();
   EXC_BEGIN {
-    return mrb_fixnum_value(self_obj->Height());
+    return mrb_fixnum_value(self_obj->GetHeight());
   }
   EXC_END(mrb);
   return mrb_nil_value();

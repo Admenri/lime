@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -35,15 +35,15 @@ class Sprite : public RefCounted<Sprite>,
                public Dispoable,
                public ViewportChild {
  public:
+  /*-export.begin-*/
   Sprite(RefPtr<Viewport> viewport = nullptr);
   ~Sprite();
 
-  /*-export.begin-*/
   void Flash(RefPtr<Color> color, int duration);
   void Update();
 
-  int Width();
-  int Height();
+  int GetWidth();
+  int GetHeight();
 
   ATTR(RefPtr<Bitmap>, Bitmap);
   ATTR(RefPtr<Rect>, SrcRect);
@@ -91,6 +91,7 @@ class Sprite : public RefCounted<Sprite>,
     raylib::Vector4 color = {};
     float step = 0.0f;
   } flash_;
+  bool rgssvx_style_ = true;
 };
 
 }  // namespace lime

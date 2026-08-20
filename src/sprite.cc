@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -22,6 +22,7 @@
 
 #include "src/sprite.h"
 
+#include "src/profile.h"
 #include "src/shader.h"
 
 namespace lime {
@@ -30,7 +31,8 @@ Sprite::Sprite(RefPtr<Viewport> viewport)
     : ViewportChild(viewport, ZValue()),
       src_rect_(MakeRefCounted<Rect>()),
       color_(MakeRefCounted<Color>()),
-      tone_(MakeRefCounted<Tone>()) {}
+      tone_(MakeRefCounted<Tone>()),
+      rgssvx_style_(g_config->vx() || g_config->vxa()) {}
 
 Sprite::~Sprite() {
   Dispose();
@@ -38,8 +40,7 @@ Sprite::~Sprite() {
 
 void Sprite::Flash(RefPtr<Color> color, int duration) {
   flash_.color = color ? color->Normalize() : raylib::Vector4{};
-  flash_.step =
-      duration > 0 ? (flash_.color.w / static_cast<float>(duration)) : 0.0f;
+  flash_.step = duration > 0 ? (flash_.color.w / duration) : 0.0f;
 }
 
 void Sprite::Update() {
@@ -53,19 +54,19 @@ void Sprite::Update() {
   }
 }
 
-int Sprite::Width() {
+int Sprite::GetWidth() {
   return src_rect_->width;
 }
 
-int Sprite::Height() {
+int Sprite::GetHeight() {
   return src_rect_->height;
 }
 
 ATTR_DEF(RefPtr<Bitmap>, Bitmap, Sprite) {
   if (value.has_value()) {
     bitmap_ = *value;
-    if (src_rect_ && bitmap_)
-      src_rect_->Set(0, 0, bitmap_->Width(), bitmap_->Height());
+    if (bitmap_)
+      src_rect_->Set(bitmap_->GetRect());
     return std::nullopt;
   } else {
     return bitmap_;
@@ -74,7 +75,7 @@ ATTR_DEF(RefPtr<Bitmap>, Bitmap, Sprite) {
 
 ATTR_DEF(RefPtr<Rect>, SrcRect, Sprite) {
   if (value.has_value()) {
-    src_rect_ = *value;
+    src_rect_->Set(*value);
     return std::nullopt;
   } else {
     return src_rect_;
@@ -93,10 +94,11 @@ ATTR_DEF(int, X, Sprite) {
 ATTR_DEF(int, Y, Sprite) {
   if (value.has_value()) {
     y_ = *value;
-    // RGSS behavior
-    ZValue old_z = order();
-    order().sorting = *value;
-    Drawable::Resort(old_z);
+    if (rgssvx_style_) {
+      ZValue old_z = Drawable::order();
+      order().sorting = *value;
+      Drawable::Resort(old_z);
+    }
     return std::nullopt;
   } else {
     return y_;
@@ -231,9 +233,6 @@ ATTR_DEF(int, BlendType, Sprite) {
 
 ATTR_DEF(RefPtr<Color>, Color, Sprite) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     color_->Set(*value);
     return std::nullopt;
   } else {
@@ -243,9 +242,6 @@ ATTR_DEF(RefPtr<Color>, Color, Sprite) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Sprite) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     tone_->Set(*value);
     return std::nullopt;
   } else {
@@ -270,19 +266,19 @@ void Sprite::DisposeObject() {
 }
 
 void Sprite::Draw(DrawParam param) {
-  if (bitmap_ && !bitmap_->IsDisposed()) {
-    auto& bitmap_texture = bitmap_->render_texture();
-    auto src_rectangle = src_rect_->As();
+  if (Dispoable::Check(bitmap_)) {
+    auto& texture = bitmap_->handle().texture;
+    auto src_rect = src_rect_->As();
     if (mirror_)
-      src_rectangle.width = -src_rectangle.width;
+      src_rect.width *= -1;
 
     auto& default_shader = ShaderSet::Instance()->sprite;
-    if (effect_) {
-      effect_->BeginEffect();
-    } else {
+    if (!effect_) {
       raylib::BeginShaderMode(default_shader.shader);
       raylib::rlEnableColorBlend();
       raylib::rlSetBlendMode(raylib::GetBlendID(blend_type_));
+    } else {
+      effect_->BeginEffect();
     }
 
     {
@@ -291,9 +287,8 @@ void Sprite::Draw(DrawParam param) {
         auto color_norm = color_->Normalize();
         auto tone_norm = tone_->Normalize();
         auto opacity_norm = opacity_ / 255.0f;
-        auto bush_depth_norm =
-            (src_rectangle.y + src_rectangle.height - bush_depth_) /
-            static_cast<float>(bitmap_texture.texture.height);
+        auto bush_depth_norm = (src_rect.y + src_rect.height - bush_depth_) /
+                               static_cast<float>(texture.height);
         auto bush_opacity_norm = bush_opacity_ / 255.0f;
 
         if (flash_.color.w > color_norm.w)
@@ -342,20 +337,20 @@ void Sprite::Draw(DrawParam param) {
             raylib::Rectangle dst = {wave_offset, static_cast<float>(offset_y),
                                      src_w, static_cast<float>(slice_h)};
 
-            raylib::DrawTexturePro(bitmap_texture.texture, src, dst, {}, 0.0f,
-                                   raylib::WHITE);
+            raylib::DrawTexturePro(texture, src, dst, {}, 0.0f, raylib::WHITE);
           }
         } else {
-          raylib::DrawTextureRec(bitmap_texture.texture, src_rectangle, {}, {});
+          raylib::DrawTextureRec(texture, src_rect, {}, {});
         }
       }
       raylib::rlPopMatrix();
     }
 
-    if (effect_) {
-      effect_->EndEffect();
-    } else {
+    if (!effect_) {
       raylib::EndShaderMode();
+
+    } else {
+      effect_->EndEffect();
     }
   }
 }

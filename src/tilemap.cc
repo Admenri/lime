@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -477,20 +477,23 @@ void Tilemap::CreateShadowSet() {
 }
 
 void Tilemap::UpdateViewport(DrawParam param) {
-  auto scissor = raylib::GetScissor();
   auto viewport = Attr_Viewport();
   int viewport_ox = 0, viewport_oy = 0;
+  int viewport_width = 0, viewport_height = 0;
   if (viewport.has_value()) {
     viewport_ox = viewport.value()->Attr_OX().value();
     viewport_oy = viewport.value()->Attr_OY().value();
+    viewport_width = viewport.value()->Attr_Rect().value()->width;
+    viewport_height = viewport.value()->Attr_Rect().value()->height;
   } else {
     viewport_ox = Graphics::Instance()->Attr_OX().value();
     viewport_oy = Graphics::Instance()->Attr_OY().value();
+    viewport_width = Graphics::Instance()->GetWidth();
+    viewport_height = Graphics::Instance()->GetHeight();
   }
 
   const int tilemap_real_ox = ox_ + viewport_ox,
             tilemap_real_oy = oy_ + viewport_oy;
-  const int viewport_width = scissor.width, viewport_height = scissor.height;
 
   // Quad parsing viewport
   raylib::Rectangle new_viewport = {};
@@ -676,7 +679,7 @@ void Tilemap::DrawMapData(bool above) {
   auto process_tile_A1 = [&](int16_t tile_id, int32_t x, int32_t y) {
     auto& bitmap = bitmaps_[TILE_A1];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       tile_id -= 0x0800;
       const int32_t autotile_id = tile_id / 0x30;
@@ -723,7 +726,7 @@ void Tilemap::DrawMapData(bool above) {
                              bool is_table, bool occlusion) {
     auto& bitmap = bitmaps_[TILE_A2];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       tile_id -= 0x0B00;
       const int32_t autotile_id = tile_id / 0x30;
@@ -743,7 +746,7 @@ void Tilemap::DrawMapData(bool above) {
   auto process_tile_A3 = [&](int16_t tile_id, int32_t x, int32_t y) {
     auto& bitmap = bitmaps_[TILE_A3];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       tile_id -= 0x1100;
       const int32_t autotile_id = tile_id / 0x30;
@@ -760,7 +763,7 @@ void Tilemap::DrawMapData(bool above) {
   auto process_tile_A4 = [&](int16_t tile_id, int32_t x, int32_t y) {
     auto& bitmap = bitmaps_[TILE_A4];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       tile_id -= 0x1700;
       const int32_t autotile_id = tile_id / 0x30;
@@ -787,7 +790,7 @@ void Tilemap::DrawMapData(bool above) {
   auto process_tile_A5 = [&](int16_t tile_id, int32_t x, int32_t y) {
     auto& bitmap = bitmaps_[TILE_A5];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       tile_id -= 0x0600;
       int32_t ox = tile_id % 0x8;
@@ -816,7 +819,7 @@ void Tilemap::DrawMapData(bool above) {
 
     auto& bitmap = bitmaps_[TILE_B + tile_type];
     if (bitmap && !bitmap->IsDisposed()) {
-      auto& texture = bitmap->render_texture().texture;
+      auto& texture = bitmap->handle().texture;
 
       int32_t ox = tile_id % 0x8;
       int32_t oy = (tile_id / 0x8) % 0x10;

@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -27,15 +27,19 @@
 namespace lime {
 
 ViewportChild::ViewportChild(RefPtr<Viewport> viewport, const ZValue& z)
-    : Drawable(z), viewport_(viewport) {
-  Drawable::SetParent(viewport_ ? viewport_->drawable_set()
-                                : Graphics::Instance()->drawable_set());
+    : Drawable(z) {
+  Attr_Viewport(viewport);
 }
 
 ATTR_DEF(RefPtr<Viewport>, Viewport, ViewportChild) {
   if (value.has_value()) {
     viewport_ = *value;
-    Drawable::SetParent(viewport_ ? viewport_->drawable_set() : nullptr);
+
+    DrawableSet* default_parent = g_screen->drawable_set();
+    DrawableSet* parent =
+        viewport_ ? viewport_->drawable_set() : default_parent;
+    Drawable::SetParent(parent);
+
     return std::nullopt;
   } else {
     return viewport_;
@@ -52,9 +56,7 @@ Viewport::Viewport(RefPtr<Viewport> viewport,
     : ViewportChild(viewport, ZValue()),
       rect_(MakeRefCounted<Rect>(x, y, width, height)),
       color_(MakeRefCounted<Color>()),
-      tone_(MakeRefCounted<Tone>()) {
-  cache_ = raylib::LoadRenderTexture(width, height);
-}
+      tone_(MakeRefCounted<Tone>()) {}
 
 Viewport::Viewport(int x, int y, int width, int height)
     : Viewport(nullptr, x, y, width, height) {}
@@ -66,10 +68,7 @@ Viewport::Viewport(RefPtr<Rect> rect)
     : Viewport(nullptr, rect->x, rect->y, rect->width, rect->height) {}
 
 Viewport::Viewport()
-    : Viewport(0,
-               0,
-               Graphics::Instance()->Width(),
-               Graphics::Instance()->Height()) {}
+    : Viewport(0, 0, g_screen->GetWidth(), g_screen->GetHeight()) {}
 
 Viewport::~Viewport() {
   Dispose();
@@ -90,9 +89,8 @@ void Viewport::Update() {
 }
 
 void Viewport::Render(RefPtr<Bitmap> target) {
-  if (target && !target->IsDisposed()) {
-    Graphics::RenderFrame(&drawables_, target->render_texture(), {}, {});
-  }
+  if (Dispoable::Check(target))
+    Graphics::RenderFrame(&drawables_, target->handle(), {}, {});
 }
 
 ATTR_DEF(RefPtr<Rect>, Rect, Viewport) {
@@ -160,9 +158,6 @@ ATTR_DEF(bool, Clip, Viewport) {
 
 ATTR_DEF(RefPtr<Color>, Color, Viewport) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     color_->Set(*value);
     return std::nullopt;
   } else {
@@ -172,9 +167,6 @@ ATTR_DEF(RefPtr<Color>, Color, Viewport) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Viewport) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     tone_->Set(*value);
     return std::nullopt;
   } else {
@@ -194,20 +186,21 @@ ATTR_DEF(RefPtr<Effect>, Effect, Viewport) {
 void Viewport::DisposeObject() {
   Drawable::RemoveFromList();
 
-  raylib::UnloadRenderTexture(cache_);
-
   effect_.reset();
+  if (raylib::IsRenderTextureValid(cache_))
+    raylib::UnloadRenderTexture(cache_);
 }
 
 void Viewport::Draw(DrawParam param) {
-  raylib::Rectangle viewport_region = {};
-  viewport_region.x = param.offset.x + rect_->x;
-  viewport_region.y = param.offset.y + rect_->y;
-  viewport_region.width = rect_->width;
-  viewport_region.height = rect_->height;
+  raylib::Rectangle clip_rect = {};
+  clip_rect.x = param.offset.x + rect_->x;
+  clip_rect.y = param.offset.y + rect_->y;
+  clip_rect.width = rect_->width;
+  clip_rect.height = rect_->height;
 
   if (effect_) {
     raylib::EndTextureMode();
+
     UpdateCacheTexture();
     raylib::Vector2 origin = {static_cast<float>(ox_), static_cast<float>(oy_)};
     Graphics::RenderFrame(&drawables_, cache_, {}, origin);
@@ -219,8 +212,8 @@ void Viewport::Draw(DrawParam param) {
       raylib::rlLoadIdentity();
       {
         effect_->BeginEffect();
-        raylib::DrawTexture(cache_.texture, viewport_region.x,
-                            viewport_region.y, raylib::WHITE);
+        raylib::DrawTexture(cache_.texture, clip_rect.x, clip_rect.y,
+                            raylib::WHITE);
         effect_->EndEffect();
       }
       raylib::rlPopMatrix();
@@ -232,7 +225,7 @@ void Viewport::Draw(DrawParam param) {
 
     // Setup scissor
     const raylib::Rectangle intersect_scissor =
-        raylib::GetCollisionRec(last_scissor, viewport_region);
+        raylib::GetCollisionRec(last_scissor, clip_rect);
     raylib::SetScissor(clip_ ? intersect_scissor : last_scissor);
 
     // Draw
@@ -261,9 +254,8 @@ void Viewport::Draw(DrawParam param) {
 
     // Viewport effect process
     if (clip_ && (tone_->HasEffect() || color_->alpha || flash_.color.w)) {
-      UpdateCacheTexture();
-
       raylib::EndTextureMode();
+      UpdateCacheTexture();
       raylib::BeginTextureMode(cache_);
       raylib::rlDisableColorBlend();
       {
@@ -272,7 +264,7 @@ void Viewport::Draw(DrawParam param) {
         raylib::rlLoadIdentity();
         {
           // Copy back buffer to current cache
-          raylib::DrawTextureRec(param.target.texture, viewport_region, {},
+          raylib::DrawTextureRec(param.target.texture, clip_rect, {},
                                  raylib::WHITE);
         }
         raylib::rlPopMatrix();
@@ -280,7 +272,7 @@ void Viewport::Draw(DrawParam param) {
       raylib::EndTextureMode();
       raylib::BeginTextureMode(param.target);
 
-      auto& shader = ShaderSet::Instance()->viewport;
+      auto& shader = g_shader->viewport;
       auto color_norm = color_->Normalize();
       auto tone_norm = tone_->Normalize();
       auto opacity_norm = 1.0f;
@@ -305,8 +297,8 @@ void Viewport::Draw(DrawParam param) {
             raylib::SetShaderValue(shader.shader, shader.u_opacity,
                                    &opacity_norm, raylib::SHADER_UNIFORM_FLOAT);
 
-            raylib::DrawTexture(cache_.texture, viewport_region.x,
-                                viewport_region.y, raylib::WHITE);
+            raylib::DrawTexture(cache_.texture, clip_rect.x, clip_rect.y,
+                                raylib::WHITE);
           }
           raylib::rlPopMatrix();
         }
@@ -321,7 +313,8 @@ void Viewport::Draw(DrawParam param) {
 void Viewport::UpdateCacheTexture() {
   if (cache_.texture.width != rect_->width ||
       cache_.texture.height != rect_->height) {
-    raylib::UnloadRenderTexture(cache_);
+    if (raylib::IsRenderTextureValid(cache_))
+      raylib::UnloadRenderTexture(cache_);
     cache_ = raylib::LoadRenderTexture(rect_->width, rect_->height);
   }
 }

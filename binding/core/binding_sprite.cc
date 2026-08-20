@@ -57,7 +57,7 @@ MRB_FUNC(Sprite_Update) {
 MRB_FUNC(Sprite_Width) {
   auto* self_obj = GetSelfData<lime::Sprite>(self);
   EXC_BEGIN {
-    return mrb_fixnum_value(self_obj->Width());
+    return mrb_fixnum_value(self_obj->GetWidth());
   }
   EXC_END(mrb);
   return mrb_nil_value();
@@ -66,7 +66,7 @@ MRB_FUNC(Sprite_Width) {
 MRB_FUNC(Sprite_Height) {
   auto* self_obj = GetSelfData<lime::Sprite>(self);
   EXC_BEGIN {
-    return mrb_fixnum_value(self_obj->Height());
+    return mrb_fixnum_value(self_obj->GetHeight());
   }
   EXC_END(mrb);
   return mrb_nil_value();

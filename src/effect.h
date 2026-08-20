@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -36,6 +36,7 @@ class Bitmap;
 
 class Effect : public RefCounted<Effect> {
  public:
+  /*-export.begin-*/
   struct ColorBlendState {
     int src_rgb = RL_ONE;
     int dst_rgb = RL_ONE_MINUS_SRC_ALPHA;
@@ -55,7 +56,6 @@ class Effect : public RefCounted<Effect> {
   Effect(RefPtr<Effect> other);
   ~Effect();
 
-  /*-export.begin-*/
   void SetValueF(std::string uniform,
                  std::span<float> value,
                  int item_count = 1);
@@ -74,8 +74,6 @@ class Effect : public RefCounted<Effect> {
   void EndEffect();
 
  private:
-  int GetValueLocation(std::string name);
-
   struct ShaderWrapper : public RefCounted<ShaderWrapper> {
     raylib::Shader shader;
 
@@ -88,6 +86,8 @@ class Effect : public RefCounted<Effect> {
     std::vector<T> values;
     int item_count = 1;
   };
+
+  int GetValueLocation(std::string name);
 
   RefPtr<ShaderWrapper> shader_;
   std::optional<ColorBlendState> color_blend_;

@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -56,8 +56,13 @@ Graphics::Graphics(int w,
   raylib::ImageAlphaPremultiply(&font_image);
   raylib::UpdateTexture(font_atlas, font_image.data);
 
-  // Avoid OpenGL flipping
+  // Initial OpenGL states
+  raylib::rlDisableColorBlend();
+  raylib::rlDisableDepthTest();
+  raylib::rlDisableDepthMask();
+  raylib::rlDisableScissorTest();
   raylib::rlDisableBackfaceCulling();
+  raylib::rlDisableStencilTest();
 
   // Reset black screen
   raylib::BeginDrawing();
@@ -79,9 +84,9 @@ void Graphics::Update() {
 
   // Screen present
   raylib::BeginDrawing();
+  raylib::rlDisableScissorTest();
   raylib::rlEnableColorBlend();
   raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
-  raylib::rlDisableScissorTest();
   {
     raylib::ClearBackground({148, 243, 244, 255});
     auto& texture = screen_buffer_.texture;
@@ -94,20 +99,16 @@ void Graphics::Update() {
     dstrec.width = static_cast<float>(raylib::GetScreenWidth());
     dstrec.height = static_cast<float>(raylib::GetScreenHeight());
 
+    // Draw with fullfill
     raylib::DrawTexturePro(texture, srcrec, dstrec, {}, 0, raylib::WHITE);
 
+    // DEBUG
     raylib::DrawFPS(10, 10);
   }
   raylib::EndDrawing();
 
   // Update frame
   UpdatePerFrame();
-
-  // Update event
-  if (raylib::WindowShouldClose())
-    throw Exception(Exception::ExitError, "exit");
-  if (raylib::IsKeyReleased(raylib::KEY_F12))
-    throw Exception(Exception::ResetError, "reset");
 }
 
 void Graphics::Wait(int duration) {
@@ -143,6 +144,7 @@ void Graphics::Freeze() {
   if (!frozen_) {
     RenderFrame(&drawables_, screen_buffer_, raylib::BLACK, origin_,
                 brightness_);
+
     frozen_ = true;
   }
 }
@@ -151,6 +153,7 @@ void Graphics::Transition(int duration, std::string filename, int vague) {
   RefPtr<Bitmap> mapping = nullptr;
   if (!filename.empty())
     mapping = MakeRefCounted<Bitmap>(filename);
+
   TransitionBitmap(duration, mapping, vague);
 }
 
@@ -160,11 +163,10 @@ void Graphics::TransitionBitmap(int duration,
   if (frozen_) {
     brightness_ = 255;
 
-    auto current_texture = raylib::LoadRenderTexture(Width(), Height());
-    auto frozen_texture = raylib::LoadRenderTexture(Width(), Height());
+    auto current_texture = raylib::LoadRenderTexture(GetWidth(), GetHeight());
+    auto frozen_texture = raylib::LoadRenderTexture(GetWidth(), GetHeight());
 
     RenderFrame(&drawables_, current_texture, raylib::BLACK, origin_);
-
     std::swap(screen_buffer_, frozen_texture);
 
     for (int i = 0; i < duration; ++i) {
@@ -182,7 +184,7 @@ void Graphics::TransitionBitmap(int duration,
           raylib::SetShaderValueTexture(shader.shader, shader.u_frozen_image,
                                         frozen_texture.texture);
           raylib::SetShaderValueTexture(shader.shader, shader.u_mapping_image,
-                                        bitmap->render_texture().texture);
+                                        bitmap->handle().texture);
           raylib::SetShaderValue(shader.shader, shader.u_progress,
                                  &progress_norm, raylib::SHADER_UNIFORM_FLOAT);
           raylib::SetShaderValue(shader.shader, shader.u_vague, &vague_norm,
@@ -214,14 +216,16 @@ void Graphics::TransitionBitmap(int duration,
 
     raylib::UnloadRenderTexture(frozen_texture);
     raylib::UnloadRenderTexture(current_texture);
+
     frozen_ = false;
   }
 }
 
 RefPtr<Bitmap> Graphics::SnapToBitmap() {
-  RefPtr<Bitmap> result = MakeRefCounted<Bitmap>(Width(), Height());
-  RenderFrame(&drawables_, result->render_texture(), raylib::BLACK, origin_,
+  RefPtr<Bitmap> result = MakeRefCounted<Bitmap>(GetWidth(), GetHeight());
+  RenderFrame(&drawables_, result->handle(), raylib::BLACK, origin_,
               brightness_);
+
   return result;
 }
 
@@ -229,16 +233,17 @@ void Graphics::FrameReset() {
   frame_count_ = 0;
 }
 
-int Graphics::Width() {
+int Graphics::GetWidth() {
   return screen_buffer_.texture.width;
 }
 
-int Graphics::Height() {
+int Graphics::GetHeight() {
   return screen_buffer_.texture.height;
 }
 
 void Graphics::ResizeScreen(int width, int height) {
-  if (Width() != width || Height() != height) {
+  if (GetWidth() != width || GetHeight() != height) {
+    // Reset screen buffer
     raylib::UnloadRenderTexture(screen_buffer_);
     screen_buffer_ = raylib::LoadRenderTexture(width, height);
 
@@ -315,12 +320,10 @@ void Graphics::RenderFrame(DrawableSet* root,
                            raylib::Color clear_color,
                            raylib::Vector2 origin,
                            int brightness) {
-  int width = target.texture.width, height = target.texture.height;
-
+  const int width = target.texture.width, height = target.texture.height;
   const auto last_scissor_enable = raylib::rlIsScissorEnabled();
   const auto last_scissor_rect = raylib::GetScissor();
 
-  // Screen rendering
   raylib::BeginTextureMode(target);
   {
     raylib::ClearBackground(clear_color);
@@ -330,7 +333,6 @@ void Graphics::RenderFrame(DrawableSet* root,
     param.offset.y = -origin.y;
     param.target = target;
 
-    raylib::rlDrawRenderBatchActive();
     raylib::rlMatrixMode(RL_MODELVIEW);
     raylib::rlPushMatrix();
     {
@@ -343,6 +345,7 @@ void Graphics::RenderFrame(DrawableSet* root,
       }
 
       raylib::rlDrawRenderBatchActive();
+
       raylib::rlLoadIdentity();
       if (brightness < 255) {
         raylib::rlDisableScissorTest();
@@ -356,7 +359,6 @@ void Graphics::RenderFrame(DrawableSet* root,
       }
     }
     raylib::rlPopMatrix();
-    raylib::rlDrawRenderBatchActive();
   }
   raylib::EndTextureMode();
 
@@ -370,6 +372,12 @@ void Graphics::UpdatePerFrame() {
 
   // Audio imexplicit update
   Audio::Instance()->Update();
+
+  // Update event
+  if (raylib::WindowShouldClose())
+    throw Exception(Exception::ExitError, "exit");
+  if (raylib::IsKeyReleased(raylib::KEY_F12))
+    throw Exception(Exception::ResetError, "reset");
 }
 
 }  // namespace lime

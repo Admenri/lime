@@ -3,7 +3,7 @@
 // Copyright (c) 2026 Admenri Adev <admenri0504@gmail.com>.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the “Software”), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -12,7 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -24,129 +24,6 @@
 
 #include "src/profile.h"
 #include "src/shader.h"
-
-namespace raylib {
-
-void DrawTextureTiled(Texture2D texture,
-                      Rectangle source,
-                      Rectangle dest,
-                      Vector2 origin,
-                      float rotation,
-                      float scale,
-                      Color tint) {
-  if ((texture.id <= 0) || (scale <= 0.0f))
-    return;  // Wanna see a infinite loop?!...just delete this line!
-  if ((source.width == 0) || (source.height == 0))
-    return;
-
-  int tileWidth = (int)(source.width * scale),
-      tileHeight = (int)(source.height * scale);
-  if ((dest.width < tileWidth) && (dest.height < tileHeight)) {
-    // Can fit only one tile
-    DrawTexturePro(texture,
-                   Rectangle{source.x, source.y,
-                             ((float)dest.width / tileWidth) * source.width,
-                             ((float)dest.height / tileHeight) * source.height},
-                   Rectangle{dest.x, dest.y, dest.width, dest.height}, origin,
-                   rotation, tint);
-  } else if (dest.width <= tileWidth) {
-    // Tiled vertically (one column)
-    int dy = 0;
-    for (; dy + tileHeight < dest.height; dy += tileHeight) {
-      DrawTexturePro(
-          texture,
-          Rectangle{source.x, source.y,
-                    ((float)dest.width / tileWidth) * source.width,
-                    source.height},
-          Rectangle{dest.x, dest.y + dy, dest.width, (float)tileHeight}, origin,
-          rotation, tint);
-    }
-
-    // Fit last tile
-    if (dy < dest.height) {
-      DrawTexturePro(
-          texture,
-          Rectangle{source.x, source.y,
-                    ((float)dest.width / tileWidth) * source.width,
-                    ((float)(dest.height - dy) / tileHeight) * source.height},
-          Rectangle{dest.x, dest.y + dy, dest.width, dest.height - dy}, origin,
-          rotation, tint);
-    }
-  } else if (dest.height <= tileHeight) {
-    // Tiled horizontally (one row)
-    int dx = 0;
-    for (; dx + tileWidth < dest.width; dx += tileWidth) {
-      DrawTexturePro(
-          texture,
-          Rectangle{source.x, source.y, source.width,
-                    ((float)dest.height / tileHeight) * source.height},
-          Rectangle{dest.x + dx, dest.y, (float)tileWidth, dest.height}, origin,
-          rotation, tint);
-    }
-
-    // Fit last tile
-    if (dx < dest.width) {
-      DrawTexturePro(
-          texture,
-          Rectangle{source.x, source.y,
-                    ((float)(dest.width - dx) / tileWidth) * source.width,
-                    ((float)dest.height / tileHeight) * source.height},
-          Rectangle{dest.x + dx, dest.y, dest.width - dx, dest.height}, origin,
-          rotation, tint);
-    }
-  } else {
-    // Tiled both horizontally and vertically (rows and columns)
-    int dx = 0;
-    for (; dx + tileWidth < dest.width; dx += tileWidth) {
-      int dy = 0;
-      for (; dy + tileHeight < dest.height; dy += tileHeight) {
-        DrawTexturePro(texture, source,
-                       Rectangle{dest.x + dx, dest.y + dy, (float)tileWidth,
-                                 (float)tileHeight},
-                       origin, rotation, tint);
-      }
-
-      if (dy < dest.height) {
-        DrawTexturePro(
-            texture,
-            Rectangle{source.x, source.y, source.width,
-                      ((float)(dest.height - dy) / tileHeight) * source.height},
-            Rectangle{dest.x + dx, dest.y + dy, (float)tileWidth,
-                      dest.height - dy},
-            origin, rotation, tint);
-      }
-    }
-
-    // Fit last column of tiles
-    if (dx < dest.width) {
-      int dy = 0;
-      for (; dy + tileHeight < dest.height; dy += tileHeight) {
-        DrawTexturePro(
-            texture,
-            Rectangle{source.x, source.y,
-                      ((float)(dest.width - dx) / tileWidth) * source.width,
-                      source.height},
-            Rectangle{dest.x + dx, dest.y + dy, dest.width - dx,
-                      (float)tileHeight},
-            origin, rotation, tint);
-      }
-
-      // Draw final tile in the bottom right corner
-      if (dy < dest.height) {
-        DrawTexturePro(
-            texture,
-            Rectangle{source.x, source.y,
-                      ((float)(dest.width - dx) / tileWidth) * source.width,
-                      ((float)(dest.height - dy) / tileHeight) * source.height},
-            Rectangle{dest.x + dx, dest.y + dy, dest.width - dx,
-                      dest.height - dy},
-            origin, rotation, tint);
-      }
-    }
-  }
-}
-
-}  // namespace raylib
 
 namespace lime {
 
@@ -387,9 +264,6 @@ ATTR_DEF(int, Scale, Window) {
 
 ATTR_DEF(RefPtr<Tone>, Tone, Window) {
   if (value.has_value()) {
-    if (!*value)
-      throw Exception(Exception::RGSSError, "invalid value.");
-
     tone_->Set(*value);
     return std::nullopt;
   } else {
@@ -420,7 +294,7 @@ void Window::Draw(DrawParam param) {
   if (width_ >= scale_ * 2 && height_ >= scale_ * 2) {
     // Window frame & background
     if (auto windowskin = window_skin_; window_skin_) {
-      auto& skin_texture = window_skin_->render_texture().texture;
+      auto& skin_texture = window_skin_->handle().texture;
 
       // Source
       const raylib::Rectangle background1_src =
@@ -564,11 +438,11 @@ void Window::Draw(DrawParam param) {
               raylib::DrawTexturePro(skin_texture, arrow_up_src, arrow_up_dest,
                                      {}, 0.0f, raylib::WHITE);
             if (padding_rect.width <
-                static_cast<float>(contents_->Width() - ox_))
+                static_cast<float>(contents_->GetWidth() - ox_))
               raylib::DrawTexturePro(skin_texture, arrow_right_src,
                                      arrow_right_dest, {}, 0.0f, raylib::WHITE);
             if (padding_rect.height <
-                static_cast<float>(contents_->Height() - oy_))
+                static_cast<float>(contents_->GetHeight() - oy_))
               raylib::DrawTexturePro(skin_texture, arrow_down_src,
                                      arrow_down_dest, {}, 0.0f, raylib::WHITE);
           }
@@ -643,9 +517,8 @@ void Window::Draw(DrawParam param) {
       }
 
       // 6. Cursor
-
       if (has_cursor) {
-        auto& skin_texture = window_skin_->render_texture().texture;
+        auto& skin_texture = window_skin_->handle().texture;
         const raylib::Color contents_tint = raylib::MakeColor(
             contents_opacity_ * kCursorAlphaTable[cursor_index_] / 255);
 
@@ -713,7 +586,7 @@ void Window::Draw(DrawParam param) {
 
       // 7. Contents
       if (has_contents) {
-        auto& contents_texture = contents_->render_texture().texture;
+        auto& contents_texture = contents_->handle().texture;
 
         raylib::Rectangle s = {}, d = {};
         s.width = contents_texture.width;

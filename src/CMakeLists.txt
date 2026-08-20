@@ -8,6 +8,7 @@ target_sources(lime_core
   profile.cc
   audio.cc
   bitmap.cc
+  common.cc
   drawable.cc
   effect.cc
   filesystem.cc
@@ -21,9 +22,11 @@ target_sources(lime_core
   sprite.cc
   table.cc
   tilemap.cc
+  tilemap_xp.cc
   utility.cc
   viewport.cc
   window.cc
+  window_xp.cc
 )
 
 target_sources(lime_core
