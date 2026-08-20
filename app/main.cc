@@ -31,7 +31,7 @@
 #include "src/platform/win32.h"
 #endif  // _WIN32
 
-extern "C" void lime_main();
+extern "C" void lime_main(const char* script_path);
 
 int main(int argc, char** argv) {
   // App name
@@ -90,7 +90,16 @@ int main(int argc, char** argv) {
 #endif  // _WIN32
 
   // Main entry
-  lime_main();
+  const char* script_path = nullptr;
+  if (argc > 1) {
+    std::string arg1(argv[1]);
+    auto dot = arg1.find_last_of('.');
+    if (dot != std::string::npos && arg1.substr(dot) == ".rb") {
+      script_path = argv[1];
+      raylib::TraceLog(raylib::LOG_INFO, "Script: %s", script_path);
+    }
+  }
+  lime_main(script_path);
 
   // Clean up
   lime::Graphics::Instance(nullptr);

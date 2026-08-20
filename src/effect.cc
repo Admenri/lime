@@ -22,6 +22,7 @@
 
 #include "src/effect.h"
 
+#include <cstring>
 #include "src/bitmap.h"
 
 namespace lime {

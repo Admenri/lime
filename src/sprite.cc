@@ -22,6 +22,7 @@
 
 #include "src/sprite.h"
 
+#include <cmath>
 #include "src/shader.h"
 
 namespace lime {

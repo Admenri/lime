@@ -22,6 +22,7 @@
 
 #include "src/table.h"
 
+#include <cstring>
 #include "src/common.h"
 
 namespace lime {

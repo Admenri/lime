@@ -49,42 +49,14 @@ RClass* g_reset_exception = nullptr;
 RClass* g_rgss_exception = nullptr;
 RClass* g_exit_exception = nullptr;
 
-static int MarshalReaderString(mrb_state* mrb,
-                               mrb_value src,
-                               void* dest,
-                               int size,
-                               mrb_uint position) {
-  int remain = RSTRING_LEN(src) - position;
-  if (size < 0)
-    mrb_raisef(mrb, E_ARGUMENT_ERROR, "negative length %d given", size);
-
-  if (remain > 0) {
-    int len = remain < size ? remain : size;
-    std::memcpy(dest, RSTRING_PTR(src) + position, len);
-    return len;
-  }
-
-  return 0;
-}
-
-static int MarshalWriterString(mrb_state* mrb,
-                               const void* src,
-                               int size,
-                               mrb_value dest,
-                               mrb_uint position) {
-  int ai = mrb_gc_arena_save(mrb);
-  mrb_str_buf_cat(mrb, dest, (const char*)src, (size_t)size);
-  mrb_gc_arena_restore(mrb, ai);
-  return size;
-}
-
 static mrb_value RGSSLoadData(mrb_state* mrb, const char* filename) {
   auto* io_service = lime::IOService::Instance();
   auto stream = io_service->OpenReadRaw(filename);
   auto raw_data = stream->ReadAll();
 
-  return mrb_marshal_load(mrb, MarshalReaderString,
-                          mrb_str_new(mrb, raw_data.data(), raw_data.size()));
+  mrb_value data = mrb_str_new(mrb, raw_data.data(), raw_data.size());
+  mrb_value marshal_module = mrb_obj_value(mrb_module_get(mrb, "Marshal"));
+  return mrb_funcall_id(mrb, marshal_module, mrb_intern_lit(mrb, "load"), 1, data);
 }
 
 MRB_FUNC(rgss_main) {
@@ -114,8 +86,8 @@ MRB_FUNC(save_data) {
   auto stream = io_service->OpenWrite(filename);
 
   auto ai = mrb_gc_arena_save(mrb);
-  mrb_value str = mrb_str_new(mrb, NULL, 0);
-  mrb_marshal_dump(mrb, data, MarshalWriterString, str, -1);
+  mrb_value marshal_module = mrb_obj_value(mrb_module_get(mrb, "Marshal"));
+  mrb_value str = mrb_funcall_id(mrb, marshal_module, mrb_intern_lit(mrb, "dump"), 1, data);
   stream->Write(RSTRING_PTR(str), RSTRING_LEN(str));
   mrb_gc_arena_restore(mrb, ai);
 
@@ -258,7 +230,7 @@ void ShowExceptionMessage(std::string message) {
   raylib::UnloadImage(screen_image);
 }
 
-extern "C" void lime_main() {
+extern "C" void lime_main(const char* script_path) {
   auto* config = lime::Config::Instance();
   auto* io_service = lime::IOService::Instance();
 
@@ -306,6 +278,36 @@ extern "C" void lime_main() {
   else if (config->rgss_version == 3)
     mrb_load_string_cxt(mrb, rpg_rgss3, rpg_ctx);
   mrb_ccontext_free(mrb, rpg_ctx);
+
+  // Direct .rb execution mode
+  if (script_path != nullptr) {
+    try {
+      auto stream = io_service->OpenReadRaw(script_path);
+      auto content = stream->ReadAll();
+
+      auto cctx = mrb_ccontext_new(mrb);
+      mrb_ccontext_filename(mrb, cctx, script_path);
+      mrb_load_nstring_cxt(mrb, content.data(), content.size(), cctx);
+      mrb_ccontext_free(mrb, cctx);
+
+      if (mrb->exc && mrb->exc->c != g_exit_exception) {
+        mrb_print_backtrace(mrb);
+        std::string err_class, err_message, err_filename, err_line, err_backtrace;
+        CollectExceptionInfo(mrb, err_class, err_message, err_filename, err_line,
+                             err_backtrace);
+        throw lime::Exception(lime::Exception::RGSSError,
+                              "{}: {} ({} - line {})\n{}", err_class, err_message,
+                              err_filename, err_line, err_backtrace);
+      }
+    } catch (const lime::Exception& e) {
+      ShowExceptionMessage(e.message());
+    } catch (const std::exception& e) {
+      ShowExceptionMessage(e.what());
+    }
+
+    mrb_close(mrb);
+    return;
+  }
 
   // Load and execute the main script
   try {

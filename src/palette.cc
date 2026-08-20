@@ -22,6 +22,7 @@
 
 #include "src/palette.h"
 
+#include <cstring>
 #include "src/filesystem.h"
 
 namespace lime {
@@ -35,6 +36,7 @@ Palette::Palette(int width, int height) {
   image.data = raylib::MemAlloc(image.width * image.height * 4);
   image.format = raylib::PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
   image.mipmaps = 1;
+  // Initialize image data to zero
   std::memset(image.data, 0, image.width * image.height * 4);
 
   image_ = image;

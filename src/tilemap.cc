@@ -22,6 +22,7 @@
 
 #include "src/tilemap.h"
 
+#include <cstring>
 #include "src/graphics.h"
 #include "src/profile.h"
 #include "src/shader.h"

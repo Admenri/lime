@@ -19,6 +19,12 @@ import sys
 import os
 import argparse
 
+# Force UTF-8 output on Windows to avoid charmap UnicodeEncodeError.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 # ─── Constants (mirrors presym.rb) ───────────────────────────────────────────
 
@@ -251,8 +257,9 @@ def write_table_header(presyms: list, output_dir: str):
                     c_str += '\\"'
                 elif ch == '\\':
                     c_str += '\\\\'
-                elif '\x01' <= ch <= '\x1f' or '\x7f' <= ch <= '\xff':
-                    c_str += f'\\x{ord(ch):02x}""'
+                elif '\x01' <= ch <= '\x1f' or ord(ch) > 0x7f:
+                    for b in ch.encode("utf-8"):
+                        c_str += f'\\x{b:02x}'
                 else:
                     c_str += ch
             f.write(f'  "{c_str}",\n')

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <istream>
 #include <memory>
 #include <ostream>

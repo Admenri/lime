@@ -22,6 +22,8 @@
 
 #include "src/utility.h"
 
+#include <cstring>
+
 namespace lime {
 
 MARSHAL_DUMP_DEF(Rect) {

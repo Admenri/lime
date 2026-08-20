@@ -139,9 +139,11 @@ foreach(gem ${MRUBY_GEMS})
   set(gem_dir "${MRUBY_GEMS_DIR}/${gem}")
   set(gem_has_src FALSE)
 
-  # ── Collect C source files from src/ and core/ ────────────────────────────
+  # ── Collect C/C++ source files from src/ and core/ ──────────────────────
   if(EXISTS "${gem_dir}/src")
     file(GLOB gem_src_files "${gem_dir}/src/*.c")
+    file(GLOB gem_src_files_cpp "${gem_dir}/src/*.cpp")
+    list(APPEND gem_src_files ${gem_src_files_cpp})
     list(LENGTH gem_src_files _n)
     if(_n GREATER 0)
       set(gem_has_src TRUE)
@@ -262,9 +264,11 @@ foreach(gem ${EXTERNAL_MRUBY_GEMS})
   set(gem_dir "${EXTERNAL_MRUBY_GEMS_DIR}/${gem}")
   set(gem_has_src FALSE)
 
-  # ── Collect C source files from src/ and core/ ──────────────────────────
+  # ── Collect C/C++ source files from src/ and core/ ────────────────────
   if(EXISTS "${gem_dir}/src")
     file(GLOB gem_src_files "${gem_dir}/src/*.c")
+    file(GLOB gem_src_files_cpp "${gem_dir}/src/*.cpp")
+    list(APPEND gem_src_files ${gem_src_files_cpp})
     list(LENGTH gem_src_files _n)
     if(_n GREATER 0)
       set(gem_has_src TRUE)
@@ -491,7 +495,7 @@ string(APPEND _gi_body "    gem_funcs[i].loader(mrb);\n")
 string(APPEND _gi_body "    mrb_gc_arena_restore(mrb, ai);\n")
 string(APPEND _gi_body "    mrb_vm_ci_env_clear(mrb, mrb->c->cibase);\n")
 string(APPEND _gi_body "    if (mrb->exc) {\n")
-string(APPEND _gi_body "      mrb_p(mrb, mrb_format(\"Gem initialize error (%d/%d)\", i, NUM_GEMS));\n")
+string(APPEND _gi_body "      mrb_p(mrb, mrb_format(mrb, \"Gem initialize error (%d/%d)\", i, NUM_GEMS));\n")
 string(APPEND _gi_body "      mrb_exc_raise(mrb, mrb_obj_value(mrb->exc));\n")
 string(APPEND _gi_body "    }\n")
 string(APPEND _gi_body "  }\n")
@@ -505,7 +509,20 @@ list(APPEND MRUBY_GEMS_SOURCES "${GEMS_INIT_C}")
 list(APPEND MRUBY_GEM_GEN_SOURCES "${GEMS_INIT_C}")
 
 # ── Add gem C sources to mruby target (for presym scanning) ──────────────────
-target_sources(mruby PRIVATE ${MRUBY_GEM_C_SOURCES})
+# Separate .cpp files and mark them as CXX so CMake uses the C++ compiler.
+set(_gem_cpp_files "")
+foreach(_f ${MRUBY_GEM_C_SOURCES})
+  if(_f MATCHES "\\.cpp$")
+    list(APPEND _gem_cpp_files "${_f}")
+  endif()
+endforeach()
+if(_gem_cpp_files)
+  list(REMOVE_ITEM MRUBY_GEM_C_SOURCES ${_gem_cpp_files})
+  set_source_files_properties(${_gem_cpp_files} PROPERTIES LANGUAGE CXX)
+  target_sources(mruby PRIVATE ${MRUBY_GEM_C_SOURCES} ${_gem_cpp_files})
+else()
+  target_sources(mruby PRIVATE ${MRUBY_GEM_C_SOURCES})
+endif()
 target_include_directories(mruby PRIVATE
   "${MRUBY_GEMS_BUILD_DIR}"   # for generated gem C files
 )
@@ -583,14 +600,21 @@ foreach(src ${PRESYM_MRUBY_SOURCES})
   # Use relative path as .pi name to avoid collisions (gems + core share filenames)
   cmake_path(RELATIVE_PATH src BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" OUTPUT_VARIABLE src_rel)
   string(REGEX REPLACE "[/\\]" "_" pi_name "${src_rel}")
-  string(REGEX REPLACE "\\.c$" "" pi_name "${pi_name}")
+  string(REGEX REPLACE "\\.c[c+]?$" "" pi_name "${pi_name}")
   set(pi_file "${PI_DIR}/${pi_name}.pi")
   list(APPEND PI_FILES "${pi_file}")
+
+  # Use C++ compiler for .cpp files, C compiler otherwise
+  if(src MATCHES "\\.cpp$")
+    set(_pp_compiler "${CMAKE_CXX_COMPILER}")
+  else()
+    set(_pp_compiler "${CMAKE_C_COMPILER}")
+  endif()
 
   add_custom_command(
     OUTPUT "${pi_file}"
     COMMAND "${Python3_EXECUTABLE}" "${PRESYM_PP_PY}"
-            --compiler "${CMAKE_C_COMPILER}"
+            --compiler "${_pp_compiler}"
             --output "${pi_file}"
             --source "${src}"
             -- ${MRUBY_PP_INCLUDE_FLAGS}
