@@ -235,14 +235,14 @@ void WindowXP::DrawGround(DrawParam param) {
     const auto dst_rect = raylib::IntRect(
         x_ + scale_, y_ + scale_, width_ - 2 * scale_, height_ - 2 * scale_);
     const auto bg_src = raylib::IntRect(0, 0, 64 * scale_, 64 * scale_);
+    const auto bg_tint = raylib::MakeColor((opacity_ * back_opacity_) / 255);
 
     // Background
     if (stretch_) {
-      raylib::DrawTexturePro(window_texture, bg_src, dst_rect, {}, 0,
-                             raylib::WHITE);
+      raylib::DrawTexturePro(window_texture, bg_src, dst_rect, {}, 0, bg_tint);
     } else {
-      raylib::DrawTextureTiled(window_texture, bg_src, dst_rect, {}, 0, 0,
-                               raylib::WHITE);
+      raylib::DrawTextureTiled(window_texture, bg_src, dst_rect, {}, 0, 1,
+                               bg_tint);
     }
 
     // Corners
@@ -255,21 +255,23 @@ void WindowXP::DrawGround(DrawParam param) {
     const auto corner_left_bottom =
         raylib::IntRect(64 * scale_, 24 * scale_, 8 * scale_, 8 * scale_);
 
+    const auto frame_tint = raylib::MakeColor(opacity_);
+
     raylib::DrawTextureRec(window_texture, corner_left_top,
                            {static_cast<float>(x_), static_cast<float>(y_)},
-                           raylib::WHITE);
+                           frame_tint);
     raylib::DrawTextureRec(
         window_texture, corner_right_top,
         {static_cast<float>(x_ + width_ - 8 * scale_), static_cast<float>(y_)},
-        raylib::WHITE);
+        frame_tint);
     raylib::DrawTextureRec(window_texture, corner_right_bottom,
                            {static_cast<float>(x_ + width_ - 8 * scale_),
                             static_cast<float>(y_ + height_ - 8 * scale_)},
-                           raylib::WHITE);
+                           frame_tint);
     raylib::DrawTextureRec(
         window_texture, corner_left_bottom,
         {static_cast<float>(x_), static_cast<float>(y_ + height_ - 8 * scale_)},
-        raylib::WHITE);
+        frame_tint);
 
     // Frames
     const auto frame_up =
@@ -292,14 +294,14 @@ void WindowXP::DrawGround(DrawParam param) {
         raylib::IntRect(x_ + width_ - 8 * scale_, y_ + 8 * scale_, 8 * scale_,
                         height_ - 16 * scale_);
 
-    raylib::DrawTextureTiled(window_texture, frame_up, frame_up_pos, {}, 0, 0,
-                             raylib::WHITE);
+    raylib::DrawTextureTiled(window_texture, frame_up, frame_up_pos, {}, 0, 1,
+                             frame_tint);
     raylib::DrawTextureTiled(window_texture, frame_down, frame_down_pos, {}, 0,
-                             0, raylib::WHITE);
+                             1, frame_tint);
     raylib::DrawTextureTiled(window_texture, frame_left, frame_left_pos, {}, 0,
-                             0, raylib::WHITE);
+                             1, frame_tint);
     raylib::DrawTextureTiled(window_texture, frame_right, frame_right_pos, {},
-                             0, 0, raylib::WHITE);
+                             0, 1, frame_tint);
   }
 }
 
@@ -395,15 +397,18 @@ void WindowXP::DrawAbove(DrawParam param) {
       build_cursor_internal(src, texcoords, scale_);
       build_cursor_internal(dst, positions, scale_);
 
+      const auto cursor_tint =
+          raylib::MakeColor((contents_opacity_ * cursor_opacity_) / 255);
+
       for (int32_t i = 0; i < 9; ++i)
         raylib::DrawTexturePro(window_texture, texcoords[i], positions[i], {},
-                               0, raylib::WHITE);
+                               0, cursor_tint);
     };
 
     // Cursor render (9)
     if (cursor_rect.width > 0 && cursor_rect.height > 0) {
       const auto cursor_dest_rect = raylib::IntRect(
-          cursor_rect.x + 8 * scale_, cursor_rect.y + 8 * scale_,
+          x_ + cursor_rect.x + 8 * scale_, y_ + cursor_rect.y + 8 * scale_,
           cursor_rect.width, cursor_rect.height);
       const auto cursor_src =
           raylib::IntRect(64 * scale_, 32 * scale_, 16 * scale_, 16 * scale_);
@@ -416,13 +421,13 @@ void WindowXP::DrawAbove(DrawParam param) {
                                     (height_ - 8 * scale_) / 2.0f};
 
     const auto scroll_arrow_up_pos =
-        raylib::IntRect(scroll.x, 2 * scale_, 8 * scale_, 4 * scale_);
-    const auto scroll_arrow_down_pos =
-        raylib::IntRect(scroll.x, height_ - 6 * scale_, 8 * scale_, 4 * scale_);
+        raylib::IntRect(x_ + scroll.x, y_ + 2 * scale_, 8 * scale_, 4 * scale_);
+    const auto scroll_arrow_down_pos = raylib::IntRect(
+        x_ + scroll.x, y_ + height_ - 6 * scale_, 8 * scale_, 4 * scale_);
     const auto scroll_arrow_left_pos =
-        raylib::IntRect(2 * scale_, scroll.y, 4 * scale_, 8 * scale_);
-    const auto scroll_arrow_right_pos =
-        raylib::IntRect(width_ - 6 * scale_, scroll.y, 4 * scale_, 8 * scale_);
+        raylib::IntRect(x_ + 2 * scale_, y_ + scroll.y, 4 * scale_, 8 * scale_);
+    const auto scroll_arrow_right_pos = raylib::IntRect(
+        x_ + width_ - 6 * scale_, y_ + scroll.y, 4 * scale_, 8 * scale_);
 
     if (contents_ && !contents_->IsDisposed()) {
       const auto scroll_arrow_up_src =
@@ -458,8 +463,8 @@ void WindowXP::DrawAbove(DrawParam param) {
 
     if (pause_) {
       const auto pause_pos =
-          raylib::IntRect((width_ - 8 * scale_) / 2, height_ - 8 * scale_,
-                          8 * scale_, 8 * scale_);
+          raylib::IntRect(x_ + (width_ - 8 * scale_) / 2,
+                          y_ + height_ - 8 * scale_, 8 * scale_, 8 * scale_);
 
       raylib::DrawTexturePro(window_texture, pause_animation[pause_index_ / 8],
                              pause_pos, {}, 0, raylib::WHITE);
@@ -472,8 +477,9 @@ void WindowXP::DrawAbove(DrawParam param) {
     raylib::rlEnableColorBlend();
     raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
 
-    raylib::DrawTexture(window_texture, 8 * scale_ - ox_, 8 * scale_ - oy_,
-                        raylib::WHITE);
+    raylib::DrawTexture(window_texture, x_ + 8 * scale_ - ox_,
+                        y_ + 8 * scale_ - oy_,
+                        raylib::MakeColor(contents_opacity_));
   }
 
   if (has_cursor || has_contents) {

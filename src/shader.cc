@@ -79,7 +79,7 @@ void main() {
   vec4 frozenColor = texture2D(texture1, fragTexCoord);
   float mappingValue = texture2D(texture2, fragTexCoord).r;
   float current = clamp(mappingValue, progress, progress + vague);
-  gl_FragColor = mix(currentColor, frozenColor, current);
+  gl_FragColor = mix(frozenColor, currentColor, current);
 }
 )";
 
