@@ -41,10 +41,10 @@ static const int kCursorAlphaTable[] = {
 
 Window::Window(int x, int y, int width, int height)
     : ViewportChild(nullptr,
-                    Config::Instance()->rgss_version >= 3
+                    g_config->vxa()
                         ? ZValue(100, std::numeric_limits<int>::max())
                         : ZValue(0, 0)),
-      rgss3_style_(Config::Instance()->rgss_version >= 3),
+      rgss3_style_(g_config->vxa()),
       window_skin_(nullptr),
       contents_(MakeRefCounted<Bitmap>(1, 1)),
       cursor_rect_(MakeRefCounted<Rect>()),
@@ -273,6 +273,9 @@ ATTR_DEF(RefPtr<Tone>, Tone, Window) {
 
 void Window::DisposeObject() {
   Drawable::RemoveFromList();
+
+  window_skin_.reset();
+  contents_.reset();
 }
 
 void Window::Draw(DrawParam param) {

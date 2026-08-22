@@ -14,10 +14,14 @@
 #include "binding_sprite.h"
 #include "binding_table.h"
 #include "binding_tilemap.h"
+#include "binding_tilemap_xp.h"
 #include "binding_tone.h"
 #include "binding_vector.h"
 #include "binding_viewport.h"
 #include "binding_window.h"
+#include "binding_window_xp.h"
+
+#include "src/profile.h"
 
 namespace binding {
 
@@ -36,10 +40,21 @@ void InitBindings(mrb_state* mrb) {
   InitSpriteBinding(mrb);
   InitTableBinding(mrb);
   InitTilemapBinding(mrb);
+  InitTilemapXPBinding(mrb);
   InitToneBinding(mrb);
   InitVectorBinding(mrb);
   InitViewportBinding(mrb);
   InitWindowBinding(mrb);
+  InitWindowXPBinding(mrb);
+
+  auto* tilemap_klass = mrb_class_get(
+      mrb, lime::Config::Instance()->xp() ? "TilemapXP" : "TilemapVX");
+  auto* window_klass = mrb_class_get(
+      mrb, lime::Config::Instance()->xp() ? "WindowXP" : "WindowVX");
+  mrb_define_const(mrb, mrb->kernel_module, "Tilemap",
+                   mrb_obj_value(tilemap_klass));
+  mrb_define_const(mrb, mrb->kernel_module, "Window",
+                   mrb_obj_value(window_klass));
 }
 
 }  // namespace binding

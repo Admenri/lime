@@ -30,7 +30,5 @@ namespace win32 {
 
 std::optional<std::string> GetRTPPath(int version, std::string key);
 
-void CreateConsoleWin();
-
 }  // namespace win32
 }  // namespace platform

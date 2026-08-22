@@ -81,12 +81,17 @@ int main(int argc, char** argv) {
 
 // RTP reading
 #if defined(_WIN32)
-  auto rtp_key = config->rtp;
-  auto rtp_path = platform::win32::GetRTPPath(config->rgss_version, rtp_key);
-  if (rtp_path.has_value()) {
-    io_service->AddLoadPath(rtp_path.value(), "/");
-    raylib::TraceLog(raylib::LOG_INFO, "RTP: %s", rtp_path.value().c_str());
-  }
+  auto add_rtp = [&](std::string key) {
+    auto rtp_path = platform::win32::GetRTPPath(config->rgss_version, key);
+    if (rtp_path.has_value()) {
+      io_service->AddLoadPath(rtp_path.value(), "/");
+      raylib::TraceLog(raylib::LOG_INFO, "RTP: %s", rtp_path.value().c_str());
+    }
+  };
+  add_rtp(config->rtp);
+  add_rtp(config->rtp1);
+  add_rtp(config->rtp2);
+  add_rtp(config->rtp3);
 #endif  // _WIN32
 
   // Main entry

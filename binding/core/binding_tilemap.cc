@@ -112,7 +112,7 @@ BINDING_ATTR_INT(Tilemap, lime::Tilemap, OY);
 BINDING_INHERITED_DISPOABLE(Tilemap, lime::Tilemap);
 
 void InitTilemapBinding(mrb_state* mrb) {
-  auto klass = DefineClass(mrb, "Tilemap");
+  auto klass = DefineClass(mrb, "TilemapVX");
 
   mrb_define_method(mrb, klass, "initialize", Tilemap_initialize,
                     MRB_ARGS_ANY());

@@ -214,6 +214,8 @@ ATTR_DEF(int, ContentsOpacity, WindowXP) {
 }
 
 void WindowXP::DisposeObject() {
+  Drawable::RemoveFromList();
+
   above_.reset();
   windowskin_.reset();
   contents_.reset();
@@ -230,8 +232,8 @@ void WindowXP::DrawGround(DrawParam param) {
     raylib::rlEnableColorBlend();
     raylib::rlSetBlendMode(raylib::RL_BLEND_ALPHA_PREMULTIPLY);
 
-    const auto dst_rect = raylib::IntRect(scale_, scale_, width_ - 2 * scale_,
-                                          height_ - 2 * scale_);
+    const auto dst_rect = raylib::IntRect(
+        x_ + scale_, y_ + scale_, width_ - 2 * scale_, height_ - 2 * scale_);
     const auto bg_src = raylib::IntRect(0, 0, 64 * scale_, 64 * scale_);
 
     // Background
@@ -253,18 +255,21 @@ void WindowXP::DrawGround(DrawParam param) {
     const auto corner_left_bottom =
         raylib::IntRect(64 * scale_, 24 * scale_, 8 * scale_, 8 * scale_);
 
-    raylib::DrawTextureRec(window_texture, corner_left_top, {0, 0},
+    raylib::DrawTextureRec(window_texture, corner_left_top,
+                           {static_cast<float>(x_), static_cast<float>(y_)},
                            raylib::WHITE);
-    raylib::DrawTextureRec(window_texture, corner_right_top,
-                           {static_cast<float>(width_ - 8 * scale_), 0},
-                           raylib::WHITE);
+    raylib::DrawTextureRec(
+        window_texture, corner_right_top,
+        {static_cast<float>(x_ + width_ - 8 * scale_), static_cast<float>(y_)},
+        raylib::WHITE);
     raylib::DrawTextureRec(window_texture, corner_right_bottom,
-                           {static_cast<float>(width_ - 8 * scale_),
-                            static_cast<float>(height_ - 8 * scale_)},
+                           {static_cast<float>(x_ + width_ - 8 * scale_),
+                            static_cast<float>(y_ + height_ - 8 * scale_)},
                            raylib::WHITE);
-    raylib::DrawTextureRec(window_texture, corner_left_bottom,
-                           {0, static_cast<float>(height_ - 8 * scale_)},
-                           raylib::WHITE);
+    raylib::DrawTextureRec(
+        window_texture, corner_left_bottom,
+        {static_cast<float>(x_), static_cast<float>(y_ + height_ - 8 * scale_)},
+        raylib::WHITE);
 
     // Frames
     const auto frame_up =
@@ -277,13 +282,15 @@ void WindowXP::DrawGround(DrawParam param) {
         raylib::IntRect(88 * scale_, 8 * scale_, 8 * scale_, 16 * scale_);
 
     const auto frame_up_pos =
-        raylib::IntRect(8 * scale_, 0, width_ - 16 * scale_, 8 * scale_);
-    const auto frame_down_pos = raylib::IntRect(
-        8 * scale_, height_ - 8 * scale_, width_ - 16 * scale_, 8 * scale_);
+        raylib::IntRect(x_ + 8 * scale_, y_, width_ - 16 * scale_, 8 * scale_);
+    const auto frame_down_pos =
+        raylib::IntRect(x_ + 8 * scale_, y_ + height_ - 8 * scale_,
+                        width_ - 16 * scale_, 8 * scale_);
     const auto frame_left_pos =
-        raylib::IntRect(0, 8 * scale_, 8 * scale_, height_ - 16 * scale_);
-    const auto frame_right_pos = raylib::IntRect(
-        width_ - 8 * scale_, 8 * scale_, 8 * scale_, height_ - 16 * scale_);
+        raylib::IntRect(x_, y_ + 8 * scale_, 8 * scale_, height_ - 16 * scale_);
+    const auto frame_right_pos =
+        raylib::IntRect(x_ + width_ - 8 * scale_, y_ + 8 * scale_, 8 * scale_,
+                        height_ - 16 * scale_);
 
     raylib::DrawTextureTiled(window_texture, frame_up, frame_up_pos, {}, 0, 0,
                              raylib::WHITE);

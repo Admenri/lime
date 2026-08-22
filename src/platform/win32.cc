@@ -29,7 +29,9 @@
 
 namespace {
 
-const char* kRegPath = "SOFTWARE\\Enterbrain\\RGSS3\\RTP";
+const char* kRegPathXP = "SOFTWARE\\Enterbrain\\RGSS\\RTP";
+const char* kRegPathVX = "SOFTWARE\\Enterbrain\\RGSS2\\RTP";
+const char* kRegPathVXA = "SOFTWARE\\Enterbrain\\RGSS3\\RTP";
 
 bool OpenRegistryKey(HKEY root, const char* subKey, HKEY* hKey) {
   LONG ret = RegOpenKeyExA(root, subKey, 0, KEY_READ | KEY_WOW64_32KEY, hKey);
@@ -81,23 +83,6 @@ bool ReadRegistryString(HKEY root,
   return true;
 }
 
-void CreateConsoleWin() {
-  if (::GetConsoleWindow())
-    return;
-
-  if (!::AttachConsole(ATTACH_PARENT_PROCESS)) {
-    ::AllocConsole();
-    ::SetConsoleCP(CP_UTF8);
-    ::SetConsoleOutputCP(CP_UTF8);
-    ::SetConsoleTitleW(L"URGE Debugging Console");
-  }
-
-  // Redirect std handle
-  std::freopen("CONIN$", "rb", stdin);
-  std::freopen("CONOUT$", "wb", stdout);
-  std::freopen("CONOUT$", "wb", stderr);
-}
-
 std::string WStringToUTF8(const std::wstring& wstr) {
   if (wstr.empty())
     return std::string();
@@ -116,6 +101,14 @@ namespace platform {
 namespace win32 {
 
 std::optional<std::string> GetRTPPath(int version, std::string key) {
+  const char* kRegPath = nullptr;
+  if (version == 1)
+    kRegPath = kRegPathXP;
+  if (version == 2)
+    kRegPath = kRegPathVX;
+  if (version == 3)
+    kRegPath = kRegPathVXA;
+
   std::string value;
   auto result =
       ReadRegistryString(HKEY_LOCAL_MACHINE, kRegPath, key.c_str(), value);
@@ -158,8 +151,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     }
     argv.push_back(const_cast<char*>(utf8_args.back().c_str()));
   }
-
-  CreateConsoleWin();
 
   int result = main(argc, argv.data());
 

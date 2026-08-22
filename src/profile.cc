@@ -48,6 +48,9 @@ Config::Config(std::string inifile) {
   ReplaceStringWidth(scripts, '\\', '/');
   title = parser_.Get("Game", "Title", title);
   rtp = parser_.Get("Game", "RTP", rtp);
+  rtp1 = parser_.Get("Game", "RTP1", rtp);
+  rtp2 = parser_.Get("Game", "RTP2", rtp);
+  rtp3 = parser_.Get("Game", "RTP3", rtp);
 
   // Auto-detect the RGSS version from the scripts file extension when
   // it is not explicitly configured (rgss_version == 0).
@@ -69,8 +72,8 @@ Config::Config(std::string inifile) {
 
   soundfont = parser_.Get("Audio", "Soundfont", soundfont);
 
-  width = parser_.GetInt("Window", "Width", width);
-  height = parser_.GetInt("Window", "Height", height);
+  width = parser_.GetInt("Window", "Width", xp() ? 640 : 544);
+  height = parser_.GetInt("Window", "Height", xp() ? 480 : 416);
   vsync = parser_.GetBool("Window", "VSync", vsync);
   fullscreen = parser_.GetInt("Window", "Fullscreen", fullscreen);
 }

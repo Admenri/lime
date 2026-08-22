@@ -36,13 +36,17 @@ class Config : public Singleton<Config> {
 
   int rgss_version = 0;
 
-  std::string scripts = "Data/Scripts.rvdata2";
+  std::string scripts = "Data/Scripts.rxdata";
   std::string title = "(*^▽^*)";
   std::string rtp;
+  std::string rtp1;
+  std::string rtp2;
+  std::string rtp3;
+
   std::string soundfont;
 
-  int width = 544;
-  int height = 416;
+  int width = 640;
+  int height = 480;
   bool vsync = false;
   bool fullscreen = false;
 

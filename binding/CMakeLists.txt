@@ -27,8 +27,10 @@ target_sources(binding_mruby
   core/binding_sprite.cc
   core/binding_table.cc
   core/binding_tilemap.cc
+  core/binding_tilemap_xp.cc
   core/binding_tone.cc
   core/binding_vector.cc
   core/binding_viewport.cc
   core/binding_window.cc
+  core/binding_window_xp.cc
 )

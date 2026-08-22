@@ -293,6 +293,11 @@ extern "C" void lime_main() {
   mrb_define_module_function(mrb, mrb->kernel_module, "save_data", save_data,
                              MRB_ARGS_REQ(2));
 
+  // RGSS Version
+  auto rv = lime::Config::Instance()->rgss_version;
+  mrb_define_const(mrb, mrb->kernel_module, "RGSS_VERSION",
+                   mrb_fixnum_value(rv));
+
   // Dir (CRuby-compatible, backed by the engine's virtual filesystem)
   InitStdlibDir(mrb);
 

@@ -201,7 +201,7 @@ void TilemapXP::Draw(DrawParam param) {
   UpdateAboves();
   UpdateOrder();
   ParseTiles();
-  DrawLayer(0);
+  DrawLayer(-1);
 }
 
 void TilemapXP::UpdateAboves() {
@@ -220,8 +220,7 @@ void TilemapXP::UpdateAboves() {
                                  kMaxPriorities;
   if (above_layers_count != aboves_.size()) {
     aboves_.clear();
-    aboves_.resize(above_layers_count);
-    for (int i = 1; i <= above_layers_count; ++i) {
+    for (int i = 0; i < above_layers_count; ++i) {
       // 1. Tiles with a priority of 0 always have a Z-coordinate of 0.
       // 2. Priority 1 tiles placed at the top edge of the screen have a
       // Z-coordinate of 64.
@@ -240,7 +239,7 @@ void TilemapXP::UpdateOrder() {
   for (int i = 0; i < aboves_.size(); ++i) {
     // i -> 1 [2  3  4   5   6]  7
     // z -> 32 64 96 128 160 192 224
-    const int layer_order = 32 * (render_viewport_.y + i) - oy_;
+    const int layer_order = 32 * (render_viewport_.y + i + 2) - oy_;
     aboves_[i]->Attr_Z(layer_order);
   }
 }
@@ -403,7 +402,7 @@ void TilemapXP::ParseTiles() {
       target = &ground_cache_;
     } else {
       // Above multi layers
-      target = &aboves_cache_[y + priority - 1];
+      target = &aboves_cache_[y + priority];
     }
 
     if (tile_id < 48 * 8)
@@ -449,15 +448,19 @@ void TilemapXP::DrawLayer(int id) {
 
   // Target choose
   std::vector<TileQuad>* target = nullptr;
-  if (id == 0) {
+  if (id == -1) {
     target = &ground_cache_;
   } else {
-    target = &aboves_cache_[id - 1];
+    target = &aboves_cache_[id];
   }
 
-  for (auto& quad : *target)
-    raylib::DrawTexturePro(quad.texture, quad.source, quad.destination, {}, 0,
+  for (auto& quad : *target) {
+    raylib::Rectangle dest = quad.destination;
+    dest.x += render_offset_.x;
+    dest.y += render_offset_.y;
+    raylib::DrawTexturePro(quad.texture, quad.source, dest, {}, 0,
                            raylib::WHITE);
+  }
 }
 
 }  // namespace lime

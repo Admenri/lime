@@ -91,7 +91,7 @@ void Audio::SetupMIDI() {
     return;
   midi_ready_ = true;  // only attempt once (config does not change at runtime)
 
-  const std::string& path = Config::Instance()->soundfont;
+  const std::string& path = g_config->soundfont;
   if (path.empty()) {
     raylib::TraceLog(raylib::LOG_WARNING,
                      "AUDIO: MIDI disabled, no soundfont configured");

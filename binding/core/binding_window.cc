@@ -117,7 +117,7 @@ BINDING_ATTR_BOOL(Window, lime::Window, Visible);
 BINDING_ATTR_INT(Window, lime::Window, Z);
 
 void InitWindowBinding(mrb_state* mrb) {
-  auto klass = DefineClass(mrb, "Window");
+  auto klass = DefineClass(mrb, "WindowVX");
 
   mrb_define_method(mrb, klass, "initialize", Window_initialize,
                     MRB_ARGS_ANY());
